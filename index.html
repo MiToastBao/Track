@@ -221,7 +221,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-11';
+    const APP_VERSION='2026.07.26-12';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1843,7 +1843,7 @@ function adjustUnitHp(unit,action,amount){
         const unit=findUnit(monsterRemember.dataset.monsterRemember);
         if(unit&&(unit.type==='monster'||unit.isSummon)){
           saveHistory();
-          const old=monsterTemplates.find(item=>item.name===unit.name);
+          const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||''));
           const templatePassives=(unit.passives||[]).filter(p=>!p.sourceThresholdId).map(p=>({id:uuid(),name:p.name,color:p.color}));
           const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:templatePassives,attributes:(unit.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(unit.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),isBoss:!!unit.isBoss,isSummon:!!unit.isSummon,level:unit.level||(old?.level||''),cardCount:(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.length:(old?.cardCount||1),cardNames:(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.map(c=>c.name||''):(old?.cardNames||[]),hpThresholds:unit.isBoss&&Array.isArray(unit.hpThresholds)?unit.hpThresholds.map(t=>({id:uuid(),value:t.value,passiveName:t.passiveName,triggered:false,autoRemove:!!t.autoRemove})):(old?.hpThresholds||[])};
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
@@ -1886,7 +1886,7 @@ function adjustUnitHp(unit,action,amount){
           squad.attributes=(unit.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color}));
           squad.bars=(unit.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}));
           squadMembers(squad.id).forEach(member=>{if(member.id===unit.id)return;member.maxHp=squad.maxHp;member.hp=Math.min(member.hp,member.maxHp);member.color=squad.color;member.passives=squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color}));member.attributes=squad.attributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color}));member.bars=squad.bars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}))});
-          const oldTemplate=monsterTemplates.find(item=>item.name===squad.name);
+          const oldTemplate=monsterTemplates.find(item=>item.name===squad.name&&(item.level||'')===(squad.level||''));
           const template={id:oldTemplate?.id||uuid(),name:squad.name,maxHp:squad.maxHp,color:squad.color,statuses:[],isSquad:true,squadCount:squadMembers(squad.id).length,passives:squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color})),attributes:squad.attributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:squad.bars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}))};
           if(oldTemplate)Object.assign(oldTemplate,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
           saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
@@ -2037,7 +2037,7 @@ function adjustUnitHp(unit,action,amount){
           const unit={id:uuid(),name,hp:maxHp,maxHp,type:'monster',color,statuses:[],attributes:[],bars:[],passives:[],isBoss:asBoss};
           if(asBoss)unit.actionCards=Array.from({length:cardCount},()=>({id:uuid(),name:'',turnEnded:false}));
           monsters.push(unit);
-          const old=monsterTemplates.find(item=>item.name===name);
+          const old=monsterTemplates.find(item=>item.name===name&&!item.level);
           const template={id:old?.id||uuid(),name,maxHp,color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:asBoss,cardCount:asBoss?cardCount:(old?.cardCount||1),cardNames:asBoss?unit.actionCards.map(()=>''):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[]};
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
         });
@@ -2325,7 +2325,7 @@ function adjustUnitHp(unit,action,amount){
           for(let i=1;i<=count;i++){
             monsters.push({id:uuid(),name:`${baseName} ${i}`,hp:max,maxHp:max,type:'monster',color,squadId:squad.id,statuses:[],attributes:[],bars:[],passives:[],level});
           }
-          const old=monsterTemplates.find(item=>item.name===baseName);
+          const old=monsterTemplates.find(item=>item.name===baseName&&(item.level||'')===(level||''));
           const template={id:old?.id||uuid(),name:baseName,maxHp:max,color,statuses:[],isSquad:true,squadCount:count,passives:[],attributes:[],bars:[],isBoss:false,level};
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
           saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
@@ -2340,14 +2340,14 @@ function adjustUnitHp(unit,action,amount){
           if(type==='player'){
             players.push(unit);
             if(isSummon){
-              const old=monsterTemplates.find(item=>item.name===unit.name);
+              const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||''));
               const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:false,isSummon:true,cardCount:unit.actionCards.length,cardNames:unit.actionCards.map(c=>c.name||''),hpThresholds:[],level};
               if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
               saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
             }
           }else{
             monsters.push(unit);
-            const old=monsterTemplates.find(item=>item.name===unit.name);
+            const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||''));
             const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss,isSummon:false,cardCount:isBoss?unit.actionCards.length:(old?.cardCount||1),cardNames:isBoss?unit.actionCards.map(c=>c.name||''):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[],level};
             if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
             saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
