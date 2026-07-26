@@ -63,7 +63,7 @@
     .shop-cat-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
     .shop-cat-tab{flex-shrink:0;background:var(--btn-bg);border:1px solid var(--line);color:var(--muted);font-size:.8rem;padding:8px 14px;border-radius:16px;white-space:nowrap}
     .shop-cat-tab.active{background:var(--focus-bg);border-color:var(--primary);color:var(--primary);font-weight:700}
-    #shopGmFab{display:none;position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:65;width:56px;height:56px;border-radius:50%;background:#8a5cd6;color:#fff;border:none;font-size:28px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.35);align-items:center;justify-content:center}
+    #shopGmFab{display:none;position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:65;height:48px;padding:0 18px;border-radius:24px;background:#8a5cd6;color:#fff;border:none;font-size:14px;font-weight:700;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.35);align-items:center;justify-content:center;white-space:nowrap}
     #shopNavFab{display:none;position:fixed;left:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:65;width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:24px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.35);align-items:center;justify-content:center}
     .shop-sheet{background:var(--card);width:100%;max-width:640px;border-radius:18px 18px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
     .shop-sheet-head{flex:0 0 auto;height:0;padding:0}
@@ -91,6 +91,14 @@
     <div class="tab-panel" id="tabPanelInitiative" data-tab-panel="initiative">
     <div class="section-head" id="tabSectionInitiative"><h2 class="section-title">🎲 先攻區</h2><div class="section-head-actions"><div class="round-counter"><span class="round-counter-label">回合數</span><button type="button" id="roundMinus" aria-label="減少回合數">−</button><span id="roundValue" class="round-counter-value">1</span><button type="button" id="roundPlus" aria-label="增加回合數">+</button></div><button type="button" id="nextTurn" class="primary">▶ 下一位</button><button type="button" id="shuffleInitiative">🔀 隨機排序</button><button type="button" id="toggleShuffleMode">🔒 固定順序</button><button type="button" id="toggleAutoScroll">📍 自動捲動：開</button><button type="button" id="resetAllTurns">↺ 重置全部回合</button><button type="button" id="toggleInitiative">收合先攻區</button></div></div>
     <section class="initiative-panel" id="initiativeContent"><div class="initiative-list" id="initiativeList"></div></section>
+    <div id="initiativeValuePanel" hidden style="margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)">
+      <div class="toolbar" style="margin-bottom:8px">
+        <span style="flex:1;font-weight:700">🔢 輸入每個角色的先攻值</span>
+        <button type="button" id="initiativeValueDescToggle">⬇️ 先攻值大的先行動</button>
+        <button type="button" class="primary" id="btnApplyInitiativeValueSort">✅ 套用排序</button>
+      </div>
+      <div id="initiativeValueList"></div>
+    </div>
     </div>
     <div class="tab-panel" id="tabPanelPlayer" data-tab-panel="player">
     <div class="section-head" id="tabSectionPlayer"><h2 class="section-title">&#128737;&#65039; &#29609;&#23478;&#36039;&#35338;</h2><div class="section-head-actions"><button type="button" class="danger" id="resetPlayerHpStatus">&#8635; &#37325;&#32622;&#34880;&#37327;&#33287;&#29376;&#24907;</button><button type="button" id="togglePlayers">&#25910;&#21512;&#29609;&#23478;&#36039;&#35338;</button></div></div>
@@ -113,11 +121,11 @@
     <div class="tab-panel" id="tabPanelGM" data-tab-panel="gm" hidden>
     <div class="section-head" id="tabSectionGM"><h2 class="section-title">🧰 GM區</h2></div>
     <button type="button" id="btnOpenMonsterTagLibrary" class="shop-cat-tab" style="width:100%;text-align:left;padding:12px 14px;margin-bottom:14px;font-size:.95rem;display:flex;align-items:center;justify-content:space-between">
-      <span>🏷 怪物標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
+      <span>🏷 標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
       <span style="color:var(--muted)">›</span>
     </button>
     <form class="add-form" id="addForm">
-      <select id="unitType" aria-label="角色類型"><option value="player">玩家</option><option value="monster">怪物</option><option value="boss">頭目</option></select>
+      <select id="unitType" aria-label="角色類型"><option value="player">玩家</option><option value="monster">怪物</option><option value="boss">頭目</option><option value="summon">召喚物</option></select>
       <input id="unitName" maxlength="20" required placeholder="名稱">
       <input id="unitMaxHp" type="number" min="1" max="999999" value="100" required aria-label="最大血量">
       <input id="unitColor" type="color" value="#36a9ff" aria-label="個體識別顏色">
@@ -127,13 +135,17 @@
       <div class="palette-controls"><div class="color-palette" id="colorPalette" aria-label="常用色盤"></div><button type="button" id="savePaletteColor">加入常用色</button></div>
       <button class="primary">新增角色</button>
     </form>
-    <div class="section-head" id="tabSectionCardDraw"><h2 class="section-title" style="font-size:1.05rem">🃏 怪物卡牌隨機抽取</h2></div>
-    <button type="button" class="manage-toggle" id="toggleCardDraw">▼ 展開功能</button>
-    <div id="cardDrawPanel" hidden>
-      <form class="tag-form" id="cardTierForm"><input id="cardTierName" maxlength="20" required placeholder="新增等級名稱（例如：白）"><button class="primary">新增等級</button><button type="button" class="danger" id="btnClearAllHistory">清除所有抽取歷史紀錄</button></form>
-      <div id="cardTierList"></div>
-    </div>
     <div id="gmPanelContent"></div>
+    <div class="shop-section" id="cardDrawSection">
+      <button type="button" class="shop-section-head" id="toggleCardDraw" style="width:100%">
+        <span>🃏 怪物卡牌隨機抽取</span>
+        <span class="shop-chev" id="cardDrawChev">▸</span>
+      </button>
+      <div class="shop-section-body" id="cardDrawPanel" hidden>
+        <form class="tag-form" id="cardTierForm"><input id="cardTierName" maxlength="20" required placeholder="新增等級名稱（例如：白）"><button class="primary">新增等級</button><button type="button" class="danger" id="btnClearAllHistory">清除所有抽取歷史紀錄</button></form>
+        <div id="cardTierList"></div>
+      </div>
+    </div>
     </div>
     <div class="tab-panel" id="tabPanelSystem" data-tab-panel="system">
     <div class="section-head" id="tabSectionSystem"><h2 class="section-title">&#9881;&#65039; &#31995;&#32113;</h2></div>
@@ -166,7 +178,7 @@
     </div>
   </main>
   <button type="button" id="floatingNextTurn" class="floating-next-turn" title="下一位（不用捲回頂端）">▶️<br>下一位</button>
-  <button type="button" id="shopGmFab" title="新增商品卡">＋</button>
+  <button type="button" id="shopGmFab" title="新增商品卡">＋ 新增商品卡</button>
   <button type="button" id="shopNavFab" title="篩選／跳轉">🧭</button>
   <div class="shop-overlay" id="shopNavOverlay">
     <div class="shop-sheet">
@@ -178,7 +190,7 @@
     <div class="shop-sheet">
       <div class="shop-sheet-head"><button class="shop-sheet-close" id="monsterTagCloseX">✕</button></div>
       <div class="shop-sheet-scroll">
-        <h3 style="margin-top:0">🏷 怪物標籤庫</h3>
+        <h3 style="margin-top:0">🏷 標籤庫</h3>
         <div class="toolbar" style="margin-bottom:10px">
           <input type="text" id="monsterTagSearchInput" placeholder="🔍 搜尋怪物名稱…" style="flex:2;min-width:140px">
           <select id="monsterTagLevelFilter" style="flex:1;min-width:100px"><option value="">全部等級</option></select>
@@ -201,7 +213,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-6';
+    const APP_VERSION='2026.07.26-7';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -449,6 +461,9 @@
     let roundCounter=savedCurrentState?.roundCounter??1;
     let currentTurnId=typeof savedCurrentState?.currentTurnId==='string'?savedCurrentState.currentTurnId:null;
     let shuffleEachRound=savedCurrentState?.shuffleEachRound===true;
+    let initiativeMode=['fixed','random','value'].includes(savedCurrentState?.initiativeMode)?savedCurrentState.initiativeMode:(shuffleEachRound?'random':'fixed');
+    let initiativeValues=(savedCurrentState&&typeof savedCurrentState.initiativeValues==='object'&&savedCurrentState.initiativeValues)?savedCurrentState.initiativeValues:{};
+    let initiativeValueDesc=savedCurrentState?.initiativeValueDesc!==false;
     let autoScrollOnNextTurn=savedCurrentState?.autoScrollOnNextTurn!==false;
     const VALID_TABS=['initiative','player','monster','shop','gm','system'];
     let activeTab=VALID_TABS.includes(savedCurrentState?.activeTab)?savedCurrentState.activeTab:'initiative';
@@ -540,6 +555,7 @@
         const lvTag=t.level?`〔${t.level}〕`:'';
         if(t.isSquad)return{...t,name:`🛡️ ${lvTag}${t.name} ×${t.squadCount}`};
         if(t.isBoss)return{...t,name:`👑 ${lvTag}${t.name}${t.cardCount>1?` (${t.cardCount}張先攻卡)`:''}`};
+        if(t.isSummon)return{...t,name:`🔮 ${lvTag}${t.name}${t.cardCount>1?` (${t.cardCount}張先攻卡)`:''}`};
         return{...t,name:`${lvTag}${t.name}`};
       });
       const emptyText=monsterTemplates.length?'沒有符合搜尋/篩選條件的怪物標籤':'還沒有記憶的怪物標籤';
@@ -803,12 +819,12 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function cardHtml(unit){
         const turnEnded=isUnitTurnEnded(unit);
         const percent=Math.round(unit.hp/unit.maxHp*100);const low=percent<=25?'background:#ff4a58':percent<=50?'background:#ffad42':'';
-        const icon=unit.type==='player'?'&#128737;&#65039;':unit.isBoss?'&#128081;':'&#128126;';const state=unit.hp===0?text.defeated:unit.hp===unit.maxHp?text.good:text.hurt;
+        const icon=unit.isSummon?'&#128302;':unit.type==='player'?'&#128737;&#65039;':unit.isBoss?'&#128081;':'&#128126;';const state=unit.hp===0?text.defeated:unit.hp===unit.maxHp?text.good:text.hurt;
         const squad=unit.type==='monster'&&unit.squadId?findSquad(unit.squadId):null;
         const squadBadge=squad?`<div class="squad-badge"><span class="squad-badge-text">&#128737; ${escapeHtml(squad.name)} &#183; &#23384;&#27963; ${squadAliveCount(squad.id)}/${squadMembers(squad.id).length}</span><button type="button" data-squad-rename="${unit.squadId}" title="&#37325;&#26032;&#21629;&#21517;&#23567;&#38538;&#65288;&#26371;&#8203;&#21516;&#27493;&#25913;&#21517;&#31526;&#21512;&#32232;&#34399;&#26684;&#24335;&#30340;&#25104;&#21729;&#65289;">&#9998; &#37325;&#21629;&#21517;</button><button type="button" data-squad-sync="${unit.id}" title="&#23559;&#34880;&#37327;&#19978;&#38480;/&#38991;&#33394;/&#34987;&#21205;&#33021;&#21147;/&#33258;&#35330;&#23660;&#24615;/&#25976;&#20540;&#26465;&#22871;&#29992;&#21040;&#20854;&#20182;&#25104;&#21729;">&#8635; &#22871;&#29992;&#21040;&#23567;&#38538;</button><button type="button" data-squad-add="${unit.squadId}">&#65291;&#22686;&#21152;1&#38587;</button><button type="button" class="squad-disband" data-squad-disband="${unit.squadId}">&#35299;&#25955;&#23567;&#38538;</button></div>`:'';
-        const activeCard=unit.isBoss&&Array.isArray(unit.actionCards)?unit.actionCards.find(c=>currentTurnId===`card:${unit.id}:${c.id}`):null;
+        const activeCard=(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.find(c=>currentTurnId===`card:${unit.id}:${c.id}`):null;
         const activeCardLabel=activeCard?(activeCard.name&&activeCard.name.trim()?activeCard.name.trim():`#${unit.actionCards.indexOf(activeCard)+1}`):'';
-        const bossBadge=unit.isBoss&&Array.isArray(unit.actionCards)?`<div class="squad-badge"><span class="squad-badge-text">&#128081; &#20808;&#25915;&#21345; &#183; &#24050;&#23436;&#25104; ${unit.actionCards.filter(c=>c.turnEnded).length}/${unit.actionCards.length}${activeCard?` &#183; &#9654; &#30446;&#21069;&#65306;${escapeHtml(activeCardLabel)}`:''}</span><button type="button" data-boss-card-add="${unit.id}" title="&#22312;&#20808;&#25915;&#21312;&#26049;&#30058;&#65275;&#22312;&#26356;&#22810;&#12290;">&#65291; &#26032;&#22686;&#19968;&#24373;&#20808;&#25915;&#21345;</button></div>`:'';
+        const bossBadge=(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?`<div class="squad-badge"><span class="squad-badge-text">${unit.isSummon?'&#128302;':'&#128081;'} &#20808;&#25915;&#21345; &#183; &#24050;&#23436;&#25104; ${unit.actionCards.filter(c=>c.turnEnded).length}/${unit.actionCards.length}${activeCard?` &#183; &#9654; &#30446;&#21069;&#65306;${escapeHtml(activeCardLabel)}`:''}</span><button type="button" data-boss-card-add="${unit.id}" title="&#22312;&#20808;&#25915;&#21312;&#26049;&#30058;&#65275;&#22312;&#26356;&#22810;&#12290;">&#65291; &#26032;&#22686;&#19968;&#24373;&#20808;&#25915;&#21345;</button></div>`:'';
         const crossedThresholds=unit.isBoss&&Array.isArray(unit.hpThresholds)?unit.hpThresholds.filter(t=>unit.hp<t.value).sort((a,b)=>a.value-b.value):[];
         const severityClass=crossedThresholds.length>=2?'hp-danger':crossedThresholds.length===1?'hp-warning':'';
         const thresholdWarning=crossedThresholds.length?` &#8226; ${crossedThresholds.length>=2?'&#128128;':'&#9888;&#65039;'} &#24050;&#20302;&#26044; ${crossedThresholds[0].value}${crossedThresholds.length>=2?`&#65288;&#20849;&#36386;&#30772; ${crossedThresholds.length} &#26465;&#8203;&#35686;&#25106;&#32218;&#65289;`:''}`:'';
@@ -921,7 +937,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function currentSaveState(){return cloneState({players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,cardTiers})}
     function loadSaveState(state){players=state.players||[];monsters=state.monsters||[];actionTags=state.actionTags||[];statusTemplates=state.statusTemplates||[];monsterTemplates=state.monsterTemplates||[];attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors||[...defaultPalette];initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];cardTiers=state.cardTiers||[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers)}
     function memoryHtml(unit){const bars=unitTemplateListHtml(unit.id,barTemplates,{addAttr:'bar-template-add',idAttr:'bar-template-id',deleteAttr:'bar-template-delete',emptyText:'&#28961;&#35352;&#25014;&#25976;&#20540;&#26465;'});return `<div class="memory-tags"><div class="condition-title">&#24050;&#35352;&#25014;&#25976;&#20540;&#26465;</div><div class="saved-status-tags">${bars}</div></div>`}
-    function autosave(){saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerSummaryExpanded,monsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,autoScrollOnNextTurn,squads,activeTab})}
+    function autosave(){saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerSummaryExpanded,monsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,squads,activeTab})}
     let autosaveTimer=null;
     function scheduleAutosave(){
       if(autosaveTimer)clearTimeout(autosaveTimer);
@@ -1045,10 +1061,11 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(!item||typeof item!=='object')return null;
       const maxHp=Math.max(1,Math.min(999999,Math.floor(Number(item.maxHp))||100));
       const hp=Math.max(0,Math.min(maxHp,Math.floor(Number(item.hp))||0));
-      const unit={id:sanitizeId(item.id),name:String(item.name??'').trim().slice(0,20)||(type==='player'?'\u73a9\u5bb6':'\u602a\u7269'),hp,maxHp,type,color:sanitizeColor(item.color,type==='player'?'#36a9ff':'#ff5b6d'),statuses:sanitizeStatusList(item.statuses),attributes:sanitizeAttributeList(item.attributes),bars:sanitizeBarList(item.bars),passives:sanitizePassiveList(item.passives)};
+      const unit={id:sanitizeId(item.id),name:String(item.name??'').trim().slice(0,20)||(type==='player'?'\u73a9\u5bb6':'\u602a\u7269'),hp,maxHp,type,color:sanitizeColor(item.color,type==='player'?'#36a9ff':'#ff5b6d'),statuses:sanitizeStatusList(item.statuses),attributes:sanitizeAttributeList(item.attributes),bars:sanitizeBarList(item.bars),passives:sanitizePassiveList(item.passives),level:typeof item.level==='string'?item.level.trim().slice(0,20):''};
       unit.turnEnded=!!item.turnEnded;
       if(type==='monster')unit.isBoss=!!item.isBoss;
-      if(type==='monster'&&unit.isBoss)unit.actionCards=sanitizeActionCards(item.actionCards);
+      if(type==='player')unit.isSummon=!!item.isSummon;
+      if(unit.isBoss||unit.isSummon)unit.actionCards=sanitizeActionCards(item.actionCards);
       if(type==='monster'&&unit.isBoss)unit.hpThresholds=sanitizeHpThresholds(item.hpThresholds);
       if(type==='monster'&&typeof item.squadId==='string'&&SAFE_ID_RE.test(item.squadId))unit.squadId=item.squadId;
       return unit;
@@ -1072,7 +1089,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const cardNamesRaw=Array.isArray(x.cardNames)?x.cardNames.map(n=>String(n??'').trim().slice(0,30)):[];
         const cardNames=Array.from({length:cardCount},(_,i)=>cardNamesRaw[i]||'');
         const hpThresholds=sanitizeHpThresholds(x.hpThresholds).map(t=>({...t,triggered:false}));
-        return {id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,20)||'\u602a\u7269',maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),color:sanitizeColor(x.color,'#ff5b6d'),statuses:sanitizeStatusList(x.statuses),isSquad:!!x.isSquad,squadCount:Math.max(2,Math.min(12,Math.floor(Number(x.squadCount))||3)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars),isBoss:!!x.isBoss,cardCount,cardNames,hpThresholds,level:typeof x.level==='string'?x.level.trim().slice(0,20):''};
+        return {id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,20)||'\u602a\u7269',maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),color:sanitizeColor(x.color,'#ff5b6d'),statuses:sanitizeStatusList(x.statuses),isSquad:!!x.isSquad,squadCount:Math.max(2,Math.min(12,Math.floor(Number(x.squadCount))||3)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars),isBoss:!!x.isBoss,isSummon:!!x.isSummon,cardCount,cardNames,hpThresholds,level:typeof x.level==='string'?x.level.trim().slice(0,20):''};
       }):[];
     }
     function sanitizePalette(list){return Array.isArray(list)?list.filter(c=>typeof c==='string'&&HEX_COLOR_RE.test(c)):[...defaultPalette]}
@@ -1106,7 +1123,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const squadIds=new Set(squads.map(s=>s.id));
       const {players,monsters,initiativeOrder}=sanitizePlayersAndMonsters(raw,squadIds);
       const validTurnIds=new Set(initiativeOrder);
-      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,squads};
+      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,squads};
     }
     function sanitizeSaveFiles(list){
       if(!Array.isArray(list))return[];
@@ -1237,7 +1254,14 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     }
     function initiativeEligibleIds(){
       const ids=[];
-      players.forEach(p=>{if(p.hp>0)ids.push(p.id)});
+      players.forEach(p=>{
+        if(p.hp<=0)return;
+        if(p.isSummon&&Array.isArray(p.actionCards)&&p.actionCards.length){
+          p.actionCards.forEach(card=>ids.push(`card:${p.id}:${card.id}`));
+        }else{
+          ids.push(p.id);
+        }
+      });
       const seenSquads=new Set();
       monsters.forEach(m=>{
         if(m.squadId&&findSquad(m.squadId)){
@@ -1406,7 +1430,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         players.forEach(p=>p.turnEnded=false);
         monsters.forEach(m=>{m.turnEnded=false;if(Array.isArray(m.actionCards))m.actionCards.forEach(c=>c.turnEnded=false)});
         document.querySelector('#roundValue').textContent=roundCounter;
-        if(shuffleEachRound&&initiativeOrder.length>1)shuffleArray(initiativeOrder);
+        if(initiativeMode==='random'&&initiativeOrder.length>1)shuffleArray(initiativeOrder);
         entries=initiativeEntries();
         currentTurnId=entries.length?entries[0].id:null;
       }else{
@@ -1420,6 +1444,22 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(initiativeOrder.length<2)return;
       saveHistory();
       shuffleArray(initiativeOrder);
+      render();
+    }
+    function applyInitiativeValueSort(){
+      syncInitiativeOrder();
+      if(initiativeOrder.length<2)return;
+      saveHistory();
+      const dir=initiativeValueDesc?-1:1;
+      initiativeOrder=[...initiativeOrder].sort((a,b)=>{
+        const va=Number(initiativeValues[a]);
+        const vb=Number(initiativeValues[b]);
+        const na=Number.isFinite(va)?va:-Infinity;
+        const nb=Number.isFinite(vb)?vb:-Infinity;
+        if(na===nb)return 0;
+        return na<nb?dir*-1:dir;
+      });
+      scheduleAutosave();
       render();
     }
     function moveInitiative(id,dir){
@@ -1544,11 +1584,11 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return allUnits().find(unit=>unit.id===id);
     }
     function isUnitTurnEnded(unit){
-      if(unit.isBoss&&Array.isArray(unit.actionCards)&&unit.actionCards.length)return unit.actionCards.every(c=>c.turnEnded);
+      if((unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)&&unit.actionCards.length)return unit.actionCards.every(c=>c.turnEnded);
       return !!unit.turnEnded;
     }
     function toggleUnitTurn(unit){
-      if(unit.isBoss&&Array.isArray(unit.actionCards)&&unit.actionCards.length){
+      if((unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)&&unit.actionCards.length){
         const allEnded=unit.actionCards.every(c=>c.turnEnded);
         unit.actionCards.forEach(c=>c.turnEnded=!allEnded);
       }else{
@@ -1720,6 +1760,8 @@ function adjustUnitHp(unit,action,amount){
             for(let i=1;i<=template.squadCount;i++){
               monsters.push({id:uuid(),name:`${template.name} ${i}`,hp:template.maxHp,maxHp:template.maxHp,type:'monster',color:template.color,squadId:squad.id,statuses:[],attributes:squadAttributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:squadBars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:squadPassives.map(p=>({id:uuid(),name:p.name,color:p.color})),level:template.level||''});
             }
+          }else if(template.isSummon){
+            players.push({id:uuid(),name:template.name,hp:template.maxHp,maxHp:template.maxHp,type:'player',color:template.color,statuses:[],attributes:(template.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(template.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:(template.passives||[]).map(p=>({id:uuid(),name:p.name,color:p.color})),isSummon:true,level:template.level||'',actionCards:Array.from({length:Math.max(1,template.cardCount||1)},(_,i)=>({id:uuid(),name:(template.cardNames&&template.cardNames[i])||'',turnEnded:false}))});
           }else{
             monsters.push({id:uuid(),name:template.name,hp:template.maxHp,maxHp:template.maxHp,type:'monster',color:template.color,statuses:template.statuses.map(item=>({...item,id:uuid()})),attributes:(template.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(template.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:(template.passives||[]).map(p=>({id:uuid(),name:p.name,color:p.color})),isBoss:!!template.isBoss,level:template.level||'',...(template.isBoss?{actionCards:Array.from({length:Math.max(1,template.cardCount||1)},(_,i)=>({id:uuid(),name:(template.cardNames&&template.cardNames[i])||'',turnEnded:false})),hpThresholds:(template.hpThresholds||[]).map(t=>({id:uuid(),value:t.value,passiveName:t.passiveName,triggered:false,autoRemove:!!t.autoRemove}))}:{})});
           }
@@ -1828,7 +1870,7 @@ function adjustUnitHp(unit,action,amount){
       const bossCardAdd=event.target.closest('[data-boss-card-add]');
       if(bossCardAdd){
         const unit=findUnit(bossCardAdd.dataset.bossCardAdd);
-        if(unit&&unit.isBoss){
+        if(unit&&(unit.isBoss||unit.isSummon)){
           if(!Array.isArray(unit.actionCards))unit.actionCards=[];
           if(unit.actionCards.length>=10){alert('\u5148\u653b\u5361\u6578\u91cf\u5df2\u9054\u4e0a\u9650\uff0810\u5f35\uff09\u3002');return}
           saveHistory();
@@ -2236,11 +2278,12 @@ function adjustUnitHp(unit,action,amount){
         event.preventDefault();
         const formType=document.querySelector('#unitType').value;
         const isBoss=formType==='boss';
-        const type=isBoss?'monster':formType;
+        const isSummon=formType==='summon';
+        const type=isBoss?'monster':(isSummon?'player':formType);
         const name=document.querySelector('#unitName');
         const max=Number(document.querySelector('#unitMaxHp').value);
         const color=document.querySelector('#unitColor').value;
-        const level=type==='player'?'':String(document.querySelector('#unitLevel').value||'').trim().slice(0,20);
+        const level=type==='player'&&!isSummon?'':String(document.querySelector('#unitLevel').value||'').trim().slice(0,20);
         const asSquad=type==='monster'&&!isBoss&&document.querySelector('#unitAsSquad').checked;
         saveHistory();
         if(asSquad){
@@ -2258,15 +2301,23 @@ function adjustUnitHp(unit,action,amount){
         }else{
           const unit={id:uuid(),name:name.value.trim(),hp:max,maxHp:max,type,color,statuses:[],attributes:[],bars:[],passives:[],turnEnded:false,level};
           if(type==='monster')unit.isBoss=isBoss;
-          if(isBoss){
+          if(isSummon)unit.isSummon=true;
+          if(isBoss||isSummon){
             const cardCount=Math.max(1,Math.min(10,Math.floor(Number(document.querySelector('#unitBossCardCount').value))||1));
             unit.actionCards=Array.from({length:cardCount},()=>({id:uuid(),name:'',turnEnded:false}));
           }
-          if(type==='player')players.push(unit);
-          else{
+          if(type==='player'){
+            players.push(unit);
+            if(isSummon){
+              const old=monsterTemplates.find(item=>item.name===unit.name);
+              const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:false,isSummon:true,cardCount:unit.actionCards.length,cardNames:unit.actionCards.map(c=>c.name||''),hpThresholds:[],level};
+              if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
+              saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
+            }
+          }else{
             monsters.push(unit);
             const old=monsterTemplates.find(item=>item.name===unit.name);
-            const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss,cardCount:isBoss?unit.actionCards.length:(old?.cardCount||1),cardNames:isBoss?unit.actionCards.map(c=>c.name||''):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[],level};
+            const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss,isSummon:false,cardCount:isBoss?unit.actionCards.length:(old?.cardCount||1),cardNames:isBoss?unit.actionCards.map(c=>c.name||''):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[],level};
             if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
             saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
           }
@@ -2288,7 +2339,7 @@ function adjustUnitHp(unit,action,amount){
       squadOption.hidden=type!=='monster';
       if(type!=='monster')document.querySelector('#unitAsSquad').checked=false;
       document.querySelector('#unitSquadCount').hidden=!document.querySelector('#unitAsSquad').checked;
-      document.querySelector('#bossCardOption').hidden=type!=='boss';
+      document.querySelector('#bossCardOption').hidden=type!=='boss'&&type!=='summon';
       document.querySelector('#unitLevel').hidden=type==='player';
     }
     document.querySelector('#unitType').addEventListener('change',updateSquadOptionVisibility);
@@ -2313,14 +2364,46 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#undo').addEventListener('click',restoreHistory);
     document.querySelector('#redo').addEventListener('click',redoHistory);
     document.querySelector('#shuffleInitiative').addEventListener('click',shuffleInitiative);
+    const INITIATIVE_MODE_LABEL={fixed:'🔒 固定順序',random:'🎲 每輪隨機',value:'🔢 先攻值決定'};
+    const INITIATIVE_MODE_TITLE={fixed:'目前：固定順序，只有手動按「隨機排序」才會變。點擊切換為每輪隨機。',random:'目前：每輪開始時自動重新隨機排列先攻。點擊切換為由先攻值決定。',value:'目前：由先攻值決定順序，下方會出現先攻值輸入表。點擊切換回固定順序。'};
     function updateShuffleModeButton(){
       const btn=document.querySelector('#toggleShuffleMode');
-      btn.textContent=shuffleEachRound?'🎲 每輪隨機':'🔒 固定順序';
-      btn.classList.toggle('good',shuffleEachRound);
-      btn.title=shuffleEachRound?'\u76ee\u524d\uff1a\u6bcf\u8f2a\u958b\u59cb\u6642\u81ea\u52d5\u91cd\u65b0\u96a8\u6a5f\u6392\u5217\u5148\u653b\u3002\u9ede\u64ca\u5207\u63db\u70ba\u56fa\u5b9a\u9806\u5e8f\u3002':'\u76ee\u524d\uff1a\u6bcf\u8f2a\u9806\u5e8f\u56fa\u5b9a\uff0c\u53ea\u6709\u624b\u52d5\u6309\u300c\u96a8\u6a5f\u6392\u5e8f\u300d\u624d\u6703\u8b8a\u3002\u9ede\u64ca\u5207\u63db\u70ba\u6bcf\u8f2a\u81ea\u52d5\u96a8\u6a5f\u3002';
+      btn.textContent=INITIATIVE_MODE_LABEL[initiativeMode];
+      btn.classList.toggle('good',initiativeMode!=='fixed');
+      btn.title=INITIATIVE_MODE_TITLE[initiativeMode];
+      const valuePanel=document.querySelector('#initiativeValuePanel');
+      if(valuePanel){valuePanel.hidden=initiativeMode!=='value';if(initiativeMode==='value')renderInitiativeValueTable();}
     }
-    document.querySelector('#toggleShuffleMode').addEventListener('click',()=>{shuffleEachRound=!shuffleEachRound;updateShuffleModeButton();scheduleAutosave()});
+    document.querySelector('#toggleShuffleMode').addEventListener('click',()=>{
+      initiativeMode=initiativeMode==='fixed'?'random':initiativeMode==='random'?'value':'fixed';
+      shuffleEachRound=initiativeMode==='random';
+      updateShuffleModeButton();scheduleAutosave();
+    });
     updateShuffleModeButton();
+    function renderInitiativeValueTable(){
+      const wrap=document.querySelector('#initiativeValueList');
+      if(!wrap)return;
+      syncInitiativeOrder();
+      const entries=initiativeEntries();
+      wrap.innerHTML=entries.map(e=>`<div class="initiative-value-row" style="display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid var(--line)"><span style="flex:1">${e.label}</span><input type="number" class="initiative-value-input" data-init-val-id="${e.id}" value="${initiativeValues[e.id]??''}" placeholder="先攻值" style="width:90px"></div>`).join('')||'<p class="empty">目前先攻區沒有任何角色。</p>';
+    }
+    document.querySelector('#initiativeValueList').addEventListener('input',e=>{
+      const input=e.target.closest('[data-init-val-id]');
+      if(!input)return;
+      const id=input.dataset.initValId;
+      const v=input.value.trim();
+      if(v==='')delete initiativeValues[id];
+      else initiativeValues[id]=Number(v);
+      scheduleAutosave();
+    });
+    document.querySelector('#btnApplyInitiativeValueSort').addEventListener('click',applyInitiativeValueSort);
+    document.querySelector('#initiativeValueDescToggle').addEventListener('click',()=>{
+      initiativeValueDesc=!initiativeValueDesc;
+      const btn=document.querySelector('#initiativeValueDescToggle');
+      btn.textContent=initiativeValueDesc?'⬇️ 先攻值大的先行動':'⬆️ 先攻值小的先行動';
+      scheduleAutosave();
+    });
+    document.querySelector('#initiativeValueDescToggle').textContent=initiativeValueDesc?'⬇️ 先攻值大的先行動':'⬆️ 先攻值小的先行動';
     function updateAutoScrollButton(){
       const btn=document.querySelector('#toggleAutoScroll');
       btn.textContent=autoScrollOnNextTurn?'📍 自動捲動：開':'📍 自動捲動：關';
@@ -2341,7 +2424,7 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#toggleCardDraw').addEventListener('click',()=>{
       cardDrawExpanded=!cardDrawExpanded;
       document.querySelector('#cardDrawPanel').hidden=!cardDrawExpanded;
-      document.querySelector('#toggleCardDraw').textContent=cardDrawExpanded?'\u25b2 \u6536\u5408\u529f\u80fd':'\u25bc \u5c55\u958b\u529f\u80fd';
+      document.querySelector('#cardDrawChev').style.transform=cardDrawExpanded?'rotate(90deg)':'';
       try{localStorage.setItem('battleTrackerCardDrawExpanded',cardDrawExpanded?'1':'0')}catch{}
     });
     document.querySelector('#btnClearAllHistory').addEventListener('click',()=>{
@@ -2352,7 +2435,7 @@ function adjustUnitHp(unit,action,amount){
       render();
     });
     document.querySelector('#cardDrawPanel').hidden=!cardDrawExpanded;
-    document.querySelector('#toggleCardDraw').textContent=cardDrawExpanded?'\u25b2 \u6536\u5408\u529f\u80fd':'\u25bc \u5c55\u958b\u529f\u80fd';
+    document.querySelector('#cardDrawChev').style.transform=cardDrawExpanded?'rotate(90deg)':'';
     document.querySelector('#toggleCombatLog').addEventListener('click',()=>{
       combatLogExpanded=!combatLogExpanded;
       document.querySelector('#combatLogPanel').hidden=!combatLogExpanded;
@@ -2944,10 +3027,29 @@ function adjustUnitHp(unit,action,amount){
           <p class="shop-hint" style="font-weight:700">分類</p>
           <div class="shop-picker-list" style="margin-bottom:10px">${shopCats.map(c=>`<button type="button" class="shop-picker-btn" data-gmnav="shopcat" data-val="${escapeAttr(c)}">${gmShopFilter&&gmShopFilter.category===c?'✓ ':''}${escapeHtml(c)}</button>`).join('')}</div>
           ${gmShopFilter?'<button type="button" class="shop-picker-btn" data-gmnav="shopclear" style="width:100%">✕ 清除篩選</button>':''}
+          <h3 style="margin-top:20px">🃏 隨機抽卡池：跳轉</h3>
+          <p class="shop-hint" style="margin-bottom:8px">點等級直接跳過去，不用捲回頁面最上方；跳轉後這個視窗會關閉，你可以再點🧭選下一個要看的等級。</p>
+          <div class="shop-picker-list">${cardTiers.length?cardTiers.map(t=>`<button type="button" class="shop-picker-btn" data-cardtier-jump="${t.id}">${escapeHtml(t.name)}</button>`).join(''):'<span class="shop-hint">還沒有建立任何等級。</span>'}</div>
         `;
       }
     }
     document.querySelector('#shopNavBody').addEventListener('click',ev=>{
+      const cardTierJump=ev.target.closest('[data-cardtier-jump]');
+      if(cardTierJump){
+        const tierId=cardTierJump.dataset.cardtierJump;
+        cardDrawExpanded=true;
+        document.querySelector('#cardDrawPanel').hidden=false;
+        document.querySelector('#cardDrawChev').style.transform='rotate(90deg)';
+        try{localStorage.setItem('battleTrackerCardDrawExpanded','1')}catch{}
+        openCardTiers.add(tierId);
+        render();
+        closeShopNavOverlay();
+        requestAnimationFrame(()=>{
+          const el=document.querySelector(`[data-tier-id="${CSS.escape(tierId)}"]`);
+          if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+        });
+        return;
+      }
       const jumpBtn=ev.target.closest('[data-shopnav-jump]');
       if(jumpBtn){
         const cat=jumpBtn.dataset.shopnavJump;
