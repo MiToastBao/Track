@@ -82,6 +82,10 @@
     .shop-picker-list{display:flex;flex-wrap:wrap;gap:8px}
     .shop-picker-btn{background:var(--btn-bg);border:1px solid var(--line);color:var(--text);font-size:.85rem;padding:12px 16px;border-radius:10px}
     .shop-hint{font-size:.82rem;color:var(--muted);line-height:1.5}
+    #combatSharedPanel{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:6px;padding-bottom:6px}
+    #tabSectionInitiative,#tabSectionPlayer,#tabSectionMonster{position:sticky;top:var(--shared-panel-h,0px);z-index:35;background:var(--bg);padding-top:4px;padding-bottom:4px}
+    #btnOpenMonsterTagLibrary{position:sticky;top:0;z-index:40}
+    .shop-sticky-top{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15)}
   </style>
 </head>
 <body>
@@ -89,7 +93,7 @@
     <h1>&#9876;&#65039; &#25136;&#39717;&#34880;&#37327;&#36861;&#36452;&#22120;</h1>
     <p class="subtitle">&#21487;&#33258;&#30001;&#26032;&#22686;&#12289;&#32232;&#36655;&#33287;&#21034;&#38500;&#29609;&#23478;&#25110;&#24618;&#29289;</p>
     <div id="combatSharedPanel">
-    <div class="toolbar"><button id="undo" disabled>&#8592; &#36820;&#22238;&#19978;&#19968;&#27493;</button><button id="redo" disabled>&#36820;&#22238;&#19979;&#19968;&#27493; &#8594;</button></div>
+    <div class="toolbar"><button id="undo" disabled>&#8592; &#36820;&#22238;&#19978;&#19968;&#27493;</button><button id="redo" disabled>&#36820;&#22238;&#19979;&#19968;&#27493; &#8594;</button><button type="button" id="btnOpenTagLibraryFromCombat">🏷 標籤庫</button></div>
     <div id="actionPanelAnchorInitiative"></div>
     <section class="action-panel" id="actionPanelBlock">
       <div class="tag-list" id="actionTags"></div>
@@ -128,10 +132,16 @@
     </div>
     <div class="tab-panel" id="tabPanelGM" data-tab-panel="gm" hidden>
     <div class="section-head" id="tabSectionGM"><h2 class="section-title">🧰 GM區</h2></div>
-    <button type="button" id="btnOpenMonsterTagLibrary" class="shop-cat-tab" style="position:sticky;top:0;z-index:40;width:100%;text-align:left;padding:12px 14px;margin-bottom:14px;font-size:.95rem;display:flex;align-items:center;justify-content:space-between;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15)">
-      <span>🏷 標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
-      <span style="color:var(--muted)">›</span>
+    <div style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:8px 0">
+      <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
+        <button type="button" id="gmUndo" disabled>← 上一步</button>
+        <button type="button" id="gmRedo" disabled>下一步 →</button>
+      </div>
+      <button type="button" id="btnOpenMonsterTagLibrary" class="shop-cat-tab" style="width:100%;text-align:left;padding:12px 14px;font-size:.95rem;display:flex;align-items:center;justify-content:space-between;background:var(--panel-bg)">
+        <span>🏷 標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
+        <span style="color:var(--muted)">›</span>
     </button>
+    </div>
     <form class="add-form" id="addForm">
       <select id="unitType" aria-label="角色類型"><option value="player">玩家</option><option value="monster">怪物</option><option value="boss">頭目</option><option value="summon">召喚物</option></select>
       <input id="unitName" maxlength="20" required placeholder="名稱">
@@ -164,9 +174,14 @@
     <button type="button" class="danger" id="btnNewGame" style="width:100%;margin-top:10px">🆕 開始新遊戲（清空目前所有資料）</button>
     <p class="subtitle" style="margin-top:6px">建置新遊戲前，記得先按上面的「匯出備份」把目前這個遊戲存起來。清空後畫面上的玩家/怪物/商店卡牌等所有資料都會重置為空白，可以直接開始建置下一個遊戲；之後要玩哪個遊戲，就用「匯入備份」讀回對應的檔案即可。</p>
     <p class="subtitle" id="storageUsage" style="margin-top:-10px"></p>
-    <button type="button" class="manage-toggle" id="toggleStorageCleanup">&#9660; &#35443;&#32048;&#29992;&#37327;&#33287;&#28165;&#29702;&#24037;&#20855;</button>
-    <div id="storageCleanupPanel" hidden>
-      <div id="storageBreakdown" class="storage-breakdown"></div>
+    <div class="shop-section" id="storageCleanupSection">
+      <button type="button" class="shop-section-head" id="toggleStorageCleanup" style="width:100%">
+        <span>📊 詳細用量與清理工具</span>
+        <span class="shop-chev" id="storageCleanupChev">▸</span>
+      </button>
+      <div class="shop-section-body" id="storageCleanupPanel" hidden>
+        <div id="storageBreakdown" class="storage-breakdown"></div>
+      </div>
     </div>
     <div class="theme-switch" id="themeSwitch">
       <button type="button" data-theme-choice="light">&#9728;&#65039; &#20142;&#33394;</button>
@@ -174,14 +189,18 @@
       <button type="button" data-theme-choice="contrast">&#9889; &#39640;&#23565;&#27604;</button>
     </div>
     <div class="theme-switch"><button type="button" id="toggleWakeLock">&#128262; &#20445;&#25345;&#34722;&#24149;&#38283;&#21855;&#65306;&#38364;</button></div>
-    <div class="section-head" id="tabSectionCombatLog"><h2 class="section-title" style="font-size:1.05rem">&#128220; &#25136;&#39717;&#27511;&#21490;&#32000;&#37636;</h2></div>
-    <button type="button" class="manage-toggle" id="toggleCombatLog">&#9660; &#23637;&#38283;&#21151;&#33021;</button>
-    <div id="combatLogPanel" hidden>
-      <div class="toolbar"><button type="button" class="danger" id="btnClearCombatLog">&#28165;&#38500;&#27511;&#21490;&#32000;&#37636;</button></div>
-      <div class="combat-log-controls"><span class="filter-label">&#35282;&#33394;&#31721;&#36984;&#65306;</span><select id="combatLogFilterName"><option value="">&#20840;&#37096;&#35282;&#33394;</option></select><span class="filter-label">&#22238;&#21512;&#31721;&#36984;&#65306;</span><select id="combatLogFilterTurn"><option value="">&#20840;&#37096;&#22238;&#21512;</option></select></div>
-      <div class="combat-log-settings"><label><input type="checkbox" id="combatLogLimitRecent" checked> &#21482;&#39023;&#31034;&#26368;&#36817; 50 &#31558;</label></div>
-      <div class="combat-log-settings"><span class="filter-label">&#35352;&#37636;&#38917;&#30446;&#65306;</span><label><input type="checkbox" id="logToggleHp" checked> &#34880;&#37327;&#35722;&#21270;</label><label><input type="checkbox" id="logToggleStatusGain" checked> &#29554;&#24471;&#26032;&#29376;&#24907;</label><label><input type="checkbox" id="logToggleStatusTurn" checked> &#29376;&#24907;&#22238;&#21512;&#35722;&#21270;</label><label><input type="checkbox" id="logToggleStatusRemove" checked> &#29376;&#24907;&#31227;&#38500;</label><label><input type="checkbox" id="logToggleBar" checked> &#25976;&#20540;&#26781;&#35722;&#21205;</label></div>
-      <div id="combatLogList"></div>
+    <div class="shop-section" id="combatLogSection">
+      <button type="button" class="shop-section-head" id="toggleCombatLog" style="width:100%">
+        <span>📋 戰鬥歷史紀錄</span>
+        <span class="shop-chev" id="combatLogChev">▸</span>
+      </button>
+      <div class="shop-section-body" id="combatLogPanel" hidden>
+        <div class="toolbar"><button type="button" class="danger" id="btnClearCombatLog">&#28165;&#38500;&#27511;&#21490;&#32000;&#37636;</button></div>
+        <div class="combat-log-controls"><span class="filter-label">&#35282;&#33394;&#31721;&#36984;&#65306;</span><select id="combatLogFilterName"><option value="">&#20840;&#37096;&#35282;&#33394;</option></select><span class="filter-label">&#22238;&#21512;&#31721;&#36984;&#65306;</span><select id="combatLogFilterTurn"><option value="">&#20840;&#37096;&#22238;&#21512;</option></select></div>
+        <div class="combat-log-settings"><label><input type="checkbox" id="combatLogLimitRecent" checked> &#21482;&#39023;&#31034;&#26368;&#36817; 50 &#31558;</label></div>
+        <div class="combat-log-settings"><span class="filter-label">&#35352;&#37636;&#38917;&#30446;&#65306;</span><label><input type="checkbox" id="logToggleHp" checked> &#34880;&#37327;&#35722;&#21270;</label><label><input type="checkbox" id="logToggleStatusGain" checked> &#29554;&#24471;&#26032;&#29376;&#24907;</label><label><input type="checkbox" id="logToggleStatusTurn" checked> &#29376;&#24907;&#22238;&#21512;&#35722;&#21270;</label><label><input type="checkbox" id="logToggleStatusRemove" checked> &#29376;&#24907;&#31227;&#38500;</label><label><input type="checkbox" id="logToggleBar" checked> &#25976;&#20540;&#26781;&#35722;&#21205;</label></div>
+        <div id="combatLogList"></div>
+      </div>
     </div>
     </div>
   </main>
@@ -221,7 +240,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-12';
+    const APP_VERSION='2026.07.26-14';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -523,7 +542,7 @@
     const STORAGE_KEYS=['battleTrackerCurrentState','battleTrackerStatusTemplates','battleTrackerMonsterTemplates','battleTrackerAttributeTemplates','battleTrackerBarTemplates','battleTrackerPassiveTemplates','battleTrackerSaveFiles','battleTrackerPalette','battleTrackerTheme','battleTrackerCardTiers','battleTrackerCombatLog','battleTrackerShopData'];
     const EXPORT_VERSION=1;
     const MAX_SAVE_FILES=50;
-    const MAX_TEMPLATES=100;
+    const MAX_TEMPLATES=500;
     const STORAGE_CATEGORIES=[
       {key:'battleTrackerCurrentState',label:'\u76ee\u524d\u5c0d\u6230\u72c0\u614b',count:()=>players.length+monsters.length,unit:'\u4f4d\u55ae\u4f4d'},
       {key:'battleTrackerSaveFiles',label:'\u5b58\u6a94',count:()=>saveFiles.length,unit:'\u7b46',clear:()=>{saveFiles=[];selectedSaveIds.clear();saveMemory('battleTrackerSaveFiles',saveFiles)}},
@@ -596,6 +615,9 @@
     }
     function closeMonsterTagOverlay(){document.querySelector('#monsterTagOverlay').classList.remove('show')}
     document.querySelector('#btnOpenMonsterTagLibrary').addEventListener('click',openMonsterTagOverlay);
+    document.querySelector('#btnOpenTagLibraryFromCombat').addEventListener('click',openMonsterTagOverlay);
+    document.querySelector('#gmUndo').addEventListener('click',()=>{if(history.length)restoreHistory()});
+    document.querySelector('#gmRedo').addEventListener('click',()=>{if(future.length)redoHistory()});
     document.querySelector('#monsterTagCloseX').addEventListener('click',closeMonsterTagOverlay);
     document.querySelector('#monsterTagOverlay').addEventListener('click',ev=>{if(!ev.target.closest('.shop-sheet'))closeMonsterTagOverlay()});
     const colorPaletteElement=document.querySelector('#colorPalette');
@@ -784,8 +806,17 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }).join('');
       return note+`<ol class="combat-log-list">${items}</ol>`;
     }
-    function updateUndo(){document.querySelector('#undo').disabled=history.length===0;document.querySelector('#redo').disabled=future.length===0}
-    function historySnapshot(){return {players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,roundCounter,currentTurnId,cardTiers}}
+    function updateUndo(){
+      document.querySelector('#undo').disabled=history.length===0;
+      document.querySelector('#redo').disabled=future.length===0;
+      const shopUndo=document.querySelector('#shopUndo'),shopRedo=document.querySelector('#shopRedo');
+      if(shopUndo)shopUndo.disabled=history.length===0;
+      if(shopRedo)shopRedo.disabled=future.length===0;
+      const gmUndo=document.querySelector('#gmUndo'),gmRedo=document.querySelector('#gmRedo');
+      if(gmUndo)gmUndo.disabled=history.length===0;
+      if(gmRedo)gmRedo.disabled=future.length===0;
+    }
+    function historySnapshot(){return {players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,roundCounter,currentTurnId,cardTiers,teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats}}
     const cloneState=typeof structuredClone==='function'?structuredClone:x=>JSON.parse(JSON.stringify(x));
     function saveHistory(){
       if(!historyBurstOpen){
@@ -799,7 +830,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       historyBurstTimer=setTimeout(()=>{historyBurstOpen=false;historyBurstTimer=null},HISTORY_BURST_MS);
     }
     function closeHistoryBurst(){if(historyBurstTimer){clearTimeout(historyBurstTimer);historyBurstTimer=null}historyBurstOpen=false}
-    function applyHistoryState(state){closeHistoryBurst();players=state.players;monsters=state.monsters;actionTags=state.actionTags;statusTemplates=state.statusTemplates;monsterTemplates=state.monsterTemplates;attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors;initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:roundCounter;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;cardTiers=state.cardTiers||[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);document.querySelector('#roundValue').textContent=roundCounter;render();updateUndo()}
+    function applyHistoryState(state){closeHistoryBurst();players=state.players;monsters=state.monsters;actionTags=state.actionTags;statusTemplates=state.statusTemplates;monsterTemplates=state.monsterTemplates;attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors;initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:roundCounter;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;cardTiers=state.cardTiers||[];teamGold=typeof state.teamGold==='number'?state.teamGold:teamGold;shopCatalog=state.shopCatalog||shopCatalog;shopUnlockedLevels=state.shopUnlockedLevels||shopUnlockedLevels;shopUnlockedLevelCats=state.shopUnlockedLevelCats||shopUnlockedLevelCats;saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveShopData();document.querySelector('#roundValue').textContent=roundCounter;render();updateUndo()}
     function restoreHistory(){if(!history.length)return;future.push(cloneState(historySnapshot()));if(future.length>50)future.shift();applyHistoryState(history.pop())}
     function redoHistory(){if(!future.length)return;history.push(cloneState(historySnapshot()));if(history.length>50)history.shift();applyHistoryState(future.pop())}
     function renderPalette(){const selected=document.querySelector('#unitColor').value.toLowerCase();colorPaletteElement.innerHTML=paletteColors.map(color=>`<span class="swatch-wrap"><button type="button" class="swatch ${color.toLowerCase()===selected?'selected':''}" data-color="${escapeAttr(color)}" style="background:${escapeAttr(color)}"></button><button type="button" class="swatch-delete" data-color-delete="${escapeAttr(color)}">&#215;</button></span>`).join('')||'<span class="status">&#23578;&#28961;&#24120;&#29992;&#33394;</span>'}
@@ -959,7 +990,8 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function currentSaveState(){return cloneState({players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,cardTiers})}
     function loadSaveState(state){players=state.players||[];monsters=state.monsters||[];actionTags=state.actionTags||[];statusTemplates=state.statusTemplates||[];monsterTemplates=state.monsterTemplates||[];attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors||[...defaultPalette];initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];cardTiers=state.cardTiers||[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers)}
     function memoryHtml(unit){const bars=unitTemplateListHtml(unit.id,barTemplates,{addAttr:'bar-template-add',idAttr:'bar-template-id',deleteAttr:'bar-template-delete',emptyText:'&#28961;&#35352;&#25014;&#25976;&#20540;&#26465;'});return `<div class="memory-tags"><div class="condition-title">&#24050;&#35352;&#25014;&#25976;&#20540;&#26465;</div><div class="saved-status-tags">${bars}</div></div>`}
-    function autosave(){saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerSummaryExpanded,monsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,squads,activeTab})}
+    let appIsResetting=false;
+    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerSummaryExpanded,monsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,squads,activeTab})}
     let autosaveTimer=null;
     function scheduleAutosave(){
       if(autosaveTimer)clearTimeout(autosaveTimer);
@@ -977,15 +1009,28 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(!tabbar)return;
       document.documentElement.style.setProperty('--tabbar-h',tabbar.offsetHeight+'px');
     }
+    function updateSharedPanelHeightVar(){
+      const panel=document.querySelector('#combatSharedPanel');
+      if(!panel)return;
+      const h=panel.hidden?0:panel.offsetHeight;
+      document.documentElement.style.setProperty('--shared-panel-h',h+'px');
+    }
+    if(typeof ResizeObserver!=='undefined'){
+      const sharedPanelEl=document.querySelector('#combatSharedPanel');
+      if(sharedPanelEl)new ResizeObserver(()=>updateSharedPanelHeightVar()).observe(sharedPanelEl);
+    }
+    updateSharedPanelHeightVar();
     window.addEventListener('resize',()=>{
       if(resizeNameTimer)clearTimeout(resizeNameTimer);
-      resizeNameTimer=setTimeout(()=>{resizeNameTimer=null;sizeUnitNameInputs(true);updateTabbarHeightVar()},200);
+      resizeNameTimer=setTimeout(()=>{resizeNameTimer=null;sizeUnitNameInputs(true);updateTabbarHeightVar();updateSharedPanelHeightVar()},200);
     });
     window.addEventListener('orientationchange',()=>{
       // \u5e73\u677f/\u624b\u6a5f\u65cb\u8f49\u65b9\u5411\u6642\uff0c\u6709\u4e9b\u700f\u89bd\u5668\u6703\u5148\u767c\u51fa\u9019\u500b\u4e8b\u4ef6\uff0c\u7b49\u5230\u5be6\u969b\u8996\u5340\u5c3a\u5bf8\u7a69\u5b9a\u5f8c\u624d\u771f\u6b63\u66f4\u65b0\uff0c
       // \u6240\u4ee5\u9019\u88e1\u591a\u7b49\u4e00\u9ede\u5f8c\u518d\u91cd\u65b0\u91cf\u6e2c\u4e00\u6b21\u5206\u9801\u5217\u9ad8\u5ea6\uff0c\u78ba\u4fdd\u61f8\u6d6e\u6309\u9215\u4f4d\u7f6e\u6b63\u78ba\u3002
       setTimeout(updateTabbarHeightVar,50);
       setTimeout(updateTabbarHeightVar,350);
+      setTimeout(updateSharedPanelHeightVar,50);
+      setTimeout(updateSharedPanelHeightVar,350);
     });
     function exportData(){
       flushAutosave();
@@ -1231,6 +1276,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
           return;
         }
         alert('\u532f\u5165\u6210\u529f\uff0c\u9801\u9762\u5373\u5c07\u91cd\u65b0\u6574\u7406\u3002');
+        appIsResetting=true;
+        if(autosaveTimer){clearTimeout(autosaveTimer);autosaveTimer=null}
+        if(shopAutosaveTimer){clearTimeout(shopAutosaveTimer);shopAutosaveTimer=null}
         location.reload();
       };
       reader.onerror=()=>alert('\u532f\u5165\u5931\u6557\uff1a\u7121\u6cd5\u8b80\u53d6\u6a94\u6848\u3002');
@@ -1388,6 +1436,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       positionActionPanel(tab);
       const combatShared=document.querySelector('#combatSharedPanel');
       if(combatShared)combatShared.hidden=(tab==='system'||tab==='shop'||tab==='gm');
+      requestAnimationFrame(updateSharedPanelHeightVar);
       const tabbar=document.querySelector('#bottomTabbar');
       if(tabbar){
         tabbar.querySelectorAll('button[data-target]').forEach(btn=>{
@@ -2457,7 +2506,7 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#toggleStorageCleanup').addEventListener('click',()=>{
       storageCleanupExpanded=!storageCleanupExpanded;
       document.querySelector('#storageCleanupPanel').hidden=!storageCleanupExpanded;
-      document.querySelector('#toggleStorageCleanup').textContent=storageCleanupExpanded?'\u25b2 \u6536\u5408\u5de5\u5177':'\u25bc \u8a73\u7d30\u7528\u91cf\u8207\u6e05\u7406\u5de5\u5177';
+      document.querySelector('#storageCleanupChev').style.transform=storageCleanupExpanded?'rotate(90deg)':'';
       if(storageCleanupExpanded)updateStorageUsageDisplay();
     });
     document.querySelector('#toggleCardDraw').addEventListener('click',()=>{
@@ -2478,11 +2527,11 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#toggleCombatLog').addEventListener('click',()=>{
       combatLogExpanded=!combatLogExpanded;
       document.querySelector('#combatLogPanel').hidden=!combatLogExpanded;
-      document.querySelector('#toggleCombatLog').textContent=combatLogExpanded?'\u25b2 \u6536\u5408\u529f\u80fd':'\u25bc \u5c55\u958b\u529f\u80fd';
+      document.querySelector('#combatLogChev').style.transform=combatLogExpanded?'rotate(90deg)':'';
       try{localStorage.setItem('battleTrackerCombatLogExpanded',combatLogExpanded?'1':'0')}catch{}
     });
     document.querySelector('#combatLogPanel').hidden=!combatLogExpanded;
-    document.querySelector('#toggleCombatLog').textContent=combatLogExpanded?'\u25b2 \u6536\u5408\u529f\u80fd':'\u25bc \u5c55\u958b\u529f\u80fd';
+    document.querySelector('#combatLogChev').style.transform=combatLogExpanded?'rotate(90deg)':'';
     document.querySelector('#btnClearCombatLog').addEventListener('click',()=>{
       if(!combatLog.length){alert('\u76ee\u524d\u6c92\u6709\u4efb\u4f55\u6230\u9b25\u7d00\u9304\u53ef\u4ee5\u6e05\u9664\u3002');return}
       if(!confirm('\u78ba\u5b9a\u8981\u6e05\u9664\u6240\u6709\u6230\u9b25\u6b77\u53f2\u7d00\u9304\u55ce\uff1f\u6b64\u52d5\u4f5c\u7121\u6cd5\u5fa9\u539f\u3002'))return;
@@ -2523,6 +2572,9 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#btnNewGame').addEventListener('click',()=>{
       if(!confirm('確定要清空目前所有資料，開始建置新遊戲嗎？\n\n（玩家、怪物、先攻順序、商店卡牌、範本、常用色盤、戰鬥歷史紀錄全部都會被清空，且無法復原。如果還沒匯出備份，請先按「匯出備份」！）'))return;
       if(!confirm('再次確認：目前的資料還沒有另外備份的話，清空後就救不回來了。真的要繼續清空嗎？'))return;
+      appIsResetting=true;
+      if(autosaveTimer){clearTimeout(autosaveTimer);autosaveTimer=null}
+      if(shopAutosaveTimer){clearTimeout(shopAutosaveTimer);shopAutosaveTimer=null}
       STORAGE_KEYS.forEach(key=>{try{localStorage.removeItem(key)}catch{}});
       location.reload();
     });
@@ -2559,7 +2611,7 @@ function adjustUnitHp(unit,action,amount){
       }catch{return fallback}
     }
     let {teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats}=loadShopData();
-    function saveShopData(){saveMemory('battleTrackerShopData',{teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats})}
+    function saveShopData(){if(appIsResetting)return;saveMemory('battleTrackerShopData',{teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats})}
     let shopAutosaveTimer=null;
     function scheduleShopAutosave(){
       if(shopAutosaveTimer)clearTimeout(shopAutosaveTimer);
@@ -2672,9 +2724,13 @@ function adjustUnitHp(unit,action,amount){
         return shopSectionHtml('shop:'+(shopLevelFilter||'all')+':'+cat,`${escapeHtml(cat)}（${catItems.length}）`,`<div class="shop-grid">${catItems.map(shopCardHtml).join('')}</div>`);
       }).join(''):`<p class="empty">${shopCatalog.length?'目前沒有已開放的商品，請到 GM 區勾選要開放的等級或個別卡片。':'還沒有商品，請到 GM 區新增。'}</p>`;
       wrap.innerHTML=`
-        <div class="save-panel" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15)">
-          <div class="shop-gold-row">
-            <span>💰 團隊金庫</span>
+        <div class="save-panel" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:10px">
+          <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
+            <button type="button" id="shopUndo" ${history.length===0?'disabled':''}>← 上一步</button>
+            <button type="button" id="shopRedo" ${future.length===0?'disabled':''}>下一步 →</button>
+          </div>
+          <div class="shop-gold-row" style="border:none;padding:0;flex-wrap:wrap;gap:8px">
+            <span>💰</span>
             <div class="shop-gold-stepper">
               <button class="shop-gold-btn" data-shop-gd="-10">−10</button>
               <button class="shop-gold-btn" data-shop-gd="-1">−1</button>
@@ -2682,11 +2738,9 @@ function adjustUnitHp(unit,action,amount){
               <button class="shop-gold-btn" data-shop-gd="1">+1</button>
               <button class="shop-gold-btn" data-shop-gd="10">+10</button>
             </div>
-          </div>
-          <div class="toolbar" style="margin-top:10px">
-            <input type="number" id="shopGoldCustomInput" placeholder="輸入自訂數字" style="flex:1;min-width:120px">
-            <button type="button" data-shop-goldcustom="-1">− 減少</button>
-            <button type="button" class="primary" data-shop-goldcustom="1">＋ 增加</button>
+            <input type="number" id="shopGoldCustomInput" placeholder="數字" style="width:76px;flex:none">
+            <button type="button" data-shop-goldcustom="-1" style="padding:8px 10px">−</button>
+            <button type="button" class="primary" data-shop-goldcustom="1" style="padding:8px 10px">＋</button>
           </div>
         </div>
         ${levels.length>1?`<div class="shop-hint" style="margin-bottom:4px;font-weight:700">依等級篩選</div><div class="shop-cat-tabs"><button class="shop-cat-tab ${!shopLevelFilter?'active':''}" data-shop-lvl="">全部等級</button>${levels.map(lv=>`<button class="shop-cat-tab ${shopLevelFilter===lv?'active':''}" data-shop-lvl="${escapeAttr(lv)}">${escapeHtml(lv)}</button>`).join('')}</div>`:''}
@@ -2699,6 +2753,10 @@ function adjustUnitHp(unit,action,amount){
       });
     }
     document.querySelector('#shopPanelContent')?.addEventListener('click',ev=>{
+      const shopUndoBtn=ev.target.closest('#shopUndo');
+      if(shopUndoBtn&&!shopUndoBtn.disabled){restoreHistory();return}
+      const shopRedoBtn=ev.target.closest('#shopRedo');
+      if(shopRedoBtn&&!shopRedoBtn.disabled){redoHistory();return}
       const lvlTab=ev.target.closest('[data-shop-lvl]');
       if(lvlTab){
         shopLevelFilter=lvlTab.dataset.shopLvl;shopCatFilter='';
@@ -2714,12 +2772,12 @@ function adjustUnitHp(unit,action,amount){
         renderShopPanel();return;
       }
       const goldBtn=ev.target.closest('[data-shop-gd]');
-      if(goldBtn){teamGold=Math.max(0,(teamGold||0)+parseInt(goldBtn.dataset.shopGd,10));scheduleShopAutosave();renderShopPanel();return}
+      if(goldBtn){saveHistory();teamGold=Math.max(0,(teamGold||0)+parseInt(goldBtn.dataset.shopGd,10));scheduleShopAutosave();renderShopPanel();updateUndo();return}
       const goldEdit=ev.target.closest('#shopGoldEdit');
       if(goldEdit){
         const val=prompt('輸入金額：',teamGold||0);if(val===null)return;
         const num=parseInt(val,10);if(isNaN(num))return;
-        teamGold=Math.max(0,num);scheduleShopAutosave();renderShopPanel();return;
+        saveHistory();teamGold=Math.max(0,num);scheduleShopAutosave();renderShopPanel();updateUndo();return;
       }
       const goldCustomBtn=ev.target.closest('[data-shop-goldcustom]');
       if(goldCustomBtn){
@@ -2727,16 +2785,17 @@ function adjustUnitHp(unit,action,amount){
         const amt=parseInt(input.value,10);
         if(isNaN(amt)||amt<0){alert('請先輸入有效的正整數');return}
         const dir=parseInt(goldCustomBtn.dataset.shopGoldcustom,10);
-        teamGold=Math.max(0,(teamGold||0)+dir*amt);
-        scheduleShopAutosave();renderShopPanel();return;
+        saveHistory();teamGold=Math.max(0,(teamGold||0)+dir*amt);
+        scheduleShopAutosave();renderShopPanel();updateUndo();return;
       }
       const buyBtn=ev.target.closest('[data-shop-buy]');
       if(buyBtn&&!buyBtn.disabled){
         const item=shopCatalog.find(x=>x.id===buyBtn.dataset.shopBuy);
         if(item&&canBuyShopItem(item)){
+          saveHistory();
           item.boughtCount=(item.boughtCount||0)+1;
           teamGold-=(item.price||0);
-          scheduleShopAutosave();renderShopPanel();
+          scheduleShopAutosave();renderShopPanel();updateUndo();
         }
         return;
       }
@@ -2748,9 +2807,10 @@ function adjustUnitHp(unit,action,amount){
           if(val===null)return;
           const price=parseInt(val,10);
           if(isNaN(price)||price<0){alert('請輸入有效金額');return}
+          saveHistory();
           item.boughtCount-=1;
           teamGold+=price;
-          scheduleShopAutosave();renderShopPanel();
+          scheduleShopAutosave();renderShopPanel();updateUndo();
         }
         return;
       }
@@ -2807,9 +2867,10 @@ function adjustUnitHp(unit,action,amount){
       `;
     }
     function addBlankShopCard(){
+      saveHistory();
       const item={id:uuid(),name:'',category:'',level:'',price:null,cap:null,boughtCount:0,individuallyOpen:false,linkedNames:[]};
       shopCatalog.push(item);
-      scheduleShopAutosave();renderGmPanel();
+      scheduleShopAutosave();renderGmPanel();updateUndo();
       requestAnimationFrame(()=>{
         const el=document.getElementById('gmcard-'+item.id);
         if(el){el.scrollIntoView({behavior:'smooth',block:'center'});const nameInput=el.querySelector('.gm-f[data-gm-f="name"]');if(nameInput)setTimeout(()=>nameInput.focus(),250)}
@@ -3019,8 +3080,9 @@ function adjustUnitHp(unit,action,amount){
           const others=group.filter(n=>n!==item.name);
           const msg=others.length?`確定要刪除「${item.name}」嗎？它是雙面卡，連動的「${others.join('、')}」也會一併刪除。`:`確定要刪除「${item.name}」這張卡牌嗎？`;
           if(confirm(msg)){
+            saveHistory();
             shopCatalog=shopCatalog.filter(x=>!group.includes(x.name));
-            scheduleShopAutosave();renderGmPanel();
+            scheduleShopAutosave();renderGmPanel();updateUndo();
           }
         }
         return;
