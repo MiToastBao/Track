@@ -92,11 +92,13 @@
     <h1>&#9876;&#65039; &#25136;&#39717;&#34880;&#37327;&#36861;&#36452;&#22120;</h1>
     <p class="subtitle">&#21487;&#33258;&#30001;&#26032;&#22686;&#12289;&#32232;&#36655;&#33287;&#21034;&#38500;&#29609;&#23478;&#25110;&#24618;&#29289;</p>
     <div id="combatSharedPanel">
-    <div class="toolbar"><button id="undo" disabled>&#8592; &#36820;&#22238;&#19978;&#19968;&#27493;</button><button id="redo" disabled>&#36820;&#22238;&#19979;&#19968;&#27493; &#8594;</button><button type="button" id="btnOpenTagLibraryFromCombat">🏷 標籤庫</button></div>
+    <div class="toolbar"><button id="undo" disabled>&#8592; &#36820;&#22238;&#19978;&#19968;&#27493;</button><button id="redo" disabled>&#36820;&#22238;&#19979;&#19968;&#27493; &#8594;</button><button type="button" id="btnOpenTagLibraryFromCombat">🏷 標籤庫</button><button type="button" id="toggleActionPanel">▾ 行動標籤</button></div>
     <div id="actionPanelAnchorInitiative"></div>
     <section class="action-panel" id="actionPanelBlock">
-      <div class="tag-list" id="actionTags"></div>
-      <form class="tag-form" id="tagForm"><input id="tagName" maxlength="20" required placeholder="&#26032;&#34892;&#21205;&#27161;&#31844; "><button class="primary">&#26032;&#22686;&#27161;&#31844;</button><button type="button" id="resetTags">&#37325;&#32622;&#34892;&#21205;&#27161;&#31844;</button><button type="button" id="resetPlayerTurns">&#37325;&#32622;&#29609;&#23478;&#22238;&#21512;</button></form>
+      <div id="actionPanelInner">
+        <div class="tag-list" id="actionTags"></div>
+        <form class="tag-form" id="tagForm"><input id="tagName" maxlength="20" required placeholder="&#26032;&#34892;&#21205;&#27161;&#31844; "><button class="primary">&#26032;&#22686;&#27161;&#31844;</button><button type="button" id="resetTags">&#37325;&#32622;&#34892;&#21205;&#27161;&#31844;</button><button type="button" id="resetPlayerTurns">&#37325;&#32622;&#29609;&#23478;&#22238;&#21512;</button></form>
+      </div>
     </section>
     </div>
     <div class="tab-panel" id="tabPanelInitiative" data-tab-panel="initiative">
@@ -246,7 +248,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-15';
+    const APP_VERSION='2026.07.26-16';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -526,6 +528,8 @@
     let cardTiers=loadMemory('battleTrackerCardTiers');
     let cardDrawExpanded=false;
     try{cardDrawExpanded=localStorage.getItem('battleTrackerCardDrawExpanded')==='1'}catch{}
+    let actionPanelExpanded=true;
+    try{const v=localStorage.getItem('battleTrackerActionPanelExpanded');if(v!==null)actionPanelExpanded=v==='1'}catch{}
     let combatLog=loadMemory('battleTrackerCombatLog');
     let combatLogExpanded=false;
     try{combatLogExpanded=localStorage.getItem('battleTrackerCombatLogExpanded')==='1'}catch{}
@@ -2517,6 +2521,19 @@ function adjustUnitHp(unit,action,amount){
       document.querySelector('#cardDrawChev').style.transform=cardDrawExpanded?'rotate(90deg)':'';
       try{localStorage.setItem('battleTrackerCardDrawExpanded',cardDrawExpanded?'1':'0')}catch{}
     });
+    function updateActionPanelToggleUI(){
+      const inner=document.querySelector('#actionPanelInner');
+      const btn=document.querySelector('#toggleActionPanel');
+      if(!inner||!btn)return;
+      inner.hidden=!actionPanelExpanded;
+      btn.textContent=actionPanelExpanded?'▴ 行動標籤':'▾ 行動標籤';
+    }
+    document.querySelector('#toggleActionPanel').addEventListener('click',()=>{
+      actionPanelExpanded=!actionPanelExpanded;
+      updateActionPanelToggleUI();
+      try{localStorage.setItem('battleTrackerActionPanelExpanded',actionPanelExpanded?'1':'0')}catch{}
+    });
+    updateActionPanelToggleUI();
     document.querySelector('#btnClearAllHistory').addEventListener('click',()=>{
       if(!cardTiers.some(t=>(t.history||[]).length)){alert('\u76ee\u524d\u6c92\u6709\u4efb\u4f55\u62bd\u53d6\u7d00\u9304\u53ef\u4ee5\u6e05\u9664\u3002');return}
       if(!confirm('\u78ba\u5b9a\u8981\u6e05\u9664\u6240\u6709\u7b49\u7d1a\u7684\u62bd\u53d6\u7d00\u9304\u55ce\uff1f\u9019\u4e0d\u6703\u5f71\u97ff\u5361\u7247\u5217\u8868\u6216\u5df2\u62bd\u51fa\u7684\u72c0\u614b\uff0c\u4e14\u7121\u6cd5\u5fa9\u539f\u3002'))return;
