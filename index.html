@@ -221,7 +221,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-10';
+    const APP_VERSION='2026.07.26-11';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1399,6 +1399,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(shopFab)shopFab.style.display=(tab==='gm')?'flex':'none';
       const navFab=document.querySelector('#shopNavFab');
       if(navFab)navFab.style.display=(tab==='shop'||tab==='gm')?'flex':'none';
+      const nextTurnBtn=document.querySelector('#floatingNextTurn');
+      if(nextTurnBtn)nextTurnBtn.dataset.tabAllowed=(tab==='initiative'||tab==='player'||tab==='monster')?'1':'0';
+      updateFloatingNextTurnVisibility();
       if(scroll){
         const panel=document.querySelector(TAB_PANELS[tab]);
         if(panel)panel.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1505,6 +1508,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     }
     let lastActionTagsSig=null;
     let lastMonsterTemplatesSig=null;
+    let lastShopDataSig=null;
     let lastSaveFilesSig=null;
     let lastPaletteSig=null;
     let lastCardTiersSig=null;
@@ -1597,8 +1601,12 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       sizeUnitNameInputs();
       updateFloatingNextTurnLabel();
       scheduleAutosave();
-      renderShopPanel();
-      renderGmPanel();
+      const shopDataSig=JSON.stringify(shopCatalog)+'|'+teamGold+'|'+JSON.stringify(shopUnlockedLevels)+'|'+JSON.stringify(shopUnlockedLevelCats);
+      if(shopDataSig!==lastShopDataSig){
+        renderShopPanel();
+        renderGmPanel();
+        lastShopDataSig=shopDataSig;
+      }
     }
     function findUnit(id){
       const cached=unitMap.get(id);
@@ -2432,7 +2440,15 @@ function adjustUnitHp(unit,action,amount){
       btn.textContent=autoScrollOnNextTurn?'📍 自動捲動：開':'📍 自動捲動：關';
       btn.classList.toggle('good',autoScrollOnNextTurn);
       btn.title=autoScrollOnNextTurn?'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u6642\u6703\u81ea\u52d5\u6372\u52d5\u5230\u5c0d\u61c9\u5361\u7247\u3002\u9ede\u64ca\u5207\u63db\u70ba\u4e0d\u81ea\u52d5\u6372\u52d5\u3002':'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u4e0d\u6703\u81ea\u52d5\u6372\u52d5\u756b\u9762\u3002\u9ede\u64ca\u5207\u63db\u70ba\u81ea\u52d5\u6372\u52d5\u5230\u5c0d\u61c9\u5361\u7247\u3002';
-      document.querySelector('#floatingNextTurn').hidden=!autoScrollOnNextTurn;
+      document.querySelector('#floatingNextTurn').dataset.autoScrollOn=autoScrollOnNextTurn?'1':'0';
+      updateFloatingNextTurnVisibility();
+    }
+    function updateFloatingNextTurnVisibility(){
+      const btn=document.querySelector('#floatingNextTurn');
+      if(!btn)return;
+      const autoOn=btn.dataset.autoScrollOn!=='0';
+      const tabOk=btn.dataset.tabAllowed!=='0';
+      btn.hidden=!autoOn||!tabOk;
     }
     document.querySelector('#toggleAutoScroll').addEventListener('click',()=>{autoScrollOnNextTurn=!autoScrollOnNextTurn;updateAutoScrollButton();scheduleAutosave()});
     updateAutoScrollButton();
