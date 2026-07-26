@@ -82,8 +82,7 @@
     .shop-picker-list{display:flex;flex-wrap:wrap;gap:8px}
     .shop-picker-btn{background:var(--btn-bg);border:1px solid var(--line);color:var(--text);font-size:.85rem;padding:12px 16px;border-radius:10px}
     .shop-hint{font-size:.82rem;color:var(--muted);line-height:1.5}
-    #combatSharedPanel{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:6px;padding-bottom:6px}
-    #tabSectionInitiative,#tabSectionPlayer,#tabSectionMonster{position:sticky;top:var(--shared-panel-h,0px);z-index:35;background:var(--bg);padding-top:4px;padding-bottom:4px}
+    .sticky-wrap{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:6px;padding-bottom:4px}
     #btnOpenMonsterTagLibrary{position:sticky;top:0;z-index:40}
     .shop-sticky-top{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15)}
   </style>
@@ -101,7 +100,9 @@
     </section>
     </div>
     <div class="tab-panel" id="tabPanelInitiative" data-tab-panel="initiative">
+    <div class="sticky-wrap" id="stickyWrapInitiative">
     <div class="section-head" id="tabSectionInitiative"><h2 class="section-title">🎲 先攻區</h2><div class="section-head-actions"><div class="round-counter"><span class="round-counter-label">回合數</span><button type="button" id="roundMinus" aria-label="減少回合數">−</button><span id="roundValue" class="round-counter-value">1</span><button type="button" id="roundPlus" aria-label="增加回合數">+</button></div><button type="button" id="nextTurn" class="primary">▶ 下一位</button><button type="button" id="shuffleInitiative">🔀 隨機排序</button><button type="button" id="toggleShuffleMode">🔒 固定順序</button><button type="button" id="toggleAutoScroll">📍 自動捲動：開</button><button type="button" id="resetAllTurns">↺ 重置全部回合</button><button type="button" id="toggleInitiative">收合先攻區</button></div></div>
+    </div>
     <section class="initiative-panel" id="initiativeContent"><div class="initiative-list" id="initiativeList"></div></section>
     <div id="initiativeValuePanel" hidden style="margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)">
       <div class="toolbar" style="margin-bottom:8px">
@@ -113,9 +114,11 @@
     </div>
     </div>
     <div class="tab-panel" id="tabPanelPlayer" data-tab-panel="player">
+    <div class="sticky-wrap" id="stickyWrapPlayer">
     <div class="section-head" id="tabSectionPlayer"><h2 class="section-title">&#128737;&#65039; &#29609;&#23478;&#36039;&#35338;</h2><div class="section-head-actions"><button type="button" class="danger" id="resetPlayerHpStatus">&#8635; &#37325;&#32622;&#34880;&#37327;&#33287;&#29376;&#24907;</button><button type="button" id="togglePlayers">&#25910;&#21512;&#29609;&#23478;&#36039;&#35338;</button></div></div>
     <div class="filter-bar" id="playerFilterBar"></div>
     <div id="actionPanelAnchorPlayer"></div>
+    </div>
     <div id="playerContent">
     <div class="summary-head"><span class="summary-head-title">&#29609;&#23478;&#29376;&#24907;&#25688;&#35201;</span><button type="button" id="togglePlayerSummary">&#25910;&#21512;&#25688;&#35201;</button></div>
     <div id="playerSummary"></div>
@@ -123,8 +126,11 @@
     </div>
     </div>
     <div class="tab-panel" id="tabPanelMonster" data-tab-panel="monster">
+    <div class="sticky-wrap" id="stickyWrapMonster">
     <div class="section-head" id="tabSectionMonster"><h2 class="section-title">&#128126; &#24618;&#29289;&#36039;&#35338;</h2><div class="section-head-actions"><button type="button" id="resetMonsterTurns">&#37325;&#32622;&#24618;&#29289;&#22238;&#21512;</button><button type="button" class="danger" id="clearAllMonsters">&#128465;&#65039; &#28165;&#31354;&#25152;&#26377;&#24618;&#29289;</button><button type="button" id="toggleMonsters">&#25910;&#21512;&#24618;&#29289;&#36039;&#35338;</button></div></div>
-    <div class="filter-bar" id="monsterFilterBar"></div><div id="actionPanelAnchorMonster"></div><div id="monsterContent"><div class="summary-head"><span class="summary-head-title">&#24618;&#29289;&#29376;&#24907;&#25688;&#35201;</span><button type="button" id="toggleMonsterSummary">&#25910;&#21512;&#25688;&#35201;</button></div><div id="monsterSummary"></div><section class="grid" id="monsterCards"></section></div>
+    <div class="filter-bar" id="monsterFilterBar"></div><div id="actionPanelAnchorMonster"></div>
+    </div>
+    <div id="monsterContent"><div class="summary-head"><span class="summary-head-title">&#24618;&#29289;&#29376;&#24907;&#25688;&#35201;</span><button type="button" id="toggleMonsterSummary">&#25910;&#21512;&#25688;&#35201;</button></div><div id="monsterSummary"></div><section class="grid" id="monsterCards"></section></div>
     </div>
     <div class="tab-panel" id="tabPanelShop" data-tab-panel="shop" hidden>
     <div class="section-head" id="tabSectionShop"><h2 class="section-title">🏪 商店系統</h2></div>
@@ -240,7 +246,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-14';
+    const APP_VERSION='2026.07.26-15';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1009,28 +1015,15 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(!tabbar)return;
       document.documentElement.style.setProperty('--tabbar-h',tabbar.offsetHeight+'px');
     }
-    function updateSharedPanelHeightVar(){
-      const panel=document.querySelector('#combatSharedPanel');
-      if(!panel)return;
-      const h=panel.hidden?0:panel.offsetHeight;
-      document.documentElement.style.setProperty('--shared-panel-h',h+'px');
-    }
-    if(typeof ResizeObserver!=='undefined'){
-      const sharedPanelEl=document.querySelector('#combatSharedPanel');
-      if(sharedPanelEl)new ResizeObserver(()=>updateSharedPanelHeightVar()).observe(sharedPanelEl);
-    }
-    updateSharedPanelHeightVar();
     window.addEventListener('resize',()=>{
       if(resizeNameTimer)clearTimeout(resizeNameTimer);
-      resizeNameTimer=setTimeout(()=>{resizeNameTimer=null;sizeUnitNameInputs(true);updateTabbarHeightVar();updateSharedPanelHeightVar()},200);
+      resizeNameTimer=setTimeout(()=>{resizeNameTimer=null;sizeUnitNameInputs(true);updateTabbarHeightVar()},200);
     });
     window.addEventListener('orientationchange',()=>{
       // \u5e73\u677f/\u624b\u6a5f\u65cb\u8f49\u65b9\u5411\u6642\uff0c\u6709\u4e9b\u700f\u89bd\u5668\u6703\u5148\u767c\u51fa\u9019\u500b\u4e8b\u4ef6\uff0c\u7b49\u5230\u5be6\u969b\u8996\u5340\u5c3a\u5bf8\u7a69\u5b9a\u5f8c\u624d\u771f\u6b63\u66f4\u65b0\uff0c
       // \u6240\u4ee5\u9019\u88e1\u591a\u7b49\u4e00\u9ede\u5f8c\u518d\u91cd\u65b0\u91cf\u6e2c\u4e00\u6b21\u5206\u9801\u5217\u9ad8\u5ea6\uff0c\u78ba\u4fdd\u61f8\u6d6e\u6309\u9215\u4f4d\u7f6e\u6b63\u78ba\u3002
       setTimeout(updateTabbarHeightVar,50);
       setTimeout(updateTabbarHeightVar,350);
-      setTimeout(updateSharedPanelHeightVar,50);
-      setTimeout(updateSharedPanelHeightVar,350);
     });
     function exportData(){
       flushAutosave();
@@ -1426,6 +1419,15 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const block=document.querySelector('#actionPanelBlock');
       if(anchor&&block&&anchor.nextElementSibling!==block)anchor.after(block);
     }
+    const STICKY_WRAPS={initiative:'#stickyWrapInitiative',player:'#stickyWrapPlayer',monster:'#stickyWrapMonster'};
+    function positionCombatSharedPanel(tab){
+      const wrapSelector=STICKY_WRAPS[tab];
+      const panel=document.querySelector('#combatSharedPanel');
+      if(!panel)return;
+      if(!wrapSelector)return; // 商店/GM/系統分頁：面板本身會被設成hidden，留在原位置即可
+      const wrap=document.querySelector(wrapSelector);
+      if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
+    }
     function setActiveTab(tab,{scroll=true}={}){
       if(!VALID_TABS.includes(tab))return;
       activeTab=tab;
@@ -1434,9 +1436,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         if(panel)panel.hidden=key!==tab;
       });
       positionActionPanel(tab);
+      positionCombatSharedPanel(tab);
       const combatShared=document.querySelector('#combatSharedPanel');
       if(combatShared)combatShared.hidden=(tab==='system'||tab==='shop'||tab==='gm');
-      requestAnimationFrame(updateSharedPanelHeightVar);
       const tabbar=document.querySelector('#bottomTabbar');
       if(tabbar){
         tabbar.querySelectorAll('button[data-target]').forEach(btn=>{
