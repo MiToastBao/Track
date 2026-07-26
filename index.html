@@ -356,29 +356,52 @@
       bar.addEventListener('click',()=>{flushAutosave();location.reload()});
       document.body.appendChild(bar);
     }
-    document.querySelector('#appVersionLabel').textContent=`\u76ee\u524d\u7248\u672c\uff1a${APP_VERSION}`;
+    let latestKnownVersion=null;
+    async function checkForUpdateSimple(showResultAlert){
+      try{
+        const resp=await fetch('./version.json?t='+Date.now(),{cache:'no-store'});
+        if(!resp.ok)throw new Error('no version.json');
+        const data=await resp.json();
+        latestKnownVersion=data.version;
+        updateAppVersionLabel();
+        if(data.version!==APP_VERSION){
+          showUpdateBanner();
+          return true;
+        }else if(showResultAlert){
+          alert(`已經是最新版本（v${APP_VERSION}）`);
+        }
+        return false;
+      }catch(e){
+        if(showResultAlert)alert('離線中，無法檢查更新。');
+        return false;
+      }
+    }
+    function updateAppVersionLabel(){
+      const el=document.querySelector('#appVersionLabel');
+      if(!el)return;
+      const upToDate=latestKnownVersion===null||latestKnownVersion===APP_VERSION;
+      el.textContent=upToDate?`目前版本：${APP_VERSION}（已是最新）`:`目前版本：${APP_VERSION}　⚠️ 發現新版本 ${latestKnownVersion}，請點下方按鈕更新`;
+    }
+    updateAppVersionLabel();
     document.querySelector('#btnCheckUpdate').addEventListener('click',async()=>{
       const btn=document.querySelector('#btnCheckUpdate');
-      if(!('serviceWorker' in navigator)){alert('\u6b64\u700f\u89bd\u5668\u4e0d\u652f\u63f4\u81ea\u52d5\u66f4\u65b0\u529f\u80fd\u3002');return}
       btn.disabled=true;
       const original=btn.textContent;
-      btn.textContent='\ud83d\udd04 \u6aa2\u67e5\u4e2d\u2026';
-      if(!swRegistration)swRegistration=await navigator.serviceWorker.getRegistration();
-      if(!swRegistration){alert('\u5c1a\u672a\u8a3b\u518a\u80cc\u666f\u670d\u52d9\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u4e00\u6b21\u3002');btn.disabled=false;btn.textContent=original;return}
-      const found=await new Promise(resolve=>{
-        updateCheckResolver=resolve;
-        swRegistration.update().catch(()=>{});
-        setTimeout(()=>{if(updateCheckResolver){updateCheckResolver=null;resolve(false)}},10000);
-      });
+      btn.textContent='🔄 檢查中…';
+      const found=await checkForUpdateSimple(false);
       if(found){
-        btn.textContent='\u2705 \u767c\u73fe\u65b0\u7248\u672c\uff0c\u6b63\u5728\u91cd\u65b0\u6574\u7406\u2026';
+        btn.textContent='✅ 發現新版本，正在重新整理…';
         flushAutosave();
         location.reload();
         return;
       }
-      btn.textContent='\u2705 \u5df2\u662f\u6700\u65b0\u7248\u672c';
+      btn.textContent='✅ 已是最新版本';
       btn.disabled=false;
       setTimeout(()=>{btn.textContent=original},2500);
+    });
+    checkForUpdateSimple(false);
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible')checkForUpdateSimple(false);
     });
     const saveMemory=(key,value)=>setStorageItem(key,JSON.stringify(value));
     const loadCurrentState=()=>{try{const raw=localStorage.getItem('battleTrackerCurrentState');return raw?JSON.parse(raw):null}catch{return null}};
