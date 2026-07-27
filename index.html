@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
   <title>&#25136;&#39717;&#34880;&#37327;&#36861;&#36452;&#22120;</title>
   <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIuaIsOmspeihgOmHj+i/vei5pOWZqCIsICJzaG9ydF9uYW1lIjogIuaIsOmspei/vei5pCIsICJzdGFydF91cmwiOiAiLiIsICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjNmNWZhIiwgInRoZW1lX2NvbG9yIjogIiMxOTc2YmQiLCAiaWNvbnMiOiBbeyJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhacFpYZENiM2c5SWpBZ01DQTFNVElnTlRFeUlqNDhjbVZqZENCM2FXUjBhRDBpTlRFeUlpQm9aV2xuYUhROUlqVXhNaUlnY25nOUlqazJJaUJtYVd4c1BTSWpNVGszTm1Ka0lpOCtQSFJsZUhRZ2VEMGlNalUySWlCNVBTSXpOVElpSUdadmJuUXRjMmw2WlQwaU16QXdJaUIwWlhoMExXRnVZMmh2Y2owaWJXbGtaR3hsSWlCbWIyNTBMV1poYldsc2VUMGljM2x6ZEdWdExYVnBMRk5sWjI5bElGVkpJRVZ0YjJwcExFRndjR3hsSUVOdmJHOXlJRVZ0YjJwcExITmhibk10YzJWeWFXWWlQaVlqTVRJNE56TTNPeVlqTmpVd016azdQQzkwWlhoMFBqd3ZjM1puUGc9PSIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSJ9XX0=">
   <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9Ijk2IiBmaWxsPSIjMTk3NmJkIi8+PHRleHQgeD0iMjU2IiB5PSIzNTIiIGZvbnQtc2l6ZT0iMzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLFNlZ29lIFVJIEVtb2ppLEFwcGxlIENvbG9yIEVtb2ppLHNhbnMtc2VyaWYiPiYjMTI4NzM3OyYjNjUwMzk7PC90ZXh0Pjwvc3ZnPg==">
@@ -255,7 +255,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-39';
+    const APP_VERSION='2026.07.26-43';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1602,6 +1602,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(initiativeSig!==lastInitiativeSig){
         document.querySelector('#initiativeList').innerHTML=initiativeTagsHtml();
         lastInitiativeSig=initiativeSig;
+        if(initiativeMode==='value'){
+          const valuePanel=document.querySelector('#initiativeValuePanel');
+          if(valuePanel&&!valuePanel.hidden)renderInitiativeValueTable();
+        }
       }
       const visiblePlayers=playerFilter.size?players.filter(p=>playerFilter.has(p.id)):players;
       const visibleMonsters=sortMonstersForDisplay(monsterFilter.size?monsters.filter(m=>monsterFilter.has(m.id)):monsters);
@@ -3332,7 +3336,8 @@ function adjustUnitHp(unit,action,amount){
           ${gmShopFilter?'<button type="button" class="shop-picker-btn" data-gmnav="shopclear" style="width:100%">✕ 清除篩選</button>':''}
           <h3 style="margin-top:20px">🃏 隨機抽卡池：跳轉</h3>
           <p class="shop-hint" style="margin-bottom:8px">點等級直接跳過去，不用捲回頁面最上方；跳轉後這個視窗會關閉，你可以再點🧭選下一個要看的等級。</p>
-          <div class="shop-picker-list">${cardTiers.length?cardTiers.map(t=>`<button type="button" class="shop-picker-btn" data-cardtier-jump="${t.id}">${escapeHtml(t.name)}</button>`).join(''):'<span class="shop-hint">還沒有建立任何等級。</span>'}</div>
+          <div class="shop-picker-list">${cardTiers.length?cardTiers.map(t=>`<button type="button" class="shop-picker-btn" data-cardtier-jump="${t.id}">${escapeHtml(t.name)}</button>`).join(''):'<button type="button" class="shop-picker-btn" data-cardtier-jump-empty="1" style="width:100%">還沒有建立任何等級，點此跳過去新增</button>'}</div>
+          ${!cardTiers.length?'<p class="shop-hint" style="margin-top:6px">跳過去之後，最上面會有一個輸入框可以新增第一個等級。</p>':''}
         `;
         const searchInput=document.querySelector('#gmCardSearchInput');
         if(searchInput)searchInput.focus({preventScroll:true});
@@ -3358,6 +3363,10 @@ function adjustUnitHp(unit,action,amount){
         const it=shopCatalog.find(x=>x.id===searchJump.dataset.gmSearchJump);
         if(it){
           const lv=it.level||'未分級',cat=it.category||'未分類';
+          // 如果目前有套用等級/分類篩選，搜到的卡片很可能不符合篩選條件，
+          // 根本不會被渲染出來，跳轉會完全找不到目標元素。這裡先清掉篩選，
+          // 確保搜尋到的卡片一定看得到（跟新增商品卡那次遇到的問題同一個原因）。
+          if(gmShopFilter)gmShopFilter=null;
           openShopSections.add('gm:shop');
           openShopSections.add('gmlevel:'+lv);
           openShopSections.add('gmshop:'+lv+':'+cat);
@@ -3368,6 +3377,19 @@ function adjustUnitHp(unit,action,amount){
             if(el)scrollToBelowStickyHeader(el,'#gmStickyHeader');
           });
         }
+        return;
+      }
+      const cardTierJumpEmpty=ev.target.closest('[data-cardtier-jump-empty]');
+      if(cardTierJumpEmpty){
+        cardDrawExpanded=true;
+        document.querySelector('#cardDrawPanel').hidden=false;
+        document.querySelector('#cardDrawChev').style.transform='rotate(90deg)';
+        try{localStorage.setItem('battleTrackerCardDrawExpanded','1')}catch{}
+        closeShopNavOverlay();
+        requestAnimationFrame(()=>{
+          const el=document.querySelector('#cardDrawSection');
+          if(el)scrollToBelowStickyHeader(el,'#gmStickyHeader');
+        });
         return;
       }
       const cardTierJump=ev.target.closest('[data-cardtier-jump]');
