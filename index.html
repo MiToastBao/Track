@@ -248,7 +248,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-20';
+    const APP_VERSION='2026.07.26-22';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2671,16 +2671,24 @@ function adjustUnitHp(unit,action,amount){
       if(!backName||backName===item.name)return null;
       let counterpart=shopCatalog.find(x=>x.name===backName);
       if(!counterpart){
-        counterpart={id:uuid(),name:backName,category:(item.backCategory||'').trim(),level:item.level||'',price:null,cap:null,boughtCount:0,individuallyOpen:false,linkedNames:[item.name]};
+        counterpart={id:uuid(),name:backName,category:(item.backCategory||'').trim(),level:item.level||'',price:item.price,cap:null,boughtCount:0,individuallyOpen:false,linkedNames:[item.name]};
         shopCatalog.push(counterpart);
       }else{
         if((item.backCategory||'').trim())counterpart.category=item.backCategory.trim();
+        counterpart.price=item.price;
         if(!counterpart.linkedNames)counterpart.linkedNames=[];
         if(!counterpart.linkedNames.includes(item.name))counterpart.linkedNames.push(item.name);
       }
       if(!item.linkedNames)item.linkedNames=[];
       if(!item.linkedNames.includes(backName))item.linkedNames.push(backName);
       return counterpart;
+    }
+    function syncLinkedPrices(item){
+      const group=getCardGroup(item.name).filter(n=>n!==item.name);
+      group.forEach(n=>{
+        const other=shopCatalog.find(x=>x.name===n);
+        if(other)other.price=item.price;
+      });
     }
     function renameShopCardEverywhere(oldName,newName){
       newName=(newName||'').trim();
@@ -2718,10 +2726,15 @@ function adjustUnitHp(unit,action,amount){
       const used=usedInShopGroup(it.name);
       const avail=cap!=null?Math.max(0,cap-used):null;
       const outOfStock=avail!=null&&avail<=0;
-      const canAfford=teamGold>=(it.price||0);
-      const buyOk=!outOfStock&&canAfford;
+      const priceUnset=it.price==null;
+      const canAfford=!priceUnset&&teamGold>=(it.price||0);
+      const buyOk=!outOfStock&&canAfford&&!priceUnset;
       const sellOk=used>0;
-      return `<div class="shop-card"><div class="shop-card-name">${escapeHtml(it.name||'未命名')}</div><div class="shop-card-badge">${it.level?`Lv${escapeHtml(it.level)} · `:''}${it.price||0}💰${avail!=null?` · 剩${avail}`:''}</div><div class="shop-card-owned">已持有：${used} 件</div><div class="shop-card-actions"><button class="shop-sell-btn" data-shop-sell="${it.id}" ${sellOk?'':'disabled'}>－ 賣出</button><span class="shop-qty">${used}</span><button class="shop-buy-btn" data-shop-buy="${it.id}" ${buyOk?'':'disabled'}>${outOfStock?'已達上限':(!canAfford?'金庫不足':'＋ 購買')}</button></div></div>`;
+      let buyLabel='＋ 購買';
+      if(priceUnset)buyLabel='尚未設定售價';
+      else if(outOfStock)buyLabel='已達上限';
+      else if(!canAfford)buyLabel='金庫不足';
+      return `<div class="shop-card"><div class="shop-card-name">${escapeHtml(it.name||'未命名')}</div><div class="shop-card-badge">${it.level?`Lv${escapeHtml(it.level)} · `:''}${priceUnset?'未設售價':`${it.price}💰`}${avail!=null?` · 剩${avail}`:''}</div><div class="shop-card-owned">已持有：${used} 件</div><div class="toolbar" style="margin:4px 0 2px;justify-content:center"><span class="shop-hint">數量</span><input type="number" class="shop-buy-qty" data-shop-qty-id="${it.id}" value="1" min="1" style="width:56px;text-align:center"></div><div class="shop-card-actions"><button class="shop-sell-btn" data-shop-sell="${it.id}" ${sellOk?'':'disabled'}>－ 賣出</button><span class="shop-qty">${used}</span><button class="shop-buy-btn" data-shop-buy="${it.id}" ${buyOk?'':'disabled'} title="${priceUnset?'請先到GM區設定這張卡的售價':''}">${buyLabel}</button></div></div>`;
     }
     function shopSectionHtml(id,title,body){
       const open=openShopSections.has(id);
@@ -2810,10 +2823,24 @@ function adjustUnitHp(unit,action,amount){
       const buyBtn=ev.target.closest('[data-shop-buy]');
       if(buyBtn&&!buyBtn.disabled){
         const item=shopCatalog.find(x=>x.id===buyBtn.dataset.shopBuy);
-        if(item&&canBuyShopItem(item)){
+        if(item&&item.price!=null){
+          const qtyInput=document.querySelector(`[data-shop-qty-id="${item.id}"]`);
+          let qty=Math.max(1,Math.floor(Number(qtyInput?qtyInput.value:1))||1);
+          const cap=getShopCap(item.name);
+          const affordableQty=Math.floor(teamGold/item.price);
+          let maxQty=affordableQty;
+          if(cap!=null){
+            const availNow=Math.max(0,cap-usedInShopGroup(item.name));
+            maxQty=Math.min(maxQty,availNow);
+          }
+          if(maxQty<=0){alert('金庫不足或已達上限，無法購買。');return}
+          if(qty>maxQty){
+            if(!confirm(`目前最多只能買 ${maxQty} 件（金庫或上限不足以買到 ${qty} 件），要改買 ${maxQty} 件嗎？`))return;
+            qty=maxQty;
+          }
           saveHistory();
-          item.boughtCount=(item.boughtCount||0)+1;
-          teamGold-=(item.price||0);
+          item.boughtCount=(item.boughtCount||0)+qty;
+          teamGold-=item.price*qty;
           scheduleShopAutosave();renderShopPanel();updateUndo();
         }
         return;
@@ -2821,23 +2848,32 @@ function adjustUnitHp(unit,action,amount){
       const sellBtn=ev.target.closest('[data-shop-sell]');
       if(sellBtn&&!sellBtn.disabled){
         const item=shopCatalog.find(x=>x.id===sellBtn.dataset.shopSell);
-        if(item&&usedInShopGroup(item.name)>0){
-          const val=prompt(`「${item.name}」要賣多少錢？`,item.price||0);
+        const totalHeld=item?usedInShopGroup(item.name):0;
+        if(item&&totalHeld>0){
+          const qtyInput=document.querySelector(`[data-shop-qty-id="${item.id}"]`);
+          let qty=Math.max(1,Math.floor(Number(qtyInput?qtyInput.value:1))||1);
+          if(qty>totalHeld){
+            if(!confirm(`目前只持有 ${totalHeld} 件，要改賣 ${totalHeld} 件嗎？`))return;
+            qty=totalHeld;
+          }
+          const val=prompt(`「${item.name}」每件要賣多少錢？（共賣 ${qty} 件）`,item.price||0);
           if(val===null)return;
           const price=parseInt(val,10);
           if(isNaN(price)||price<0){alert('請輸入有效金額');return}
           saveHistory();
-          // 雙面卡是同一張實體卡片：優先扣這一面自己的持有量；
-          // 如果這一面自己是0、但連動的另一面實際有持有，改扣有持有的那一面，
-          // 這樣不管從哪一面按賣出，扣的都是真正持有庫存的那一面，數字才會一致。
-          let target=item;
-          if(!((target.boughtCount||0)>0)){
-            const group=getCardGroup(item.name);
-            const holder=shopCatalog.find(x=>group.includes(x.name)&&(x.boughtCount||0)>0);
-            if(holder)target=holder;
+          // 雙面卡是同一張實體卡片：優先從這一面自己的持有量扣，扣完不夠的話，
+          // 依序找連動的另一面繼續扣，直到扣滿要賣的數量為止。
+          let remaining=qty;
+          const group=getCardGroup(item.name);
+          const holders=[item,...shopCatalog.filter(x=>group.includes(x.name)&&x!==item)];
+          for(const holder of holders){
+            if(remaining<=0)break;
+            const has=holder.boughtCount||0;
+            const take=Math.min(has,remaining);
+            holder.boughtCount=has-take;
+            remaining-=take;
           }
-          target.boughtCount=Math.max(0,(target.boughtCount||0)-1);
-          teamGold+=price;
+          teamGold+=price*qty;
           scheduleShopAutosave();renderShopPanel();updateUndo();
         }
         return;
@@ -3027,7 +3063,7 @@ function adjustUnitHp(unit,action,amount){
       if(!ev.target.classList.contains('gm-f'))return;
       const id=ev.target.dataset.gmId,f=ev.target.dataset.gmF;
       const item=shopCatalog.find(x=>x.id===id);if(!item)return;
-      if(f==='price')item.price=ev.target.value.trim()===''?null:Math.max(0,parseInt(ev.target.value,10)||0);
+      if(f==='price'){item.price=ev.target.value.trim()===''?null:Math.max(0,parseInt(ev.target.value,10)||0);syncLinkedPrices(item);}
       else if(f==='cap')item.cap=ev.target.value.trim()===''?null:Math.max(0,parseInt(ev.target.value,10)||0);
       else item[f]=ev.target.value;
       scheduleShopAutosave();
@@ -3076,6 +3112,7 @@ function adjustUnitHp(unit,action,amount){
         }
       }
       scheduleShopAutosave();
+      if(f==='price'&&item.linkedNames&&item.linkedNames.length){renderGmPanel();return}
       if(f==='backName'||f==='backCategory'){
         const counterpart=syncShopLinkedCounterpart(item);
         if(counterpart){
