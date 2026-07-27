@@ -99,7 +99,7 @@
     <section class="action-panel" id="actionPanelBlock">
       <div id="actionPanelInner">
         <div class="tag-list" id="actionTags"></div>
-        <form class="tag-form" id="tagForm"><input id="tagName" maxlength="20" required placeholder="&#26032;&#34892;&#21205;&#27161;&#31844; "><button class="primary">&#26032;&#22686;&#27161;&#31844;</button><button type="button" id="resetTags">&#37325;&#32622;&#34892;&#21205;&#27161;&#31844;</button><button type="button" id="resetPlayerTurns">&#37325;&#32622;&#29609;&#23478;&#22238;&#21512;</button></form>
+        <form class="tag-form" id="tagForm"><input id="tagName" maxlength="20" required placeholder="&#26032;&#34892;&#21205;&#27161;&#31844; "><button class="primary">&#26032;&#22686;&#27161;&#31844;</button><button type="button" id="resetTags">&#37325;&#32622;&#34892;&#21205;&#27161;&#31844;</button></form>
       </div>
     </section>
     </div>
@@ -119,7 +119,7 @@
     </div>
     <div class="tab-panel" id="tabPanelPlayer" data-tab-panel="player">
     <div class="sticky-wrap" id="stickyWrapPlayer">
-    <div class="section-head" id="tabSectionPlayer"><h2 class="section-title">&#128737;&#65039; &#29609;&#23478;&#36039;&#35338;</h2><div class="section-head-actions"><button type="button" class="danger" id="resetPlayerHpStatus">&#8635; &#37325;&#32622;&#34880;&#37327;&#33287;&#29376;&#24907;</button><button type="button" id="togglePlayers">&#25910;&#21512;&#29609;&#23478;&#36039;&#35338;</button></div></div>
+    <div class="section-head" id="tabSectionPlayer"><h2 class="section-title">&#128737;&#65039; &#29609;&#23478;&#36039;&#35338;</h2><div class="section-head-actions"><button type="button" class="danger" id="resetPlayerHpStatus">&#8635; &#37325;&#32622;&#34880;&#37327;&#33287;&#29376;&#24907;</button><button type="button" id="resetPlayerTurns">&#37325;&#32622;&#29609;&#23478;&#22238;&#21512;</button><button type="button" id="togglePlayers">&#25910;&#21512;&#29609;&#23478;&#36039;&#35338;</button></div></div>
     <div class="filter-bar" id="playerFilterBar"></div>
     <div id="actionPanelAnchorPlayer"></div>
     </div>
@@ -255,7 +255,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.27-44';
+    const APP_VERSION='2026.07.27-45';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
