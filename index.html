@@ -249,7 +249,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-32';
+    const APP_VERSION='2026.07.26-33';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2924,7 +2924,7 @@ function adjustUnitHp(unit,action,amount){
           const catCheckbox=`<label class="gm-indiv-check" style="margin-bottom:8px"><input type="checkbox" class="lc-check" data-lc-key="${escapeAttr(lcKey)}" ${lcOpen?'checked':''}> 單獨開放「${escapeHtml(lv)}」裡的「${escapeHtml(cat)}」分類到商店（不受上方等級開關影響）</label>`;
           return shopSectionHtml('gmshop:'+lv+':'+cat,`${escapeHtml(cat)}（${items.length}）`,`${catCheckbox}<div class="shop-grid">${items.map(gmCatalogCardHtml).join('')}</div>`);
         }).join('');
-        return`<div style="margin-bottom:16px"><label class="gm-level-check"><input type="checkbox" class="lvl-check" data-gm-lvl="${escapeAttr(lv)}" ${unlocked?'checked':''} ${isNone?'disabled':''}><span>${escapeHtml(lv)}${isNone?'（永遠開放）':''}（${itemsInLevel.length}）</span></label>${shopSectionHtml('gmlevel:'+lv,`📂 ${escapeHtml(lv)} 的分類列表`,catBody)}</div>`;
+        return`<div style="margin-bottom:16px;scroll-margin-top:calc(130px + env(safe-area-inset-top))" data-gmlevel-row="${escapeAttr(lv)}"><label class="gm-level-check"><input type="checkbox" class="lvl-check" data-gm-lvl="${escapeAttr(lv)}" ${unlocked?'checked':''} ${isNone?'disabled':''}><span>${escapeHtml(lv)}${isNone?'（永遠開放）':''}（${itemsInLevel.length}）</span></label>${shopSectionHtml('gmlevel:'+lv,`📂 ${escapeHtml(lv)} 的分類列表`,catBody)}</div>`;
       }).join('');
       return`
         <button type="button" class="primary" data-gm-addcard="1" style="width:100%;margin-bottom:10px">＋ 新增商品</button>
@@ -3309,7 +3309,7 @@ function adjustUnitHp(unit,action,amount){
         if(kind==='shoplvl')gmShopFilter={level:val,category:(gmShopFilter&&gmShopFilter.category)||null};
         else if(kind==='shopcat')gmShopFilter={level:(gmShopFilter&&gmShopFilter.level)||null,category:val};
         else if(kind==='shopclear')gmShopFilter=null;
-        let firstId=null;
+        let firstCatId=null;
         if(gmShopFilter){
           openShopSections.add('gm:shop');
           const targetLevels=gmShopFilter.level?[gmShopFilter.level]:Array.from(new Set(shopCatalog.map(it=>it.level||'未分級')));
@@ -3320,20 +3320,25 @@ function adjustUnitHp(unit,action,amount){
             targetCats.forEach(cat=>{
               const id='gmshop:'+lv+':'+cat;
               openShopSections.add(id);
-              if(!firstId)firstId=id;
+              if(!firstCatId)firstCatId=id;
             });
           });
         }
         renderGmPanel();renderShopNavOverlay();
-        // 選等級：不管有沒有先選分類，都直接跳轉（如果分類也選了，會精準跳到那個等級+分類；
-        //   只選等級的話，跳到該等級底下第一個分類，其他分類也一併展開好了）。
-        // 選分類：如果還沒選等級，範圍還不明確（可能好幾個等級都有這個分類），先不跳轉，
-        //   等使用者接著選了等級之後，才會精準跳到那個等級+分類的位置。
-        const shouldJump=kind==='shoplvl'||(kind==='shopcat'&&gmShopFilter&&gmShopFilter.level);
-        if(shouldJump&&firstId){
+        // 只選等級（不管之前有沒有選過分類）：跳到該等級「本身那一列」，
+        //   也就是等級開關勾選框那個位置，方便直接勾選要不要整批開放這個等級。
+        // 選了分類（而且等級也已經確定）：更精準地跳到該等級+分類的位置。
+        if(kind==='shoplvl'&&gmShopFilter&&gmShopFilter.level){
+          closeShopNavOverlay();
+          const lv=gmShopFilter.level;
+          requestAnimationFrame(()=>{
+            const el=document.querySelector(`[data-gmlevel-row="${CSS.escape(lv)}"]`);
+            if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+          });
+        }else if(kind==='shopcat'&&gmShopFilter&&gmShopFilter.level&&firstCatId){
           closeShopNavOverlay();
           requestAnimationFrame(()=>{
-            const el=document.querySelector(`[data-shopsec="${CSS.escape(firstId)}"]`);
+            const el=document.querySelector(`[data-shopsec="${CSS.escape(firstCatId)}"]`);
             if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
           });
         }
