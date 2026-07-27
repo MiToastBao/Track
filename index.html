@@ -149,7 +149,10 @@
         <span>🏷 標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
         <span style="color:var(--muted)">›</span>
     </button>
-    <button type="button" id="btnBatchDeleteShopCardsSticky" class="danger" hidden style="width:100%;margin-top:8px">🗑 刪除已選取的卡片</button>
+    <div id="batchDeleteRow" hidden style="display:flex;gap:8px;margin-top:8px">
+      <button type="button" id="btnBatchDeleteShopCardsSticky" class="danger" style="flex:1">🗑 刪除已選取的卡片</button>
+      <button type="button" id="btnClearShopCardSelection" style="flex:none">✕ 清除選取</button>
+    </div>
     </div>
     <form class="add-form" id="addForm">
       <select id="unitType" aria-label="角色類型"><option value="player">玩家</option><option value="monster">怪物</option><option value="boss">頭目</option><option value="summon">召喚物</option></select>
@@ -249,7 +252,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-33';
+    const APP_VERSION='2026.07.26-34';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2946,12 +2949,18 @@ function adjustUnitHp(unit,action,amount){
       scheduleShopAutosave();renderGmPanel();updateUndo();
     }
     function updateBatchDeleteStickyButton(){
+      const row=document.querySelector('#batchDeleteRow');
       const btn=document.querySelector('#btnBatchDeleteShopCardsSticky');
-      if(!btn)return;
+      if(!row||!btn)return;
       const n=selectedShopCardIds.size;
-      btn.hidden=n===0;
+      row.hidden=n===0;
       if(n>0)btn.textContent=`🗑 刪除已選取的 ${n} 張卡`;
     }
+    document.querySelector('#btnClearShopCardSelection').addEventListener('click',()=>{
+      selectedShopCardIds.clear();
+      updateBatchDeleteStickyButton();
+      renderGmPanel();
+    });
     document.querySelector('#btnBatchDeleteShopCardsSticky').addEventListener('click',performBatchDeleteShopCards);
     function addBlankShopCard(){
       saveHistory();
