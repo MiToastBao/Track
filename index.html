@@ -149,6 +149,7 @@
         <span>🏷 標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
         <span style="color:var(--muted)">›</span>
     </button>
+    <button type="button" id="btnBatchDeleteShopCardsSticky" class="danger" hidden style="width:100%;margin-top:8px">🗑 刪除已選取的卡片</button>
     </div>
     <form class="add-form" id="addForm">
       <select id="unitType" aria-label="角色類型"><option value="player">玩家</option><option value="monster">怪物</option><option value="boss">頭目</option><option value="summon">召喚物</option></select>
@@ -248,7 +249,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-27';
+    const APP_VERSION='2026.07.26-29';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2927,16 +2928,39 @@ function adjustUnitHp(unit,action,amount){
       }).join('');
       return`
         <button type="button" class="primary" data-gm-addcard="1" style="width:100%;margin-bottom:10px">＋ 新增商品</button>
-        <p class="shop-hint" style="margin:0 0 12px">設定名稱、分類、等級、價格、數量上限；勾選等級即可開放到商店分頁（沒填等級的商品永遠開放），也可以單獨勾選某張卡「單獨開放」不受等級開關限制。點左下角 🧭 可以篩選只看特定等級+分類組合。每張卡片上都有「選取以批次操作」勾選框，勾選多張後可以一次刪除。</p>
-        ${selectedShopCardIds.size?`<button type="button" class="danger" id="btnBatchDeleteShopCards" style="width:100%;margin-bottom:12px">🗑 刪除已選取的 ${selectedShopCardIds.size} 張卡</button>`:''}
+        <p class="shop-hint" style="margin:0 0 12px">設定名稱、分類、等級、價格、數量上限；勾選等級即可開放到商店分頁（沒填等級的商品永遠開放），也可以單獨勾選某張卡「單獨開放」不受等級開關限制。點左下角 🧭 可以篩選只看特定等級+分類組合。每張卡片上都有「選取以批次操作」勾選框，勾選後畫面最上方會出現置頂的批次刪除按鈕，不用捲回來這裡點。</p>
         ${filterNote}
         ${body||'<p class="empty">還沒有商品。</p>'}
       `;
     }
+    function performBatchDeleteShopCards(){
+      const items=shopCatalog.filter(x=>selectedShopCardIds.has(x.id));
+      if(!items.length)return;
+      const allNames=new Set();
+      items.forEach(it=>getCardGroup(it.name).forEach(n=>allNames.add(n)));
+      const namesList=Array.from(allNames);
+      if(!confirm(`確定要刪除已選取的 ${items.length} 張卡嗎？（含雙面卡連動的另一面，總共會刪除 ${namesList.length} 張卡：${namesList.join('、')}）此動作可以用「返回上一步」復原。`))return;
+      saveHistory();
+      shopCatalog=shopCatalog.filter(x=>!allNames.has(x.name));
+      selectedShopCardIds.clear();
+      scheduleShopAutosave();renderGmPanel();updateUndo();
+    }
+    function updateBatchDeleteStickyButton(){
+      const btn=document.querySelector('#btnBatchDeleteShopCardsSticky');
+      if(!btn)return;
+      const n=selectedShopCardIds.size;
+      btn.hidden=n===0;
+      if(n>0)btn.textContent=`🗑 刪除已選取的 ${n} 張卡`;
+    }
+    document.querySelector('#btnBatchDeleteShopCardsSticky').addEventListener('click',performBatchDeleteShopCards);
     function addBlankShopCard(){
       saveHistory();
       const item={id:uuid(),name:'',category:'',level:'',price:null,cap:null,boughtCount:0,individuallyOpen:false,linkedNames:[]};
       shopCatalog.push(item);
+      // 如果目前GM區有套用「等級/分類」篩選，新卡片(未分級/未分類)很可能不符合篩選條件，
+      // 根本不會被渲染出來，這樣後面的捲動會完全找不到目標元素、看起來像沒反應。
+      // 這裡先清掉篩選，確保新卡片一定看得到。
+      if(gmShopFilter)gmShopFilter=null;
       // 新卡片沒填等級/分類時會落在「未分級/未分類」這個子區塊，
       // 這裡先確保外層「商店卡牌管理」跟這個子區塊都是展開狀態，
       // 不然捲動目標會被收合的details元素隱藏起來，看起來像沒有任何反應。
@@ -3055,6 +3079,7 @@ function adjustUnitHp(unit,action,amount){
       const impInput=document.querySelector('#shopExcelInput');
       if(impInput)impInput.addEventListener('change',e=>{if(e.target.files[0])handleShopExcelImport(e.target.files[0]);e.target.value=''});
       renderShopPanel();
+      updateBatchDeleteStickyButton();
     }
     document.querySelector('#shopGmFab').addEventListener('click',addBlankShopCard);
     document.querySelector('#gmPanelContent')?.addEventListener('focusin',ev=>{
@@ -3082,6 +3107,7 @@ function adjustUnitHp(unit,action,amount){
       if(ev.target.classList.contains('gm-card-select')){
         const id=ev.target.dataset.gmSelect;
         if(ev.target.checked)selectedShopCardIds.add(id);else selectedShopCardIds.delete(id);
+        updateBatchDeleteStickyButton();
         renderGmPanel();
         return;
       }
@@ -3142,20 +3168,7 @@ function adjustUnitHp(unit,action,amount){
       const addCard=ev.target.closest('[data-gm-addcard]');
       if(addCard){addBlankShopCard();return}
       const batchDelete=ev.target.closest('#btnBatchDeleteShopCards');
-      if(batchDelete){
-        const items=shopCatalog.filter(x=>selectedShopCardIds.has(x.id));
-        if(!items.length)return;
-        // 把每張選取的卡片各自的雙面卡連動組別也一併算進去，讓使用者確認時知道實際會刪掉幾張
-        const allNames=new Set();
-        items.forEach(it=>getCardGroup(it.name).forEach(n=>allNames.add(n)));
-        const namesList=Array.from(allNames);
-        if(!confirm(`確定要刪除已選取的 ${items.length} 張卡嗎？（含雙面卡連動的另一面，總共會刪除 ${namesList.length} 張卡：${namesList.join('、')}）此動作可以用「返回上一步」復原。`))return;
-        saveHistory();
-        shopCatalog=shopCatalog.filter(x=>!allNames.has(x.name));
-        selectedShopCardIds.clear();
-        scheduleShopAutosave();renderGmPanel();updateUndo();
-        return;
-      }
+      if(batchDelete){performBatchDeleteShopCards();return}
       const forceLink=ev.target.closest('.gm-force-link');
       if(forceLink){
         const item=shopCatalog.find(x=>x.id===forceLink.dataset.gmForce);
