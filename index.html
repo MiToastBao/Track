@@ -144,6 +144,7 @@
       <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
         <button type="button" id="gmUndo" disabled>← 上一步</button>
         <button type="button" id="gmRedo" disabled>下一步 →</button>
+        <button type="button" id="btnToggleBatchSelectMode">📋 批次選擇模式：關</button>
       </div>
       <button type="button" id="btnOpenMonsterTagLibrary" class="shop-cat-tab" style="width:100%;text-align:left;padding:12px 14px;font-size:.95rem;display:flex;align-items:center;justify-content:space-between;background:var(--panel-bg)">
         <span>🏷 標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
@@ -252,7 +253,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-34';
+    const APP_VERSION='2026.07.26-35';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2894,9 +2895,12 @@ function adjustUnitHp(unit,action,amount){
       return`<div class="shop-hint" style="color:var(--danger);font-weight:700">⚠️ 連動尚未建立</div><button type="button" class="gm-force-link" data-gm-force="${it.id}" style="width:100%;margin-top:4px">🔗 立即建立連動</button>`;
     }
     let selectedShopCardIds=new Set();
+    let batchSelectMode=false;
     function gmCatalogCardHtml(it){
+      const selected=selectedShopCardIds.has(it.id);
+      const selectRow=batchSelectMode?`<button type="button" class="${selected?'good':''}" data-gm-select-toggle="${it.id}" style="width:100%;margin-bottom:8px;padding:12px;font-weight:700">${selected?'✅ 已選取（點取消）':'⬜ 點此選取這張卡'}</button>`:'';
       const fields=`
-        <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);margin-bottom:6px"><input type="checkbox" class="gm-card-select" data-gm-select="${it.id}" ${selectedShopCardIds.has(it.id)?'checked':''} style="width:20px;height:20px"> 選取以批次操作</label>
+        ${selectRow}
         <input type="text" class="gm-f" data-gm-f="name" data-gm-id="${it.id}" placeholder="商品名稱" value="${escapeAttr(it.name)}">
         <input type="text" class="gm-f" data-gm-f="category" data-gm-id="${it.id}" placeholder="分類，例如 武器" value="${escapeAttr(it.category||'')}">
         <input type="text" class="gm-f gm-regroup" data-gm-f="level" data-gm-id="${it.id}" placeholder="等級" value="${escapeAttr(it.level||'')}">
@@ -2908,7 +2912,8 @@ function adjustUnitHp(unit,action,amount){
         <input type="text" class="gm-f gm-link" data-gm-f="backName" data-gm-id="${it.id}" placeholder="背面名稱" value="${escapeAttr(it.backName||'')}">
         <input type="text" class="gm-f gm-link" data-gm-f="backCategory" data-gm-id="${it.id}" placeholder="背面分類" value="${escapeAttr(it.backCategory||'')}">
         ${linkStatusHtml(it)}`;
-      return`<div class="shop-card" id="gmcard-${it.id}"><div class="gm-inputs">${fields}</div><button type="button" class="danger gm-del-btn" data-gm-del="${it.id}" style="width:100%;margin-top:6px">🗑 刪除這張卡</button></div>`;
+      const selectedStyle=selected?'border-color:var(--good);box-shadow:0 0 0 2px var(--good) inset':'';
+      return`<div class="shop-card" id="gmcard-${it.id}" style="${selectedStyle}"><div class="gm-inputs">${fields}</div>${batchSelectMode?'':`<button type="button" class="danger gm-del-btn" data-gm-del="${it.id}" style="width:100%;margin-top:6px">🗑 刪除這張卡</button>`}</div>`;
     }
     function renderGmShopSection(){
       const allLevels=Array.from(new Set(shopCatalog.map(it=>it.level||'未分級')));
@@ -2944,8 +2949,10 @@ function adjustUnitHp(unit,action,amount){
       const namesList=Array.from(allNames);
       if(!confirm(`確定要刪除已選取的 ${items.length} 張卡嗎？（含雙面卡連動的另一面，總共會刪除 ${namesList.length} 張卡：${namesList.join('、')}）此動作可以用「返回上一步」復原。`))return;
       saveHistory();
+      const removedIds=shopCatalog.filter(x=>allNames.has(x.name)).map(x=>x.id);
       shopCatalog=shopCatalog.filter(x=>!allNames.has(x.name));
       selectedShopCardIds.clear();
+      removedIds.forEach(id=>{const el=document.getElementById('gmcard-'+id);if(el)el.remove()});
       scheduleShopAutosave();renderGmPanel();updateUndo();
     }
     function updateBatchDeleteStickyButton(){
@@ -2962,6 +2969,14 @@ function adjustUnitHp(unit,action,amount){
       renderGmPanel();
     });
     document.querySelector('#btnBatchDeleteShopCardsSticky').addEventListener('click',performBatchDeleteShopCards);
+    document.querySelector('#btnToggleBatchSelectMode').addEventListener('click',()=>{
+      batchSelectMode=!batchSelectMode;
+      const btn=document.querySelector('#btnToggleBatchSelectMode');
+      btn.textContent=batchSelectMode?'📋 批次選擇模式：開':'📋 批次選擇模式：關';
+      btn.classList.toggle('good',batchSelectMode);
+      if(!batchSelectMode){selectedShopCardIds.clear();updateBatchDeleteStickyButton()}
+      renderGmPanel();
+    });
     function addBlankShopCard(){
       saveHistory();
       const item={id:uuid(),name:'',category:'',level:'',price:null,cap:null,boughtCount:0,individuallyOpen:false,linkedNames:[]};
@@ -3185,6 +3200,14 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#gmPanelContent')?.addEventListener('click',ev=>{
       const addCard=ev.target.closest('[data-gm-addcard]');
       if(addCard){addBlankShopCard();return}
+      const selectToggle=ev.target.closest('[data-gm-select-toggle]');
+      if(selectToggle){
+        const id=selectToggle.dataset.gmSelectToggle;
+        if(selectedShopCardIds.has(id))selectedShopCardIds.delete(id);else selectedShopCardIds.add(id);
+        updateBatchDeleteStickyButton();
+        renderGmPanel();
+        return;
+      }
       const batchDelete=ev.target.closest('#btnBatchDeleteShopCards');
       if(batchDelete){performBatchDeleteShopCards();return}
       const forceLink=ev.target.closest('.gm-force-link');
@@ -3207,8 +3230,13 @@ function adjustUnitHp(unit,action,amount){
           const msg=others.length?`確定要刪除「${item.name}」嗎？它是雙面卡，連動的「${others.join('、')}」也會一併刪除。`:`確定要刪除「${item.name}」這張卡牌嗎？`;
           if(confirm(msg)){
             saveHistory();
+            const removedIds=shopCatalog.filter(x=>group.includes(x.name)).map(x=>x.id);
             shopCatalog=shopCatalog.filter(x=>!group.includes(x.name));
-            scheduleShopAutosave();renderGmPanel();updateUndo();
+            selectedShopCardIds.delete(item.id);
+            // 防禦性處理：除了讓renderGmPanel()整批重繪，也直接把剛刪除的卡片元素從畫面上拔掉，
+            // 確保不管重繪時機或細節元素的殘留問題如何，畫面上一定會立即看到卡片消失。
+            removedIds.forEach(id=>{const el=document.getElementById('gmcard-'+id);if(el)el.remove()});
+            scheduleShopAutosave();renderGmPanel();updateUndo();updateBatchDeleteStickyButton();
           }
         }
         return;
