@@ -248,7 +248,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-26';
+    const APP_VERSION='2026.07.26-27';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2889,8 +2889,10 @@ function adjustUnitHp(unit,action,amount){
       if(isLinked)return`<div class="shop-hint" style="color:var(--danger)">✅ 已連動：${escapeHtml(backName)}</div>`;
       return`<div class="shop-hint" style="color:var(--danger);font-weight:700">⚠️ 連動尚未建立</div><button type="button" class="gm-force-link" data-gm-force="${it.id}" style="width:100%;margin-top:4px">🔗 立即建立連動</button>`;
     }
+    let selectedShopCardIds=new Set();
     function gmCatalogCardHtml(it){
       const fields=`
+        <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);margin-bottom:6px"><input type="checkbox" class="gm-card-select" data-gm-select="${it.id}" ${selectedShopCardIds.has(it.id)?'checked':''} style="width:20px;height:20px"> 選取以批次操作</label>
         <input type="text" class="gm-f" data-gm-f="name" data-gm-id="${it.id}" placeholder="商品名稱" value="${escapeAttr(it.name)}">
         <input type="text" class="gm-f" data-gm-f="category" data-gm-id="${it.id}" placeholder="分類，例如 武器" value="${escapeAttr(it.category||'')}">
         <input type="text" class="gm-f gm-regroup" data-gm-f="level" data-gm-id="${it.id}" placeholder="等級" value="${escapeAttr(it.level||'')}">
@@ -2925,7 +2927,8 @@ function adjustUnitHp(unit,action,amount){
       }).join('');
       return`
         <button type="button" class="primary" data-gm-addcard="1" style="width:100%;margin-bottom:10px">＋ 新增商品</button>
-        <p class="shop-hint" style="margin:0 0 12px">設定名稱、分類、等級、價格、數量上限；勾選等級即可開放到商店分頁（沒填等級的商品永遠開放），也可以單獨勾選某張卡「單獨開放」不受等級開關限制。點左下角 🧭 可以篩選只看特定等級+分類組合。</p>
+        <p class="shop-hint" style="margin:0 0 12px">設定名稱、分類、等級、價格、數量上限；勾選等級即可開放到商店分頁（沒填等級的商品永遠開放），也可以單獨勾選某張卡「單獨開放」不受等級開關限制。點左下角 🧭 可以篩選只看特定等級+分類組合。每張卡片上都有「選取以批次操作」勾選框，勾選多張後可以一次刪除。</p>
+        ${selectedShopCardIds.size?`<button type="button" class="danger" id="btnBatchDeleteShopCards" style="width:100%;margin-bottom:12px">🗑 刪除已選取的 ${selectedShopCardIds.size} 張卡</button>`:''}
         ${filterNote}
         ${body||'<p class="empty">還沒有商品。</p>'}
       `;
@@ -2938,6 +2941,7 @@ function adjustUnitHp(unit,action,amount){
       // 這裡先確保外層「商店卡牌管理」跟這個子區塊都是展開狀態，
       // 不然捲動目標會被收合的details元素隱藏起來，看起來像沒有任何反應。
       openShopSections.add('gm:shop');
+      openShopSections.add('gmlevel:未分級');
       openShopSections.add('gmshop:未分級:未分類');
       scheduleShopAutosave();renderGmPanel();updateUndo();
       requestAnimationFrame(()=>{
@@ -3075,6 +3079,12 @@ function adjustUnitHp(unit,action,amount){
     });
     document.addEventListener('change',ev=>{
       if(!(ev.target.closest&&ev.target.closest('#gmPanelContent')))return;
+      if(ev.target.classList.contains('gm-card-select')){
+        const id=ev.target.dataset.gmSelect;
+        if(ev.target.checked)selectedShopCardIds.add(id);else selectedShopCardIds.delete(id);
+        renderGmPanel();
+        return;
+      }
       if(ev.target.classList.contains('gm-indiv')){
         const item=shopCatalog.find(x=>x.id===ev.target.dataset.gmId);
         if(item){item.individuallyOpen=ev.target.checked;scheduleShopAutosave();renderShopPanel()}
@@ -3131,6 +3141,21 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#gmPanelContent')?.addEventListener('click',ev=>{
       const addCard=ev.target.closest('[data-gm-addcard]');
       if(addCard){addBlankShopCard();return}
+      const batchDelete=ev.target.closest('#btnBatchDeleteShopCards');
+      if(batchDelete){
+        const items=shopCatalog.filter(x=>selectedShopCardIds.has(x.id));
+        if(!items.length)return;
+        // 把每張選取的卡片各自的雙面卡連動組別也一併算進去，讓使用者確認時知道實際會刪掉幾張
+        const allNames=new Set();
+        items.forEach(it=>getCardGroup(it.name).forEach(n=>allNames.add(n)));
+        const namesList=Array.from(allNames);
+        if(!confirm(`確定要刪除已選取的 ${items.length} 張卡嗎？（含雙面卡連動的另一面，總共會刪除 ${namesList.length} 張卡：${namesList.join('、')}）此動作可以用「返回上一步」復原。`))return;
+        saveHistory();
+        shopCatalog=shopCatalog.filter(x=>!allNames.has(x.name));
+        selectedShopCardIds.clear();
+        scheduleShopAutosave();renderGmPanel();updateUndo();
+        return;
+      }
       const forceLink=ev.target.closest('.gm-force-link');
       if(forceLink){
         const item=shopCatalog.find(x=>x.id===forceLink.dataset.gmForce);
@@ -3243,16 +3268,50 @@ function adjustUnitHp(unit,action,amount){
         return;
       }
       const navLvl=ev.target.closest('[data-shopnav-lvl]');
-      if(navLvl){shopLevelFilter=navLvl.dataset.shopnavLvl;shopCatFilter='';renderShopPanel();renderShopNavOverlay();return}
+      if(navLvl){
+        shopLevelFilter=navLvl.dataset.shopnavLvl;shopCatFilter='';
+        const items=visibleShopItems().filter(it=>!shopLevelFilter||(it.level||'（無等級）')===shopLevelFilter);
+        Array.from(new Set(items.map(it=>it.category||'未分類'))).forEach(cat=>openShopSections.add('shop:'+(shopLevelFilter||'all')+':'+cat));
+        renderShopPanel();renderShopNavOverlay();return;
+      }
       const navCat=ev.target.closest('[data-shopnav-cat]');
-      if(navCat){shopCatFilter=navCat.dataset.shopnavCat;renderShopPanel();renderShopNavOverlay();return}
+      if(navCat){
+        shopCatFilter=navCat.dataset.shopnavCat;
+        const items=visibleShopItems().filter(it=>!shopLevelFilter||(it.level||'（無等級）')===shopLevelFilter).filter(it=>!shopCatFilter||(it.category||'未分類')===shopCatFilter);
+        Array.from(new Set(items.map(it=>it.category||'未分類'))).forEach(cat=>openShopSections.add('shop:'+(shopLevelFilter||'all')+':'+cat));
+        renderShopPanel();renderShopNavOverlay();return;
+      }
       const gmNav=ev.target.closest('[data-gmnav]');
       if(gmNav){
         const kind=gmNav.dataset.gmnav,val=gmNav.dataset.val;
         if(kind==='shoplvl')gmShopFilter={level:val,category:(gmShopFilter&&gmShopFilter.category)||null};
         else if(kind==='shopcat')gmShopFilter={level:(gmShopFilter&&gmShopFilter.level)||null,category:val};
         else if(kind==='shopclear')gmShopFilter=null;
+        let firstId=null;
+        if(gmShopFilter){
+          openShopSections.add('gm:shop');
+          const targetLevels=gmShopFilter.level?[gmShopFilter.level]:Array.from(new Set(shopCatalog.map(it=>it.level||'未分級')));
+          targetLevels.forEach(lv=>{
+            openShopSections.add('gmlevel:'+lv);
+            const catsInLv=Array.from(new Set(shopCatalog.filter(it=>(it.level||'未分級')===lv).map(it=>it.category||'未分類')));
+            const targetCats=gmShopFilter.category?catsInLv.filter(c=>c===gmShopFilter.category):catsInLv;
+            targetCats.forEach(cat=>{
+              const id='gmshop:'+lv+':'+cat;
+              openShopSections.add(id);
+              if(!firstId)firstId=id;
+            });
+          });
+        }
         renderGmPanel();renderShopNavOverlay();
+        // 只有在「選了分類」這種比較明確、範圍已經縮小到特定目標的情況下才自動捲動關閉視窗；
+        // 只選等級的話範圍可能還很大（多個分類都符合），先展開就好，讓使用者可以繼續選分類細分。
+        if(kind==='shopcat'&&firstId){
+          closeShopNavOverlay();
+          requestAnimationFrame(()=>{
+            const el=document.querySelector(`[data-shopsec="${CSS.escape(firstId)}"]`);
+            if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+          });
+        }
         return;
       }
     });
