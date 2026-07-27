@@ -255,7 +255,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-36';
+    const APP_VERSION='2026.07.26-37';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2946,13 +2946,22 @@ function adjustUnitHp(unit,action,amount){
     function performBatchDeleteShopCards(){
       const items=shopCatalog.filter(x=>selectedShopCardIds.has(x.id));
       if(!items.length)return;
-      const allNames=new Set();
-      items.forEach(it=>getCardGroup(it.name).forEach(n=>allNames.add(n)));
-      const namesList=Array.from(allNames);
-      if(!confirm(`確定要刪除已選取的 ${items.length} 張卡嗎？（含雙面卡連動的另一面，總共會刪除 ${namesList.length} 張卡：${namesList.join('、')}）此動作可以用「返回上一步」復原。`))return;
+      // 用「id」為主決定實際要刪除誰：勾選的卡片一定會刪除；額外連動的另一面則只在
+      // 名稱「非空白」時才一併納入，避免好幾張還沒命名的空白卡片因為名稱剛好都相同，
+      // 被誤判成連動而互相刪到彼此。
+      const toRemoveIds=new Set(items.map(x=>x.id));
+      items.forEach(it=>{
+        if(!it.name)return;
+        getCardGroup(it.name).forEach(n=>{
+          if(!n)return;
+          shopCatalog.forEach(x=>{if(x.name===n)toRemoveIds.add(x.id)});
+        });
+      });
+      const removedIds=Array.from(toRemoveIds);
+      const removedNames=Array.from(new Set(shopCatalog.filter(x=>toRemoveIds.has(x.id)).map(x=>x.name||'（未命名）')));
+      if(!confirm(`確定要刪除已選取的 ${items.length} 張卡嗎？（含雙面卡連動的另一面，總共會刪除 ${removedIds.length} 張卡：${removedNames.join('、')}）此動作可以用「返回上一步」復原。`))return;
       saveHistory();
-      const removedIds=shopCatalog.filter(x=>allNames.has(x.name)).map(x=>x.id);
-      shopCatalog=shopCatalog.filter(x=>!allNames.has(x.name));
+      shopCatalog=shopCatalog.filter(x=>!toRemoveIds.has(x.id));
       selectedShopCardIds.clear();
       removedIds.forEach(id=>{const el=document.getElementById('gmcard-'+id);if(el)el.remove()});
       scheduleShopAutosave();renderGmPanel();updateUndo();
@@ -3227,13 +3236,20 @@ function adjustUnitHp(unit,action,amount){
       if(delCard){
         const item=shopCatalog.find(x=>x.id===delCard.dataset.gmDel);
         if(item){
-          const group=getCardGroup(item.name);
+          const group=item.name?getCardGroup(item.name):[item.name];
           const others=group.filter(n=>n!==item.name);
-          const msg=others.length?`確定要刪除「${item.name}」嗎？它是雙面卡，連動的「${others.join('、')}」也會一併刪除。`:`確定要刪除「${item.name}」這張卡牌嗎？`;
+          const msg=others.length?`確定要刪除「${item.name}」嗎？它是雙面卡，連動的「${others.join('、')}」也會一併刪除。`:`確定要刪除「${item.name||'（未命名）'}」這張卡牌嗎？`;
           if(confirm(msg)){
             saveHistory();
-            const removedIds=shopCatalog.filter(x=>group.includes(x.name)).map(x=>x.id);
-            shopCatalog=shopCatalog.filter(x=>!group.includes(x.name));
+            // 用「id」而非單純用「名稱」來決定實際要刪除誰：一定會刪除被點擊的這張卡本身，
+            // 額外連動的另一面則只在名稱「非空白」時才一併納入——避免好幾張還沒命名、
+            // 名稱都是空白的卡片，因為名稱剛好都相同而被誤判成連動、互相刪到對方。
+            const toRemoveIds=new Set([item.id]);
+            if(item.name){
+              shopCatalog.forEach(x=>{if(x.id!==item.id&&group.includes(x.name)&&x.name)toRemoveIds.add(x.id)});
+            }
+            const removedIds=Array.from(toRemoveIds);
+            shopCatalog=shopCatalog.filter(x=>!toRemoveIds.has(x.id));
             selectedShopCardIds.delete(item.id);
             // 防禦性處理：除了讓renderGmPanel()整批重繪，也直接把剛刪除的卡片元素從畫面上拔掉，
             // 確保不管重繪時機或細節元素的殘留問題如何，畫面上一定會立即看到卡片消失。
