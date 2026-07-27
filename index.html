@@ -82,7 +82,7 @@
     .shop-picker-list{display:flex;flex-wrap:wrap;gap:8px}
     .shop-picker-btn{background:var(--btn-bg);border:1px solid var(--line);color:var(--text);font-size:.85rem;padding:12px 16px;border-radius:10px}
     .shop-hint{font-size:.82rem;color:var(--muted);line-height:1.5}
-    .sticky-wrap{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:6px;padding-bottom:4px}
+    .sticky-wrap{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:4px;max-height:min(60vh,60dvh);overflow-y:auto}
     #btnOpenMonsterTagLibrary{position:sticky;top:0;z-index:40}
     .shop-sticky-top{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15)}
   </style>
@@ -140,7 +140,7 @@
     </div>
     <div class="tab-panel" id="tabPanelGM" data-tab-panel="gm" hidden>
     <div class="section-head" id="tabSectionGM"><h2 class="section-title">🧰 GM區</h2></div>
-    <div style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:8px 0">
+    <div style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(8px + env(safe-area-inset-top)) 0 8px;max-height:min(60vh,60dvh);overflow-y:auto">
       <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
         <button type="button" id="gmUndo" disabled>← 上一步</button>
         <button type="button" id="gmRedo" disabled>下一步 →</button>
@@ -248,7 +248,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-16';
+    const APP_VERSION='2026.07.26-20';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -552,7 +552,7 @@
     const STORAGE_KEYS=['battleTrackerCurrentState','battleTrackerStatusTemplates','battleTrackerMonsterTemplates','battleTrackerAttributeTemplates','battleTrackerBarTemplates','battleTrackerPassiveTemplates','battleTrackerSaveFiles','battleTrackerPalette','battleTrackerTheme','battleTrackerCardTiers','battleTrackerCombatLog','battleTrackerShopData'];
     const EXPORT_VERSION=1;
     const MAX_SAVE_FILES=50;
-    const MAX_TEMPLATES=500;
+    const MAX_TEMPLATES=Infinity;
     const STORAGE_CATEGORIES=[
       {key:'battleTrackerCurrentState',label:'\u76ee\u524d\u5c0d\u6230\u72c0\u614b',count:()=>players.length+monsters.length,unit:'\u4f4d\u55ae\u4f4d'},
       {key:'battleTrackerSaveFiles',label:'\u5b58\u6a94',count:()=>saveFiles.length,unit:'\u7b46',clear:()=>{saveFiles=[];selectedSaveIds.clear();saveMemory('battleTrackerSaveFiles',saveFiles)}},
@@ -2720,8 +2720,8 @@ function adjustUnitHp(unit,action,amount){
       const outOfStock=avail!=null&&avail<=0;
       const canAfford=teamGold>=(it.price||0);
       const buyOk=!outOfStock&&canAfford;
-      const sellOk=(it.boughtCount||0)>0;
-      return `<div class="shop-card"><div class="shop-card-name">${escapeHtml(it.name||'未命名')}</div><div class="shop-card-badge">${it.level?`Lv${escapeHtml(it.level)} · `:''}${it.price||0}💰${avail!=null?` · 剩${avail}`:''}</div><div class="shop-card-owned">已持有：${it.boughtCount||0} 件</div><div class="shop-card-actions"><button class="shop-sell-btn" data-shop-sell="${it.id}" ${sellOk?'':'disabled'}>－ 賣出</button><span class="shop-qty">${it.boughtCount||0}</span><button class="shop-buy-btn" data-shop-buy="${it.id}" ${buyOk?'':'disabled'}>${outOfStock?'已達上限':(!canAfford?'金庫不足':'＋ 購買')}</button></div></div>`;
+      const sellOk=used>0;
+      return `<div class="shop-card"><div class="shop-card-name">${escapeHtml(it.name||'未命名')}</div><div class="shop-card-badge">${it.level?`Lv${escapeHtml(it.level)} · `:''}${it.price||0}💰${avail!=null?` · 剩${avail}`:''}</div><div class="shop-card-owned">已持有：${used} 件</div><div class="shop-card-actions"><button class="shop-sell-btn" data-shop-sell="${it.id}" ${sellOk?'':'disabled'}>－ 賣出</button><span class="shop-qty">${used}</span><button class="shop-buy-btn" data-shop-buy="${it.id}" ${buyOk?'':'disabled'}>${outOfStock?'已達上限':(!canAfford?'金庫不足':'＋ 購買')}</button></div></div>`;
     }
     function shopSectionHtml(id,title,body){
       const open=openShopSections.has(id);
@@ -2743,7 +2743,7 @@ function adjustUnitHp(unit,action,amount){
         return shopSectionHtml('shop:'+(shopLevelFilter||'all')+':'+cat,`${escapeHtml(cat)}（${catItems.length}）`,`<div class="shop-grid">${catItems.map(shopCardHtml).join('')}</div>`);
       }).join(''):`<p class="empty">${shopCatalog.length?'目前沒有已開放的商品，請到 GM 區勾選要開放的等級或個別卡片。':'還沒有商品，請到 GM 區新增。'}</p>`;
       wrap.innerHTML=`
-        <div class="save-panel" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:10px">
+        <div class="save-panel" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(10px + env(safe-area-inset-top)) 10px 10px;max-height:min(60vh,60dvh);overflow-y:auto">
           <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
             <button type="button" id="shopUndo" ${history.length===0?'disabled':''}>← 上一步</button>
             <button type="button" id="shopRedo" ${future.length===0?'disabled':''}>下一步 →</button>
@@ -2821,13 +2821,22 @@ function adjustUnitHp(unit,action,amount){
       const sellBtn=ev.target.closest('[data-shop-sell]');
       if(sellBtn&&!sellBtn.disabled){
         const item=shopCatalog.find(x=>x.id===sellBtn.dataset.shopSell);
-        if(item&&(item.boughtCount||0)>0){
+        if(item&&usedInShopGroup(item.name)>0){
           const val=prompt(`「${item.name}」要賣多少錢？`,item.price||0);
           if(val===null)return;
           const price=parseInt(val,10);
           if(isNaN(price)||price<0){alert('請輸入有效金額');return}
           saveHistory();
-          item.boughtCount-=1;
+          // 雙面卡是同一張實體卡片：優先扣這一面自己的持有量；
+          // 如果這一面自己是0、但連動的另一面實際有持有，改扣有持有的那一面，
+          // 這樣不管從哪一面按賣出，扣的都是真正持有庫存的那一面，數字才會一致。
+          let target=item;
+          if(!((target.boughtCount||0)>0)){
+            const group=getCardGroup(item.name);
+            const holder=shopCatalog.find(x=>group.includes(x.name)&&(x.boughtCount||0)>0);
+            if(holder)target=holder;
+          }
+          target.boughtCount=Math.max(0,(target.boughtCount||0)-1);
           teamGold+=price;
           scheduleShopAutosave();renderShopPanel();updateUndo();
         }
