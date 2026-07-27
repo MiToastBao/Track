@@ -83,6 +83,8 @@
     .shop-picker-btn{background:var(--btn-bg);border:1px solid var(--line);color:var(--text);font-size:.85rem;padding:12px 16px;border-radius:10px}
     .shop-hint{font-size:.82rem;color:var(--muted);line-height:1.5}
     .sticky-wrap{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:4px;max-height:min(60vh,60dvh);overflow-y:auto}
+    #batchDeleteRow{display:flex}
+    #batchDeleteRow[hidden]{display:none}
     #btnOpenMonsterTagLibrary{position:sticky;top:0;z-index:40}
     .shop-sticky-top{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15)}
   </style>
@@ -150,7 +152,7 @@
         <span>🏷 標籤庫<span id="monsterTagLibraryCount" style="color:var(--muted);font-weight:400"></span></span>
         <span style="color:var(--muted)">›</span>
     </button>
-    <div id="batchDeleteRow" hidden style="display:flex;gap:8px;margin-top:8px">
+    <div id="batchDeleteRow" hidden style="gap:8px;margin-top:8px">
       <button type="button" id="btnBatchDeleteShopCardsSticky" class="danger" style="flex:1">🗑 刪除已選取的卡片</button>
       <button type="button" id="btnClearShopCardSelection" style="flex:none">✕ 清除選取</button>
     </div>
@@ -253,7 +255,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-35';
+    const APP_VERSION='2026.07.26-36';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
