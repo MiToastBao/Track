@@ -142,7 +142,7 @@
     </div>
     <div class="tab-panel" id="tabPanelGM" data-tab-panel="gm" hidden>
     <div class="section-head" id="tabSectionGM"><h2 class="section-title">🧰 GM區</h2></div>
-    <div style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(8px + env(safe-area-inset-top)) 0 8px;max-height:min(60vh,60dvh);overflow-y:auto">
+    <div id="gmStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(8px + env(safe-area-inset-top)) 0 8px;max-height:min(60vh,60dvh);overflow-y:auto">
       <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
         <button type="button" id="gmUndo" disabled>← 上一步</button>
         <button type="button" id="gmRedo" disabled>下一步 →</button>
@@ -255,7 +255,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.26-37';
+    const APP_VERSION='2026.07.26-39';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1438,6 +1438,17 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(!wrapSelector)return; // 商店/GM/系統分頁：面板本身會被設成hidden，留在原位置即可
       const wrap=document.querySelector(wrapSelector);
       if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
+    }
+    function scrollToBelowStickyHeader(el,stickySelector){
+      // 用JS即時量測「目前實際渲染出來」的置頂區塊高度，而不是猜一個固定的px數字。
+      // 置頂區塊的內容會變動（例如按鈕在窄螢幕換行、選取模式開關出現/消失等），
+      // 固定猜測的數字很容易因為這些變動而跟著不準，改成每次都直接量測目前的真實高度最可靠。
+      if(!el)return;
+      const stickyEl=document.querySelector(stickySelector);
+      const stickyHeight=stickyEl?stickyEl.getBoundingClientRect().height:0;
+      const extraGap=10;
+      const targetY=el.getBoundingClientRect().top+window.scrollY-stickyHeight-extraGap;
+      window.scrollTo({top:Math.max(0,targetY),behavior:'smooth'});
     }
     function setActiveTab(tab,{scroll=true}={}){
       if(!VALID_TABS.includes(tab))return;
@@ -2658,20 +2669,35 @@ function adjustUnitHp(unit,action,amount){
       });
       return Array.from(group);
     }
-    function getShopCap(name){
-      const group=getCardGroup(name);
-      for(const n of group){const it=shopCatalog.find(x=>x.name===n);if(it&&it.cap!=null)return it.cap}
+    function getLinkedItems(item){
+      // 回傳「真正」跟這張卡連動的其他卡片物件（不含自己），用id+雙向linkedNames比對，
+      // 而不是單純比對名稱是否相同——避免好幾張名稱剛好相同（尤其是都還沒命名、
+      // 名稱都是空白）的卡片，被誤判成互相連動。名稱空白時直接視為沒有連動對象。
+      if(!item||!item.name)return[];
+      const linkedNamesOfItem=Array.isArray(item.linkedNames)?item.linkedNames:[];
+      return shopCatalog.filter(x=>{
+        if(x.id===item.id)return false;
+        if(!x.name)return false;
+        if(linkedNamesOfItem.includes(x.name))return true;
+        if(Array.isArray(x.linkedNames)&&x.linkedNames.includes(item.name))return true;
+        return false;
+      });
+    }
+    function getShopCap(item){
+      if(item.cap!=null)return item.cap;
+      const linked=getLinkedItems(item);
+      for(const other of linked){if(other.cap!=null)return other.cap}
       return null;
     }
-    function usedInShopGroup(name){
-      const group=getCardGroup(name);
-      return group.reduce((s,n)=>{const it=shopCatalog.find(x=>x.name===n);return s+(it?(it.boughtCount||0):0)},0);
+    function usedInShopGroup(item){
+      const linked=getLinkedItems(item);
+      return (item.boughtCount||0)+linked.reduce((s,x)=>s+(x.boughtCount||0),0);
     }
     function canBuyShopItem(item){
       if((item.price||0)>teamGold)return false;
-      const cap=getShopCap(item.name);
+      const cap=getShopCap(item);
       if(cap==null)return true;
-      return usedInShopGroup(item.name)<cap;
+      return usedInShopGroup(item)<cap;
     }
     function syncShopLinkedCounterpart(item){
       const backName=(item.backName||'').trim();
@@ -2729,8 +2755,8 @@ function adjustUnitHp(unit,action,amount){
       return shopCatalog.filter(it=>shopUnlockedLevels.includes(it.level)||!it.level||it.individuallyOpen===true||shopUnlockedLevelCats.includes(levelCatKey(it.level,it.category)));
     }
     function shopCardHtml(it){
-      const cap=getShopCap(it.name);
-      const used=usedInShopGroup(it.name);
+      const cap=getShopCap(it);
+      const used=usedInShopGroup(it);
       const avail=cap!=null?Math.max(0,cap-used):null;
       const outOfStock=avail!=null&&avail<=0;
       const priceUnset=it.price==null;
@@ -2763,7 +2789,7 @@ function adjustUnitHp(unit,action,amount){
         return shopSectionHtml('shop:'+(shopLevelFilter||'all')+':'+cat,`${escapeHtml(cat)}（${catItems.length}）`,`<div class="shop-grid">${catItems.map(shopCardHtml).join('')}</div>`);
       }).join(''):`<p class="empty">${shopCatalog.length?'目前沒有已開放的商品，請到 GM 區勾選要開放的等級或個別卡片。':'還沒有商品，請到 GM 區新增。'}</p>`;
       wrap.innerHTML=`
-        <div class="save-panel" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(10px + env(safe-area-inset-top)) 10px 10px;max-height:min(60vh,60dvh);overflow-y:auto">
+        <div class="save-panel" id="shopStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(10px + env(safe-area-inset-top)) 10px 10px;max-height:min(60vh,60dvh);overflow-y:auto">
           <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
             <button type="button" id="shopUndo" ${history.length===0?'disabled':''}>← 上一步</button>
             <button type="button" id="shopRedo" ${future.length===0?'disabled':''}>下一步 →</button>
@@ -2833,11 +2859,11 @@ function adjustUnitHp(unit,action,amount){
         if(item&&item.price!=null){
           const qtyInput=document.querySelector(`[data-shop-qty-id="${item.id}"]`);
           let qty=Math.max(1,Math.floor(Number(qtyInput?qtyInput.value:1))||1);
-          const cap=getShopCap(item.name);
+          const cap=getShopCap(item);
           const affordableQty=Math.floor(teamGold/item.price);
           let maxQty=affordableQty;
           if(cap!=null){
-            const availNow=Math.max(0,cap-usedInShopGroup(item.name));
+            const availNow=Math.max(0,cap-usedInShopGroup(item));
             maxQty=Math.min(maxQty,availNow);
           }
           if(maxQty<=0){alert('金庫不足或已達上限，無法購買。');return}
@@ -2855,7 +2881,7 @@ function adjustUnitHp(unit,action,amount){
       const sellBtn=ev.target.closest('[data-shop-sell]');
       if(sellBtn&&!sellBtn.disabled){
         const item=shopCatalog.find(x=>x.id===sellBtn.dataset.shopSell);
-        const totalHeld=item?usedInShopGroup(item.name):0;
+        const totalHeld=item?usedInShopGroup(item):0;
         if(item&&totalHeld>0){
           const qtyInput=document.querySelector(`[data-shop-qty-id="${item.id}"]`);
           let qty=Math.max(1,Math.floor(Number(qtyInput?qtyInput.value:1))||1);
@@ -2871,8 +2897,7 @@ function adjustUnitHp(unit,action,amount){
           // 雙面卡是同一張實體卡片：優先從這一面自己的持有量扣，扣完不夠的話，
           // 依序找連動的另一面繼續扣，直到扣滿要賣的數量為止。
           let remaining=qty;
-          const group=getCardGroup(item.name);
-          const holders=[item,...shopCatalog.filter(x=>group.includes(x.name)&&x!==item)];
+          const holders=[item,...getLinkedItems(item)];
           for(const holder of holders){
             if(remaining<=0)break;
             const has=holder.boughtCount||0;
@@ -3296,6 +3321,9 @@ function adjustUnitHp(unit,action,amount){
         const shopLevels=Array.from(new Set(shopCatalog.map(it=>it.level||'未分級')));
         const shopCats=Array.from(new Set(shopCatalog.filter(it=>!gmShopFilter||!gmShopFilter.level||(it.level||'未分級')===gmShopFilter.level).map(it=>it.category||'未分類')));
         body.innerHTML=`
+          <h3>🔍 搜尋商品卡名稱</h3>
+          <input type="text" id="gmCardSearchInput" placeholder="輸入部分或完整卡牌名稱" value="${escapeAttr(gmCardSearchQuery)}" style="width:100%;margin-bottom:8px;box-sizing:border-box">
+          <div id="gmCardSearchResults" style="margin-bottom:16px">${gmCardSearchResultsHtml()}</div>
           <h3>🏪 商店卡牌：篩選／跳轉</h3>
           <p class="shop-hint" style="font-weight:700">等級</p>
           <div class="shop-picker-list" style="margin-bottom:10px">${shopLevels.map(lv=>`<button type="button" class="shop-picker-btn" data-gmnav="shoplvl" data-val="${escapeAttr(lv)}">${gmShopFilter&&gmShopFilter.level===lv?'✓ ':''}${escapeHtml(lv)}</button>`).join('')}</div>
@@ -3306,9 +3334,42 @@ function adjustUnitHp(unit,action,amount){
           <p class="shop-hint" style="margin-bottom:8px">點等級直接跳過去，不用捲回頁面最上方；跳轉後這個視窗會關閉，你可以再點🧭選下一個要看的等級。</p>
           <div class="shop-picker-list">${cardTiers.length?cardTiers.map(t=>`<button type="button" class="shop-picker-btn" data-cardtier-jump="${t.id}">${escapeHtml(t.name)}</button>`).join(''):'<span class="shop-hint">還沒有建立任何等級。</span>'}</div>
         `;
+        const searchInput=document.querySelector('#gmCardSearchInput');
+        if(searchInput)searchInput.focus({preventScroll:true});
       }
     }
+    let gmCardSearchQuery='';
+    function gmCardSearchResultsHtml(){
+      const q=gmCardSearchQuery.trim().toLowerCase();
+      if(!q)return'<p class="shop-hint">輸入關鍵字即可搜尋，例如「魔杖」可以找出所有名稱包含這兩個字的卡牌。</p>';
+      const matches=shopCatalog.filter(it=>it.name&&it.name.toLowerCase().includes(q));
+      if(!matches.length)return'<p class="shop-hint">找不到符合「'+escapeHtml(gmCardSearchQuery)+'」的卡牌。</p>';
+      return`<div class="shop-picker-list">${matches.map(it=>`<button type="button" class="shop-picker-btn" data-gm-search-jump="${it.id}">${escapeHtml(it.name)}${it.level?`〔${escapeHtml(it.level)}〕`:''}</button>`).join('')}</div>`;
+    }
+    document.querySelector('#shopNavBody').addEventListener('input',ev=>{
+      if(ev.target.id!=='gmCardSearchInput')return;
+      gmCardSearchQuery=ev.target.value;
+      const resultsEl=document.querySelector('#gmCardSearchResults');
+      if(resultsEl)resultsEl.innerHTML=gmCardSearchResultsHtml();
+    });
     document.querySelector('#shopNavBody').addEventListener('click',ev=>{
+      const searchJump=ev.target.closest('[data-gm-search-jump]');
+      if(searchJump){
+        const it=shopCatalog.find(x=>x.id===searchJump.dataset.gmSearchJump);
+        if(it){
+          const lv=it.level||'未分級',cat=it.category||'未分類';
+          openShopSections.add('gm:shop');
+          openShopSections.add('gmlevel:'+lv);
+          openShopSections.add('gmshop:'+lv+':'+cat);
+          renderGmPanel();
+          closeShopNavOverlay();
+          requestAnimationFrame(()=>{
+            const el=document.getElementById('gmcard-'+it.id);
+            if(el)scrollToBelowStickyHeader(el,'#gmStickyHeader');
+          });
+        }
+        return;
+      }
       const cardTierJump=ev.target.closest('[data-cardtier-jump]');
       if(cardTierJump){
         const tierId=cardTierJump.dataset.cardtierJump;
@@ -3326,7 +3387,7 @@ function adjustUnitHp(unit,action,amount){
           const el=document.querySelector(`[data-tier-id="${CSS.escape(tierId)}"]`);
           const detailsEl=el?el.querySelector('details[data-cardtiersec]'):null;
           if(detailsEl)detailsEl.open=true;
-          if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+          if(el)scrollToBelowStickyHeader(el,'#gmStickyHeader');
         });
         return;
       }
@@ -3340,7 +3401,7 @@ function adjustUnitHp(unit,action,amount){
         closeShopNavOverlay();
         requestAnimationFrame(()=>{
           const el=document.querySelector(`[data-shopsec="${CSS.escape(secId)}"]`);
-          if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+          if(el)scrollToBelowStickyHeader(el,'#shopStickyHeader');
         });
         return;
       }
@@ -3388,13 +3449,13 @@ function adjustUnitHp(unit,action,amount){
           const lv=gmShopFilter.level;
           requestAnimationFrame(()=>{
             const el=document.querySelector(`[data-gmlevel-row="${CSS.escape(lv)}"]`);
-            if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+            if(el)scrollToBelowStickyHeader(el,'#gmStickyHeader');
           });
         }else if(kind==='shopcat'&&gmShopFilter&&gmShopFilter.level&&firstCatId){
           closeShopNavOverlay();
           requestAnimationFrame(()=>{
             const el=document.querySelector(`[data-shopsec="${CSS.escape(firstCatId)}"]`);
-            if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+            if(el)scrollToBelowStickyHeader(el,'#gmStickyHeader');
           });
         }
         return;
