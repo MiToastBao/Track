@@ -255,7 +255,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.28-6';
+    const APP_VERSION='2026.07.28-8';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -400,7 +400,6 @@
     updateWakeLockButton();
     if(keepScreenAwakePref)requestWakeLock();
     let swRegistration=null;
-    let updateCheckResolver=null;
     if('serviceWorker' in navigator){
       window.addEventListener('load',()=>{
         navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(APP_VERSION)}`,{updateViaCache:'none'})
@@ -409,8 +408,7 @@
       });
       navigator.serviceWorker.addEventListener('message',event=>{
         if(!(event.data&&event.data.type==='SW_UPDATED'))return;
-        if(updateCheckResolver){const resolve=updateCheckResolver;updateCheckResolver=null;resolve(true)}
-        else showUpdateBanner();
+        showUpdateBanner();
       });
       // \u4e3b\u52d5\u6aa2\u67e5\u65b0\u7248\u672c\uff1a\u700f\u89bd\u5668\u9810\u8a2d\u53ea\u6703\u5728\u80cc\u666f\u4f4e\u983b\u7387\u5730\u6aa2\u67e5 sw.js \u662f\u5426\u66f4\u65b0\uff08\u6709\u6642\u9694\u591a\u5c0f\u6642\u4e0d\u7b49\uff09\uff0c
       // \u9019\u88e1\u5728\u4f7f\u7528\u8005\u56de\u5230\u524d\u53f0\u6642\u3001\u4ee5\u53ca\u9577\u6642\u9593\u958b\u8457\u6642\u5b9a\u671f\u4e3b\u52d5\u547c\u53eb registration.update()\uff0c
@@ -2728,7 +2726,14 @@ function adjustUnitHp(unit,action,amount){
     function syncShopLinkedCounterpart(item){
       const backName=(item.backName||'').trim();
       if(!backName||backName===item.name)return null;
-      let counterpart=shopCatalog.find(x=>x.name===backName);
+      const matches=shopCatalog.filter(x=>x.name===backName&&x.id!==item.id);
+      if(matches.length>1){
+        // 商店裡有超過一張卡片剛好同名，不能確定哪一張才是真正要連動的另一面，
+        // 用 confirm() 明確詢問，而不是像過去那樣直接連上找到的第一張。
+        const ok=confirm(`商店裡有 ${matches.length} 張卡片同樣叫做「${backName}」，無法自動判斷要連動哪一張。\n\n按「確定」會連動找到的第一張；按「取消」則先不建立連動，你可以之後把其中一張改成不同名稱，再回來手動連動。`);
+        if(!ok)return null;
+      }
+      let counterpart=matches[0]||null;
       if(!counterpart){
         counterpart={id:uuid(),name:backName,category:(item.backCategory||'').trim(),level:item.level||'',price:item.price,cap:null,boughtCount:0,individuallyOpen:false,linkedNames:[item.name]};
         shopCatalog.push(counterpart);
