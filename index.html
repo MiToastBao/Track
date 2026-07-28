@@ -142,7 +142,7 @@
     </div>
     <div class="tab-panel" id="tabPanelGM" data-tab-panel="gm" hidden>
     <div class="section-head" id="tabSectionGM"><h2 class="section-title">🧰 GM區</h2></div>
-    <div id="gmStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(8px + env(safe-area-inset-top)) 0 8px;max-height:min(60vh,60dvh);overflow-y:auto">
+    <div id="gmStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(8px + env(safe-area-inset-top)) 0 8px">
       <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
         <button type="button" id="gmUndo" disabled>← 上一步</button>
         <button type="button" id="gmRedo" disabled>下一步 →</button>
@@ -233,7 +233,16 @@
       <div class="shop-sheet-head"><button class="shop-sheet-close" id="monsterTagCloseX">✕</button></div>
       <div class="shop-sheet-scroll">
         <h3 style="margin-top:0">🏷 標籤庫</h3>
-        <div class="toolbar" style="margin-bottom:10px">
+        <details class="shop-section" id="monsterTagExcelSection"><summary class="shop-section-head"><span>📊 Excel 批次匯入怪物標籤</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">
+          <p class="shop-hint" style="margin-bottom:10px">欄位如下（第一列要是標題）：<br><span class="shop-hint" style="font-family:monospace">名稱｜類別｜顏色｜血量上限｜等級｜是否組成小隊｜小隊人數｜先攻卡數</span><br><br>匯入結果只會存進下面的「標籤庫」，不會直接把怪物生成到戰場上；同名同等級的怪物標籤會直接覆蓋更新，不會重複建立。下載範例試算表後，裡面有「使用說明」分頁詳細解釋每個欄位。</p>
+          <div class="toolbar">
+            <button type="button" id="btnMonsterTagExcelTemplate">⬇️ 下載範例試算表</button>
+            <button type="button" class="primary" id="btnMonsterTagExcelImport">📥 選擇檔案匯入</button>
+          </div>
+          <input type="file" id="monsterTagExcelInput" accept=".xlsx,.xls,.csv" hidden>
+          <p class="shop-hint" id="monsterTagExcelStatus" style="margin-top:8px"></p>
+        </div></details>
+        <div class="toolbar" style="margin-bottom:10px;margin-top:10px">
           <input type="text" id="monsterTagSearchInput" placeholder="🔍 搜尋怪物名稱…" style="flex:2;min-width:140px">
           <select id="monsterTagLevelFilter" style="flex:1;min-width:100px"><option value="">全部等級</option></select>
         </div>
@@ -255,7 +264,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.28-8';
+    const APP_VERSION='2026.07.28-15';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -609,6 +618,11 @@
       sel.innerHTML=`<option value="">全部等級</option>${hasNoLevel?'<option value="__none__">（無等級）</option>':''}${levels.map(lv=>`<option value="${escapeAttr(lv)}">${escapeHtml(lv)}</option>`).join('')}`;
       sel.value=monsterTagLevelFilter;
     }
+    let openMonsterTagLevelSections=new Set();
+    function monsterTagLevelSectionHtml(id,title,body){
+      const open=openMonsterTagLevelSections.has(id);
+      return `<details class="shop-section" data-monstertagsec="${escapeAttr(id)}" ${open?'open':''}><summary class="shop-section-head"><span>${title}</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">${body}</div></details>`;
+    }
     function renderMonsterTagLibraryList(){
       const listEl=document.querySelector('#monsterTagLibraryList');
       if(!listEl)return;
@@ -617,15 +631,27 @@
       if(q)items=items.filter(t=>t.name.toLowerCase().includes(q));
       if(monsterTagLevelFilter==='__none__')items=items.filter(t=>!t.level);
       else if(monsterTagLevelFilter)items=items.filter(t=>t.level===monsterTagLevelFilter);
-      const displayItems=items.map(t=>{
-        const lvTag=t.level?`〔${t.level}〕`:'';
-        if(t.isSquad)return{...t,name:`🛡️ ${lvTag}${t.name} ×${t.squadCount}`};
-        if(t.isBoss)return{...t,name:`👑 ${lvTag}${t.name}${t.cardCount>1?` (${t.cardCount}張先攻卡)`:''}`};
-        if(t.isSummon)return{...t,name:`🔮 ${lvTag}${t.name}${t.cardCount>1?` (${t.cardCount}張先攻卡)`:''}`};
-        return{...t,name:`${lvTag}${t.name}`};
+      if(!items.length){
+        listEl.innerHTML=`<span class="status">${monsterTemplates.length?'沒有符合搜尋/篩選條件的怪物標籤':'還沒有記憶的怪物標籤'}</span>`;
+        return;
+      }
+      const levels=Array.from(new Set(items.map(t=>t.level||'（無等級）')));
+      // 搜尋時自動展開有符合結果的等級分組，才不會讓使用者以為搜尋沒結果，
+      // 其實只是分組被收合著。
+      if(q)levels.forEach(lv=>openMonsterTagLevelSections.add('mtag:'+lv));
+      listEl.innerHTML=levels.map(lv=>{
+        const lvItems=items.filter(t=>(t.level||'（無等級）')===lv);
+        const displayItems=lvItems.map(t=>{
+          if(t.isSquad)return{...t,name:`🛡️ ${t.name} ×${t.squadCount}`};
+          if(t.isBoss)return{...t,name:`👑 ${t.name}${t.cardCount>1?` (${t.cardCount}張先攻卡)`:''}`};
+          if(t.isSummon)return{...t,name:`🔮 ${t.name}${t.cardCount>1?` (${t.cardCount}張先攻卡)`:''}`};
+          return t;
+        });
+        return monsterTagLevelSectionHtml('mtag:'+lv,`${escapeHtml(lv)}（${lvItems.length}）`,simpleTemplateListHtml(displayItems,{addAttr:'monster-template-add',deleteAttr:'monster-template-delete',emptyText:''}));
+      }).join('');
+      listEl.querySelectorAll('details[data-monstertagsec]').forEach(d=>{
+        d.addEventListener('toggle',()=>{const id=d.dataset.monstertagsec;if(d.open)openMonsterTagLevelSections.add(id);else openMonsterTagLevelSections.delete(id)});
       });
-      const emptyText=monsterTemplates.length?'沒有符合搜尋/篩選條件的怪物標籤':'還沒有記憶的怪物標籤';
-      listEl.innerHTML=simpleTemplateListHtml(displayItems,{addAttr:'monster-template-add',deleteAttr:'monster-template-delete',emptyText});
     }
     document.querySelector('#monsterTagSearchInput').addEventListener('input',e=>{monsterTagSearch=e.target.value;renderMonsterTagLibraryList()});
     document.querySelector('#monsterTagLevelFilter').addEventListener('change',e=>{monsterTagLevelFilter=e.target.value;renderMonsterTagLibraryList()});
@@ -1880,6 +1906,11 @@ function adjustUnitHp(unit,action,amount){
       if(monsterTemplateAdd){
         const template=monsterTemplates.find(item=>item.id===monsterTemplateAdd.dataset.monsterTemplateAdd);
         if(template){
+          // \u4e0d\u518d\u9748\u9ed8\u5730\u628a\u5c0f\u968a\u4eba\u6578/\u5148\u653b\u5361\u6578\u5939\u5230\u4e0a\u9650\uff0c\u6539\u6210\u751f\u6210\u524d\u5148\u78ba\u8a8d\uff0c\u907f\u514d\u6253\u932f\u6578\u5b57\u4e26\u4e0d\u81ea\u77e5\u3002
+          const squadN=template.isSquad?Math.max(1,Math.floor(Number(template.squadCount))||3):0;
+          const cardN=(template.isBoss||template.isSummon)?Math.max(1,Math.floor(Number(template.cardCount))||1):0;
+          if(squadN>12&&!confirm(`「${template.name}」的小隊人數是 ${squadN}，這會一次生成 ${squadN} 隻怪物到戰場上，確定要繼續嗎？`))return;
+          if(cardN>10&&!confirm(`「${template.name}」設定了 ${cardN} 張先攻卡，這會一次生成 ${cardN} 張先攻卡，確定要繼續嗎？`))return;
           saveHistory();
           if(template.isSquad){
             const squadPassives=(template.passives||[]).map(p=>({id:uuid(),name:p.name,color:p.color}));
@@ -1943,7 +1974,7 @@ function adjustUnitHp(unit,action,amount){
         const unit=findUnit(monsterRemember.dataset.monsterRemember);
         if(unit&&(unit.type==='monster'||unit.isSummon)){
           saveHistory();
-          const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||''));
+          const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||'')&&!!item.isBoss===!!unit.isBoss&&!!item.isSummon===!!unit.isSummon&&!item.isSquad);
           const templatePassives=(unit.passives||[]).filter(p=>!p.sourceThresholdId).map(p=>({id:uuid(),name:p.name,color:p.color}));
           const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:templatePassives,attributes:(unit.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(unit.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),isBoss:!!unit.isBoss,isSummon:!!unit.isSummon,level:unit.level||(old?.level||''),cardCount:(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.length:(old?.cardCount||1),cardNames:(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.map(c=>c.name||''):(old?.cardNames||[]),hpThresholds:unit.isBoss&&Array.isArray(unit.hpThresholds)?unit.hpThresholds.map(t=>({id:uuid(),value:t.value,passiveName:t.passiveName,triggered:false,autoRemove:!!t.autoRemove})):(old?.hpThresholds||[])};
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
@@ -1986,7 +2017,7 @@ function adjustUnitHp(unit,action,amount){
           squad.attributes=(unit.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color}));
           squad.bars=(unit.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}));
           squadMembers(squad.id).forEach(member=>{if(member.id===unit.id)return;member.maxHp=squad.maxHp;member.hp=Math.min(member.hp,member.maxHp);member.color=squad.color;member.passives=squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color}));member.attributes=squad.attributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color}));member.bars=squad.bars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}))});
-          const oldTemplate=monsterTemplates.find(item=>item.name===squad.name&&(item.level||'')===(squad.level||''));
+          const oldTemplate=monsterTemplates.find(item=>item.name===squad.name&&(item.level||'')===(squad.level||'')&&item.isSquad&&!item.isBoss);
           const template={id:oldTemplate?.id||uuid(),name:squad.name,maxHp:squad.maxHp,color:squad.color,statuses:[],isSquad:true,squadCount:squadMembers(squad.id).length,passives:squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color})),attributes:squad.attributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:squad.bars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}))};
           if(oldTemplate)Object.assign(oldTemplate,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
           saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
@@ -2137,7 +2168,7 @@ function adjustUnitHp(unit,action,amount){
           const unit={id:uuid(),name,hp:maxHp,maxHp,type:'monster',color,statuses:[],attributes:[],bars:[],passives:[],isBoss:asBoss};
           if(asBoss)unit.actionCards=Array.from({length:cardCount},()=>({id:uuid(),name:'',turnEnded:false}));
           monsters.push(unit);
-          const old=monsterTemplates.find(item=>item.name===name&&!item.level);
+          const old=monsterTemplates.find(item=>item.name===name&&!item.level&&!!item.isBoss===asBoss&&!item.isSquad);
           const template={id:old?.id||uuid(),name,maxHp,color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:asBoss,cardCount:asBoss?cardCount:(old?.cardCount||1),cardNames:asBoss?unit.actionCards.map(()=>''):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[]};
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
         });
@@ -2425,7 +2456,7 @@ function adjustUnitHp(unit,action,amount){
           for(let i=1;i<=count;i++){
             monsters.push({id:uuid(),name:`${baseName} ${i}`,hp:max,maxHp:max,type:'monster',color,squadId:squad.id,statuses:[],attributes:[],bars:[],passives:[],level});
           }
-          const old=monsterTemplates.find(item=>item.name===baseName&&(item.level||'')===(level||''));
+          const old=monsterTemplates.find(item=>item.name===baseName&&(item.level||'')===(level||'')&&item.isSquad&&!item.isBoss);
           const template={id:old?.id||uuid(),name:baseName,maxHp:max,color,statuses:[],isSquad:true,squadCount:count,passives:[],attributes:[],bars:[],isBoss:false,level};
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
           saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
@@ -2440,14 +2471,14 @@ function adjustUnitHp(unit,action,amount){
           if(type==='player'){
             players.push(unit);
             if(isSummon){
-              const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||''));
+              const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||'')&&item.isSummon&&!item.isBoss&&!item.isSquad);
               const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:false,isSummon:true,cardCount:unit.actionCards.length,cardNames:unit.actionCards.map(c=>c.name||''),hpThresholds:[],level};
               if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
               saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
             }
           }else{
             monsters.push(unit);
-            const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||''));
+            const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||'')&&!!item.isBoss===isBoss&&!item.isSummon&&!item.isSquad);
             const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss,isSummon:false,cardCount:isBoss?unit.actionCards.length:(old?.cardCount||1),cardNames:isBoss?unit.actionCards.map(c=>c.name||''):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[],level};
             if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
             saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
@@ -2801,7 +2832,7 @@ function adjustUnitHp(unit,action,amount){
     }
     function shopSectionHtml(id,title,body){
       const open=openShopSections.has(id);
-      return `<details class="shop-section" data-shopsec="${id}" ${open?'open':''}><summary class="shop-section-head"><span>${title}</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">${body}</div></details>`;
+      return `<details class="shop-section" data-shopsec="${escapeAttr(id)}" ${open?'open':''}><summary class="shop-section-head"><span>${title}</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">${body}</div></details>`;
     }
     let openShopSections=new Set();
     function renderShopPanel(){
@@ -3150,6 +3181,106 @@ function adjustUnitHp(unit,action,amount){
         if(statusEl)statusEl.textContent=msg;
       });
     }
+    function downloadMonsterExcelTemplate(){
+      ensureXLSXLoaded().then(()=>{
+        const templateRows=[
+          ['名稱','類別','顏色','血量上限','等級','是否組成小隊','小隊人數','先攻卡數'],
+          ['哥布林','怪物','綠','30','日常等級','是','4',''],
+          ['石像鬼頭目','頭目','','300','日常等級','否','','3'],
+          ['野狼','怪物','#a0522d','40','菁英等級','否','',''],
+        ];
+        const helpRows=[
+          ['欄位','說明'],
+          ['名稱','怪物名稱，必填。系統會用「名稱＋等級＋類別」判斷是不是同一隻怪，三個都一樣才視為同一隻、匯入時直接覆蓋更新血量等資料；只要名稱、等級、類別（怪物/頭目/小隊）有任何一個不一樣，就會被當成不同的怪，另外新增一筆。血量上限不影響判斷——同一隻怪之後改血量重新匯入，會直接覆蓋更新血量，不會多一筆重複的。'],
+          ['類別','填「怪物」或「頭目」，其他文字一律視為「怪物」。頭目才能填寫「先攻卡數」；如果「是否組成小隊」填「是」，這欄會被忽略（小隊不能同時是頭目）。'],
+          ['顏色','可以直接打中文顏色名稱：紅、橘（橙）、黃、綠、藍、紫、粉（粉紅）、灰，也可以打 16 進位色碼（例如 #ff5b6d）給比較熟悉的人用。留空或打了看不懂的字都會用預設紅色，之後也可以在怪物卡片上手動改顏色，不一定要在這裡填對。'],
+          ['血量上限','怪物的血量上限，留空預設 100。'],
+          ['等級','怪物等級，格式不拘，只要同一等級打法前後一致。留空代表沒有等級分類。'],
+          ['是否組成小隊','填「是」或「否／留空」。填「是」的話，之後從標籤庫點這隻怪物新增到戰場時，會自動生成「小隊人數」指定的隻數並組成一個小隊。'],
+          ['小隊人數','只有「是否組成小隊」填「是」時才需要填，預設 3，沒有上限。如果數字偏大（超過12），點選標籤要生成到戰場時系統會先跳出確認視窗告訴你會生成幾隻，不會沒提醒就直接生成一大堆。'],
+          ['先攻卡數','只有「類別」填「頭目」時才需要填，代表這個頭目新增到戰場時會自動生成幾張先攻卡，預設 1，沒有上限。數字偏大（超過10）時，點選標籤生成到戰場前系統一樣會先跳出確認視窗。'],
+          ['',''],
+          ['⚠️ 匯入結果只會存進「標籤庫」','這個匯入功能只會把資料存成「怪物標籤」範本，不會直接把怪物生成到戰場上。要生成到戰場時，請到 GM 區「🏷 標籤庫」點選對應的怪物標籤。'],
+        ];
+        const wb=XLSX.utils.book_new();
+        const ws1=XLSX.utils.aoa_to_sheet(templateRows);
+        ws1['!cols']=[{wch:14},{wch:8},{wch:10},{wch:10},{wch:12},{wch:14},{wch:10},{wch:10}];
+        XLSX.utils.book_append_sheet(wb,ws1,'範本');
+        const ws2=XLSX.utils.aoa_to_sheet(helpRows);
+        ws2['!cols']=[{wch:18},{wch:70}];
+        XLSX.utils.book_append_sheet(wb,ws2,'使用說明');
+        XLSX.writeFile(wb,'怪物標籤匯入範例.xlsx');
+      }).catch(e=>{console.error(e);alert('範本產生失敗，請檢查網路連線')});
+    }
+    // 讓「顏色」欄位除了 16 進位色碼之外，也能直接打常見的中文顏色名稱——
+    // 對應到 app 本來就內建的預設調色盤（defaultPalette）那 8 個顏色，
+    // 不熟悉色碼的人可以直接打「紅」「藍」這種名稱，留空則預設紅色。
+    const MONSTER_COLOR_NAME_MAP={
+      '紅':'#ff5b6d','紅色':'#ff5b6d',
+      '藍':'#36a9ff','藍色':'#36a9ff',
+      '橘':'#ffad42','橘色':'#ffad42','橙':'#ffad42','橙色':'#ffad42',
+      '黃':'#f5df4d','黃色':'#f5df4d',
+      '綠':'#47d781','綠色':'#47d781',
+      '紫':'#b178ff','紫色':'#b178ff',
+      '粉':'#f58bc1','粉色':'#f58bc1','粉紅':'#f58bc1','粉紅色':'#f58bc1',
+      '灰':'#f1f5f9','灰色':'#f1f5f9',
+    };
+    function resolveMonsterColor(raw){
+      const t=String(raw||'').trim();
+      if(!t)return'#ff5b6d';
+      if(HEX_COLOR_RE.test(t))return t;
+      return MONSTER_COLOR_NAME_MAP[t]||'#ff5b6d';
+    }
+    function parseMonsterExcelRows(rows){
+      let added=0,updated=0;
+      rows.forEach(row=>{
+        const name=String(row['名稱']||'').trim().slice(0,20);
+        if(!name)return;
+        const catRaw=String(row['類別']||'').trim();
+        const isBoss=catRaw==='頭目';
+        const color=resolveMonsterColor(row['顏色']);
+        const maxHp=Math.max(1,Math.min(999999,Math.floor(Number(row['血量上限']))||100));
+        const level=String(row['等級']||'').trim().slice(0,20);
+        const squadRaw=String(row['是否組成小隊']||'').trim();
+        const isSquad=squadRaw==='是'||squadRaw.toLowerCase()==='true'||squadRaw==='1';
+        // 小隊人數／先攻卡數不再夾上限，只保留邏輯上必要的下限（小隊至少2人、
+        // 先攻卡至少1張）；數量偏高時，改成點選標籤要生成到戰場時才跳出確認視窗。
+        const squadCount=isSquad?Math.max(2,Math.floor(Number(row['小隊人數']))||3):3;
+        const cardCount=(isBoss&&!isSquad)?Math.max(1,Math.floor(Number(row['先攻卡數']))||1):1;
+        const finalIsBoss=isSquad?false:isBoss;
+        // 名稱＋等級＋類別＋血量上限，四個條件都一樣才判斷是同一隻怪。
+        // 注意：這代表以後如果同一隻怪的血量上限改了，重新匯入會被當成
+        //「不同的怪」而新增一筆，不會覆蓋更新舊的那筆血量。
+        const old=monsterTemplates.find(item=>item.name===name&&(item.level||'')===level&&!!item.isBoss===finalIsBoss&&!!item.isSquad===isSquad);
+        const template={id:old?.id||uuid(),name,maxHp,color,statuses:old?.statuses||[],isSquad,squadCount,passives:old?.passives||[],attributes:old?.attributes||[],bars:old?.bars||[],isBoss:finalIsBoss,isSummon:false,cardCount,cardNames:old?.cardNames||[],hpThresholds:old?.hpThresholds||[],level};
+        if(old){Object.assign(old,template);updated++}
+        else{pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);added++}
+      });
+      return {added,updated};
+    }
+    function handleMonsterExcelImport(file){
+      const statusEl=document.querySelector('#monsterTagExcelStatus');
+      if(statusEl)statusEl.textContent='讀取中…';
+      ensureXLSXLoaded().then(()=>file.arrayBuffer()).then(buf=>{
+        const wb=XLSX.read(buf,{type:'array'});
+        const sheet=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(sheet,{defval:''});
+        const {added,updated}=parseMonsterExcelRows(rows);
+        saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
+        renderMonsterTagLevelOptions();
+        renderMonsterTagLibraryList();
+        updateMonsterTagLibraryCount();
+        const msg=`匯入完成，新增 ${added} 筆、更新 ${updated} 筆怪物標籤`;
+        if(statusEl)statusEl.textContent=msg;
+      }).catch(e=>{
+        console.error(e);
+        const msg='匯入失敗，請確認檔案格式是否正確，或檢查網路連線（第一次匯入需要下載 Excel 解析套件）';
+        if(statusEl)statusEl.textContent=msg;
+      });
+    }
+    document.querySelector('#btnMonsterTagExcelTemplate').addEventListener('click',downloadMonsterExcelTemplate);
+    document.querySelector('#btnMonsterTagExcelImport').addEventListener('click',()=>document.querySelector('#monsterTagExcelInput').click());
+    document.querySelector('#monsterTagExcelInput').addEventListener('change',e=>{if(e.target.files[0])handleMonsterExcelImport(e.target.files[0]);e.target.value=''});
     function renderGmPanel(){
       const wrap=document.querySelector('#gmPanelContent');
       if(!wrap)return;
