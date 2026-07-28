@@ -255,7 +255,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.28-2';
+    const APP_VERSION='2026.07.28-6';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -422,6 +422,22 @@
     }
     async function forceHardReload(){
       flushAutosave();
+      // 不用單純的 location.reload()：Safari（尤其是加到主畫面的獨立模式）
+      // 有自己一層瀏覽器層級的HTTP快取，即使清空了Cache API的快取，
+      // 單純重新整理有時仍會拿到舊內容。改成導向一個帶隨機參數的網址，
+      // 強迫瀏覽器把它當成全新的請求，不會命中舊的快取紀錄。
+      const bust='_r='+Date.now()+Math.random().toString(36).slice(2);
+      const url=location.pathname+(location.search?location.search+'&'+bust:'?'+bust);
+      // 先確認新頁面真的抓得到，才動手清掉舊的 SW／快取：如果這時候剛好斷網
+      // （例如電梯、地下室），維持現有的離線快取，不要把使用者手上能離線用的
+      // 版本也砍掉，讓 App 暫時完全打不開。
+      try{
+        const probe=await fetch(url,{cache:'no-store'});
+        if(!probe.ok)throw new Error('bad response');
+      }catch(e){
+        alert('目前似乎沒有網路連線，無法重新整理到最新版本，請確認網路後再試一次（目前版本仍可離線使用）。');
+        return;
+      }
       try{
         if('serviceWorker' in navigator){
           const regs=await navigator.serviceWorker.getRegistrations();
@@ -432,12 +448,6 @@
           await Promise.all(names.map(n=>caches.delete(n)));
         }
       }catch(e){}
-      // 不用單純的 location.reload()：Safari（尤其是加到主畫面的獨立模式）
-      // 有自己一層瀏覽器層級的HTTP快取，即使清空了Cache API的快取，
-      // 單純重新整理有時仍會拿到舊內容。改成導向一個帶隨機參數的網址，
-      // 強迫瀏覽器把它當成全新的請求，不會命中舊的快取紀錄。
-      const bust='_r='+Date.now()+Math.random().toString(36).slice(2);
-      const url=location.pathname+(location.search?location.search+'&'+bust:'?'+bust);
       location.replace(url);
     }
     function showUpdateBanner(){
@@ -1522,7 +1532,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function nextTurn(){
       syncInitiativeOrder();
       let entries=initiativeEntries();
-      if(!entries.length){currentTurnId=null;return}
+      if(!entries.length){
+        if(currentTurnId!==null){currentTurnId=null;render();scheduleAutosave()}
+        return;
+      }
       const idx=entries.findIndex(e=>e.id===currentTurnId);
       saveHistory();
       if(idx===-1){
@@ -2682,14 +2695,6 @@ function adjustUnitHp(unit,action,amount){
     window.addEventListener('beforeunload',flushShopAutosave);
     window.addEventListener('pagehide',flushShopAutosave);
 
-    function getCardGroup(name){
-      const group=new Set([name]);
-      shopCatalog.forEach(t=>{
-        if(t.name===name&&Array.isArray(t.linkedNames))t.linkedNames.forEach(n=>group.add(n));
-        if(Array.isArray(t.linkedNames)&&t.linkedNames.includes(name))group.add(t.name);
-      });
-      return Array.from(group);
-    }
     function getLinkedItems(item){
       // 回傳「真正」跟這張卡連動的其他卡片物件（不含自己），用id+雙向linkedNames比對，
       // 而不是單純比對名稱是否相同——避免好幾張名稱剛好相同（尤其是都還沒命名、
@@ -2738,11 +2743,10 @@ function adjustUnitHp(unit,action,amount){
       return counterpart;
     }
     function syncLinkedPrices(item){
-      const group=getCardGroup(item.name).filter(n=>n!==item.name);
-      group.forEach(n=>{
-        const other=shopCatalog.find(x=>x.name===n);
-        if(other)other.price=item.price;
-      });
+      // 跟批次刪除／單張刪除同一個修正：用 getLinkedItems()（id + 雙向 linkedNames
+      // 比對）找出真正連動的另一面，而不是單純比對名稱——避免剛好同名、但沒有
+      // 實際設定連動的卡片，價格被誤判成雙面卡而跟著被覆蓋掉。
+      getLinkedItems(item).forEach(other=>{other.price=item.price});
     }
     function renameShopCardEverywhere(oldName,newName){
       newName=(newName||'').trim();
@@ -2992,16 +2996,12 @@ function adjustUnitHp(unit,action,amount){
     function performBatchDeleteShopCards(){
       const items=shopCatalog.filter(x=>selectedShopCardIds.has(x.id));
       if(!items.length)return;
-      // 用「id」為主決定實際要刪除誰：勾選的卡片一定會刪除；額外連動的另一面則只在
-      // 名稱「非空白」時才一併納入，避免好幾張還沒命名的空白卡片因為名稱剛好都相同，
-      // 被誤判成連動而互相刪到彼此。
+      // 用「id」為主決定實際要刪除誰：勾選的卡片一定會刪除；額外連動的另一面用
+      // getLinkedItems()（id + 雙向 linkedNames 比對）判斷，而不是單純比對名稱，
+      // 避免剛好同名、但沒有實際設定連動的卡片被誤判成雙面卡而一起刪掉。
       const toRemoveIds=new Set(items.map(x=>x.id));
       items.forEach(it=>{
-        if(!it.name)return;
-        getCardGroup(it.name).forEach(n=>{
-          if(!n)return;
-          shopCatalog.forEach(x=>{if(x.name===n)toRemoveIds.add(x.id)});
-        });
+        getLinkedItems(it).forEach(linked=>toRemoveIds.add(linked.id));
       });
       const removedIds=Array.from(toRemoveIds);
       const removedNames=Array.from(new Set(shopCatalog.filter(x=>toRemoveIds.has(x.id)).map(x=>x.name||'（未命名）')));
@@ -3063,15 +3063,18 @@ function adjustUnitHp(unit,action,amount){
         }
       });
     }
+    let xlsxLoadPromise=null;
     function ensureXLSXLoaded(){
       if(window.XLSX)return Promise.resolve(true);
-      return new Promise((resolve,reject)=>{
+      if(xlsxLoadPromise)return xlsxLoadPromise;
+      xlsxLoadPromise=new Promise((resolve,reject)=>{
         const s=document.createElement('script');
         s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
         s.onload=()=>resolve(true);
-        s.onerror=()=>reject(new Error('load failed'));
+        s.onerror=()=>{xlsxLoadPromise=null;reject(new Error('load failed'))};
         document.head.appendChild(s);
       });
+      return xlsxLoadPromise;
     }
     function downloadShopExcelTemplate(){
       ensureXLSXLoaded().then(()=>{
@@ -3282,18 +3285,16 @@ function adjustUnitHp(unit,action,amount){
       if(delCard){
         const item=shopCatalog.find(x=>x.id===delCard.dataset.gmDel);
         if(item){
-          const group=item.name?getCardGroup(item.name):[item.name];
-          const others=group.filter(n=>n!==item.name);
+          const linkedItems=getLinkedItems(item);
+          const others=linkedItems.map(x=>x.name);
           const msg=others.length?`確定要刪除「${item.name}」嗎？它是雙面卡，連動的「${others.join('、')}」也會一併刪除。`:`確定要刪除「${item.name||'（未命名）'}」這張卡牌嗎？`;
           if(confirm(msg)){
             saveHistory();
             // 用「id」而非單純用「名稱」來決定實際要刪除誰：一定會刪除被點擊的這張卡本身，
-            // 額外連動的另一面則只在名稱「非空白」時才一併納入——避免好幾張還沒命名、
-            // 名稱都是空白的卡片，因為名稱剛好都相同而被誤判成連動、互相刪到對方。
+            // 額外連動的另一面用 getLinkedItems()（id + 雙向 linkedNames 比對）判斷——
+            // 避免剛好同名、但沒有實際設定連動的卡片被誤判成連動、互相刪到對方。
             const toRemoveIds=new Set([item.id]);
-            if(item.name){
-              shopCatalog.forEach(x=>{if(x.id!==item.id&&group.includes(x.name)&&x.name)toRemoveIds.add(x.id)});
-            }
+            linkedItems.forEach(x=>toRemoveIds.add(x.id));
             const removedIds=Array.from(toRemoveIds);
             shopCatalog=shopCatalog.filter(x=>!toRemoveIds.has(x.id));
             selectedShopCardIds.delete(item.id);
