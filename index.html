@@ -273,7 +273,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.28-26';
+    const APP_VERSION='2026.07.28-27';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2964,7 +2964,7 @@ function adjustUnitHp(unit,action,amount){
         return shopSectionHtml('shop:'+(shopLevelFilter||'all')+':'+cat,`${escapeHtml(cat)}（${catItems.length}）`,`<div class="shop-grid">${catItems.map(shopCardHtml).join('')}</div>`);
       }).join(''):`<p class="empty">${shopCatalog.length?'目前沒有已開放的商品，請到 GM 區勾選要開放的等級或個別卡片。':'還沒有商品，請到 GM 區新增。'}</p>`;
       wrap.innerHTML=`
-        <div class="save-panel" id="shopStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(10px + env(safe-area-inset-top)) 10px 10px;max-height:min(60vh,60dvh);overflow-y:auto">
+        <div class="save-panel" id="shopStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(10px + env(safe-area-inset-top)) 10px 10px">
           <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
             <button type="button" id="shopUndo" ${history.length===0?'disabled':''}>← 上一步</button>
             <button type="button" id="shopRedo" ${future.length===0?'disabled':''}>下一步 →</button>
