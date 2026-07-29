@@ -274,7 +274,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.28-24';
+    const APP_VERSION='2026.07.28-25';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -820,7 +820,7 @@
       const defaultCount=1;
       const bodyContent=`<div class="card-chip-list">${cardTierChipsHtml(tier)}</div><form class="tag-form" data-card-add-form="${tier.id}"><input name="cardName" maxlength="30" required placeholder="&#26032;&#22686;&#21345;&#29255;&#21517;&#31281;"><button class="primary">&#26032;&#22686;&#21345;&#29255;</button></form><div class="card-draw-row"><span class="filter-label">&#25277;&#21462;&#24373;&#25976;&#65306;</span><input type="number" min="1" max="999" value="${defaultCount}" class="batch-amount" data-draw-count="${tier.id}" aria-label="&#25277;&#21462;&#24373;&#25976;"><button type="button" class="good" data-draw-action="${tier.id}">&#127183; &#38568;&#27231;&#25277;&#21462;</button><button type="button" data-reset-pool="${tier.id}" title="&#25226;&#24050;&#25277;&#20986;&#30340;&#21345;&#29255;&#25918;&#22238;&#21345;&#27744;&#65292;&#37325;&#26032;&#38283;&#22987;&#25277;&#21462;">&#128260; &#37325;&#32622;&#21345;&#27744;</button></div><div class="card-draw-result" data-draw-result="${tier.id}"></div>${cardTierHistoryHtml(tier)}`;
       const open=openCardTiers.has(tier.id);
-      return `<div class="card-tier-block" data-tier-id="${tier.id}"><div class="card-tier-head"><span class="card-tier-title">${escapeHtml(tier.name)}&#65288;&#20849; ${tier.cards.length} &#24373;&#65292;&#21097;&#39192;&#21487;&#25277; ${remaining} &#24373;&#65289;</span><button type="button" class="danger" data-tier-delete="${tier.id}" title="&#21034;&#38500;&#25972;&#20491;&#31561;&#32026;&#65288;&#21253;&#21547;&#20854;&#20013;&#25152;&#26377;&#21345;&#29255;&#65289;">&#21034;&#38500;&#31561;&#32026;</button></div><details class="shop-section" data-cardtiersec="${tier.id}" ${open?'open':''}><summary class="shop-section-head"><span>📦 卡池內容</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">${bodyContent}</div></details></div>`;
+      return `<div class="card-tier-block" data-tier-id="${tier.id}"><div class="card-tier-head"><span class="card-tier-title"><input type="text" class="unit-name-input" data-tier-name="${tier.id}" value="${escapeAttr(tier.name)}" maxlength="20" title="\u6309\u4e00\u4e0b\u53ef\u4fee\u6539\u7b49\u7d1a\u540d\u7a31" onclick="event.stopPropagation()">&#65288;&#20849; ${tier.cards.length} &#24373;&#65292;&#21097;&#39192;&#21487;&#25277; ${remaining} &#24373;&#65289;</span><button type="button" class="danger" data-tier-delete="${tier.id}" title="&#21034;&#38500;&#25972;&#20491;&#31561;&#32026;&#65288;&#21253;&#21547;&#20854;&#20013;&#25152;&#26377;&#21345;&#29255;&#65289;">&#21034;&#38500;&#31561;&#32026;</button></div><details class="shop-section" data-cardtiersec="${tier.id}" ${open?'open':''}><summary class="shop-section-head"><span>📦 卡池內容</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">${bodyContent}</div></details></div>`;
     }
     function cardTierHistoryHtml(tier){
       const history=tier.history||[];
@@ -2184,15 +2184,15 @@ function adjustUnitHp(unit,action,amount){
         const formAsBoss=formCategory==='boss';
         const formAsSummon=formCategory==='summon';
         const formCardCount=(formAsBoss||formAsSummon)?Math.max(1,Math.min(10,Math.floor(Number(cardCountInput?.value))||1)):1;
-        // 逐一比對標籤庫：用「名稱＋卡池等級」找有沒有現成的怪物標籤，不限類別——
-        // 抽到什麼類別的標籤，就照標籤本身的類別生成（含頭目/召喚物），不用你自己
-        // 在表單上再選一次。小隊類型的標籤另外獨立處理（見下方），不會被當成一般配對。
         const matches=names.map(name=>{
           const template=monsterTemplates.find(item=>item.name===name&&(item.level||'')===tierLevel&&!item.isSquad)||null;
-          const squadTemplate=!template?(monsterTemplates.find(item=>item.name===name&&(item.level||'')===tierLevel&&item.isSquad)||null):null;
+          // 小隊標籤永遠都要查，就算已經有單體版標籤也一樣——不然選過一次「生成單體」
+          // 之後，因為單體標籤已經存在，就再也不會被問到要不要生成整個小隊了。
+          const squadTemplate=monsterTemplates.find(item=>item.name===name&&(item.level||'')===tierLevel&&item.isSquad)||null;
           return {name,template,squadTemplate};
         });
-        const matchedList=matches.filter(m=>m.template);
+        // 有小隊碰撞的名字，交給小隊選擇視窗處理，不要再跟「跟表單不一樣」的提醒混在一起問。
+        const matchedList=matches.filter(m=>m.template&&!m.squadTemplate);
         const squadCollisionList=matches.filter(m=>m.squadTemplate);
         // 只有套用後的數值真的跟表單目前填的不一樣，才需要特別提醒「跟你填的不一樣」。
         const differingList=matchedList.filter(m=>{
@@ -2215,60 +2215,75 @@ function adjustUnitHp(unit,action,amount){
           const ok=confirm(`偵測到 ${differingList.length} 隻在標籤庫「${tierLevel||'（無等級）'}」已經有現成的怪物標籤，會直接套用標籤庫的設定，跟你剛剛在表單上填的不一樣：\n\n${lines}\n\n確定要繼續生成嗎？`);
           if(!ok)return;
         }
-        // 小隊碰撞：逐一詢問要生成整個小隊，還是改成生成 1 隻單體並建立單體版標籤。
+        // 小隊碰撞：逐一詢問要生成整個小隊，還是改成生成 1 隻單體（如果已經有單體版
+        // 標籤就套用它的數值，否則照表單設定生成並建立單體版標籤）。
         const squadSpawnFull={};
         for(const m of squadCollisionList){
           const t=m.squadTemplate;
           const n=Math.max(1,Math.floor(Number(t.squadCount))||3);
-          squadSpawnFull[m.name]=confirm(`「${m.name}」在標籤庫「${tierLevel||'（無等級）'}」是小隊類型（${n}隻）。要生成整個小隊嗎？\n\n按「取消」的話，會改成生成 1 隻單體，並在標籤庫建立這隻的單體版標籤。`);
+          const hint=m.template?'':'\n\n（標籤庫目前還沒有這隻的單體版標籤，選單體的話會照你表單設定生成，並建立一筆新標籤。）';
+          squadSpawnFull[m.name]=confirm(`「${m.name}」在標籤庫「${tierLevel||'（無等級）'}」是小隊類型（${n}隻）。要生成整個小隊嗎？\n\n按「取消」的話，會改成生成 1 隻單體。${hint}`);
         }
         saveHistory();
         let totalSpawned=0;
         let spawnedMonsterSide=false;
         let spawnedPlayerSide=false;
-        names.forEach(name=>{
-          const m=matches.find(mm=>mm.name===name);
-          const matched=m?.template;
-          if(matched){
-            spawnUnitsFromTemplate(matched);
-            totalSpawned+=1;
-            if(matched.isSummon)spawnedPlayerSide=true;else spawnedMonsterSide=true;
-            return;
-          }
-          const squadTemplate=m?.squadTemplate;
-          if(squadTemplate&&squadSpawnFull[name]){
-            spawnUnitsFromTemplate(squadTemplate);
-            totalSpawned+=Math.max(1,Math.floor(Number(squadTemplate.squadCount))||3);
-            spawnedMonsterSide=true;
-            return;
-          }
-          // 完全沒配對到、或小隊碰撞但選擇生成單體：照表單目前的類別/血量/顏色生成，
-          // 並在標籤庫建立（或更新）對應的單體版標籤。
+        const spawnFromFormValues=name=>{
           const maxHp=formHp,color=formColor,asBoss=formAsBoss,asSummon=formAsSummon;
           const cardCount=(asBoss||asSummon)?formCardCount:1;
           const actionCards=(asBoss||asSummon)?Array.from({length:cardCount},()=>({id:uuid(),name:'',turnEnded:false})):null;
           if(asSummon){
             players.push({id:uuid(),name,hp:maxHp,maxHp,type:'player',color,statuses:[],attributes:[],bars:[],passives:[],isSummon:true,level:tierLevel,actionCards});
-            spawnedPlayerSide=true;
           }else{
             const unit={id:uuid(),name,hp:maxHp,maxHp,type:'monster',color,statuses:[],attributes:[],bars:[],passives:[],isBoss:asBoss,level:tierLevel};
             if(asBoss)unit.actionCards=actionCards;
             monsters.push(unit);
-            spawnedMonsterSide=true;
           }
-          totalSpawned+=1;
           const old=monsterTemplates.find(item=>item.name===name&&(item.level||'')===tierLevel&&!!item.isBoss===asBoss&&!!item.isSummon===asSummon&&!item.isSquad);
           const template={id:old?.id||uuid(),name,maxHp,color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:asBoss,isSummon:asSummon,cardCount:(asBoss||asSummon)?cardCount:(old?.cardCount||1),cardNames:(asBoss||asSummon)?(actionCards?actionCards.map(c=>c.name):[]):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[],level:tierLevel};
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
+          return asSummon?'player':'monster';
+        };
+        const squadSpawnedNames=[],squadSingleNames=[],matchedNames=[],unmatchedNames=[];
+        names.forEach(name=>{
+          const m=matches.find(mm=>mm.name===name);
+          const squadTemplate=m?.squadTemplate;
+          if(squadTemplate){
+            if(squadSpawnFull[name]){
+              spawnUnitsFromTemplate(squadTemplate);
+              totalSpawned+=Math.max(1,Math.floor(Number(squadTemplate.squadCount))||3);
+              spawnedMonsterSide=true;
+              squadSpawnedNames.push(name);
+            }else if(m.template){
+              spawnUnitsFromTemplate(m.template);
+              totalSpawned+=1;
+              if(m.template.isSummon)spawnedPlayerSide=true;else spawnedMonsterSide=true;
+              squadSingleNames.push(name);
+            }else{
+              const side=spawnFromFormValues(name);
+              totalSpawned+=1;
+              if(side==='player')spawnedPlayerSide=true;else spawnedMonsterSide=true;
+              squadSingleNames.push(name);
+            }
+            return;
+          }
+          const matched=m?.template;
+          if(matched){
+            spawnUnitsFromTemplate(matched);
+            totalSpawned+=1;
+            if(matched.isSummon)spawnedPlayerSide=true;else spawnedMonsterSide=true;
+            matchedNames.push(name);
+            return;
+          }
+          const side=spawnFromFormValues(name);
+          totalSpawned+=1;
+          if(side==='player')spawnedPlayerSide=true;else spawnedMonsterSide=true;
+          unmatchedNames.push(name);
         });
         saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
         render();
         const resultEl=document.querySelector(`[data-draw-result="${tierId}"]`);
         if(resultEl){
-          const matchedNames=matchedList.map(m=>m.name);
-          const squadSpawnedNames=squadCollisionList.filter(m=>squadSpawnFull[m.name]).map(m=>m.name);
-          const squadSingleNames=squadCollisionList.filter(m=>!squadSpawnFull[m.name]).map(m=>m.name);
-          const unmatchedNames=matches.filter(m=>!m.template&&!m.squadTemplate).map(m=>m.name);
           let resultHtml=`&#9989; \u5df2\u751f\u6210 ${totalSpawned} \u96bb\u55ae\u4f4d\uff08\u62bd\u5230 ${names.length} \u5f35\u5361\uff09`;
           if(matchedNames.length)resultHtml+=`<br>&#127991;\uFE0F \u5957\u7528\u6a19\u7c64\u5eab\u8a2d\u5b9a\uff1a${matchedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
           if(squadSpawnedNames.length)resultHtml+=`<br>&#128737;\uFE0F \u751f\u6210\u6574\u500b\u5c0f\u968a\uff1a${squadSpawnedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
@@ -2777,7 +2792,7 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#btnImportSave').addEventListener('click',()=>document.querySelector('#importSaveFile').click());
     document.querySelector('#importSaveFile').addEventListener('change',event=>{const file=event.target.files[0];if(file)importSingleSaveFromFile(file);event.target.value=''});
     document.querySelector('main').addEventListener('input',event=>{const nameInput=event.target.closest('.unit-name-input');if(!nameInput)return;const style=getComputedStyle(nameInput);const ctx=sizeUnitNameInputs._ctx||(sizeUnitNameInputs._ctx=document.createElement('canvas').getContext('2d'));ctx.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;nameInput.style.width=Math.ceil(ctx.measureText(nameInput.value||'').width+16)+'px'});
-    document.querySelector('main').addEventListener('change',event=>{const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);if(countInput)countInput.hidden=generateCategorySelect.value==='monster';return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const val=nameInput.value.trim();if(val){saveHistory();unit.name=val}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render()}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);render()}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
+    document.querySelector('main').addEventListener('change',event=>{const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);if(countInput)countInput.hidden=generateCategorySelect.value==='monster';return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const tierNameInput=event.target.closest('[data-tier-name]');if(tierNameInput){const tier=cardTiers.find(t=>t.id===tierNameInput.dataset.tierName);if(tier){const val=tierNameInput.value.trim().slice(0,20);if(val&&val!==tier.name){const dup=cardTiers.some(t=>t.id!==tier.id&&t.name===val);if(!dup||confirm(`已經有另一個等級也叫做「${val}」了，確定要讓兩個等級同名嗎？（同名可能會讓 Excel 匯入卡池、或標籤庫配對時分不清楚要對應哪一個等級）`)){saveHistory();tier.name=val;saveMemory('battleTrackerCardTiers',cardTiers)}}}render();return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const val=nameInput.value.trim();if(val){saveHistory();unit.name=val}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render()}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);render()}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
     document.querySelector('#togglePlayers').addEventListener('click',()=>{playersExpanded=!playersExpanded;document.querySelector('#playerContent').hidden=!playersExpanded;document.querySelector('#togglePlayers').textContent=playersExpanded?'\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a':'\u5c55\u958b\u73a9\u5bb6\u8cc7\u8a0a';scheduleAutosave()});
     document.querySelector('#toggleMonsters').addEventListener('click',()=>{monstersExpanded=!monstersExpanded;document.querySelector('#monsterContent').hidden=!monstersExpanded;document.querySelector('#toggleMonsters').textContent=monstersExpanded?'\u6536\u5408\u602a\u7269\u8cc7\u8a0a':'\u5c55\u958b\u602a\u7269\u8cc7\u8a0a';scheduleAutosave()});
     document.querySelector('#togglePlayerSummary').addEventListener('click',()=>{playerSummaryExpanded=!playerSummaryExpanded;document.querySelector('#playerSummary').hidden=!playerSummaryExpanded;document.querySelector('#togglePlayerSummary').textContent=playerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
