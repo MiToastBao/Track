@@ -16,7 +16,7 @@
     :root{color-scheme:light;--bg:#f3f5fa;--card:#ffffff;--line:#d9e0ec;--text:#1c2536;--muted:#65728c;--player:#1976d2;--monster:#d93a4f;--btn-bg:#e9edf5;--primary:#1976bd;--primary-text:#fff;--danger:#d9505f;--danger-text:#fff;--good:#2f9968;--good-text:#fff;--panel-bg:#ffffff;--track-bg:#e9edf5;--track-border:#ccd5e3;--buff-bg:#e3f7ea;--buff-border:#3f9c65;--buff-text:#1f7a45;--debuff-bg:#fdecee;--debuff-border:#d9505f;--debuff-text:#b23349;--tag-off-bg:#eef1f6;--tag-off-border:#cbd4e2;--tag-off-text:#8b96aa;--focus-bg:#eaf3ff;--shadow:0 10px 26px rgba(30,42,70,.1);--summary-th-bg:#eef2f8;--summary-hover-bg:#f3f6fb;--manage-bg:#eef1f6;--manage-border:#c9d2e0;--grad1:#ffffff;--grad2:#e9edf6;--template-bg:#e9f1fb;--template-border:#8fb6de;--template-text:#1c3a5e;--swatch-hover-border:#1c2536;--mini-swatch-border:rgba(0,0,0,.25);--flash:#1976d230;--attr-default:#4c78a4}
     [data-theme="dark"]{color-scheme:dark;--bg:#101827;--card:#182235;--line:#30415d;--text:#edf4ff;--muted:#aebbd0;--player:#36a9ff;--monster:#ff5b6d;--btn-bg:#263550;--primary:#1976bd;--primary-text:#fff;--danger:#862c3a;--danger-text:#fff;--good:#24543e;--good-text:#fff;--panel-bg:#152038;--track-bg:#0c1320;--track-border:#3a4860;--buff-bg:#153c29;--buff-border:#3f9c65;--buff-text:#8df2b4;--debuff-bg:#48222a;--debuff-border:#aa5260;--debuff-text:#ffabb4;--tag-off-bg:#1b2636;--tag-off-border:#3a465a;--tag-off-text:#718097;--focus-bg:#0d1523;--shadow:0 14px 35px rgba(3,8,17,.45);--summary-th-bg:#1c2a44;--summary-hover-bg:#1c2740;--manage-bg:#1c2740;--manage-border:#33456b;--grad1:#263b63;--grad2:#101827;--template-bg:#234469;--template-border:#4c78a4;--template-text:#edf4ff;--swatch-hover-border:#ffffff;--mini-swatch-border:rgba(255,255,255,.3);--flash:#2c5c8a44;--attr-default:#4c78a4}
     [data-theme="contrast"]{color-scheme:dark;--bg:#000000;--card:#000000;--line:#ffffff;--text:#ffffff;--muted:#ffd400;--player:#00e5ff;--monster:#ff3b3b;--btn-bg:#000000;--primary:#ffd400;--primary-text:#000;--danger:#ff3b3b;--danger-text:#000;--good:#00e676;--good-text:#000;--panel-bg:#000000;--track-bg:#1a1a1a;--track-border:#ffffff;--buff-bg:#00230f;--buff-border:#00e676;--buff-text:#5cffb0;--debuff-bg:#330000;--debuff-border:#ff3b3b;--debuff-text:#ff8a8a;--tag-off-bg:#1a1a1a;--tag-off-border:#808080;--tag-off-text:#c0c0c0;--focus-bg:#1a1a1a;--shadow:0 0 0 2px #ffffff;--summary-th-bg:#1a1a1a;--summary-hover-bg:#2b2b2b;--manage-bg:#000000;--manage-border:#ffffff;--grad1:#000000;--grad2:#000000;--template-bg:#000000;--template-border:#ffd400;--template-text:#ffd400;--swatch-hover-border:#ffd400;--mini-swatch-border:rgba(255,255,255,.7);--flash:#ffd40055;--attr-default:#00e5ff}
-    *{box-sizing:border-box} body{margin:0;min-height:100vh;padding:32px calc(16px + env(safe-area-inset-right)) 32px calc(16px + env(safe-area-inset-left));color:var(--text);font-family:"Microsoft JhengHei",system-ui,sans-serif;background:radial-gradient(circle at top,var(--grad1),var(--grad2) 60%);transition:background .2s ease,color .2s ease}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;min-height:min(100vh,100dvh);padding:32px calc(16px + env(safe-area-inset-right)) 32px calc(16px + env(safe-area-inset-left));color:var(--text);font-family:"Microsoft JhengHei",system-ui,sans-serif;background:radial-gradient(circle at top,var(--grad1),var(--grad2) 60%);transition:background .2s ease,color .2s ease}
     h1{text-align:center;margin:0 0 8px}.subtitle{text-align:center;color:var(--muted);margin:0 0 24px}.toolbar,.add-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.toolbar{margin-bottom:22px}.theme-switch{display:flex;gap:6px;justify-content:center;margin:0 0 18px}.theme-switch button{padding:6px 14px;font-size:.85rem;background:var(--btn-bg);border:1px solid var(--line);color:var(--text)}.theme-switch button.active{background:var(--primary);border-color:var(--primary);color:var(--primary-text);font-weight:600}
     button,input,select{font:inherit;border-radius:9px;border:1px solid var(--line);color:var(--text);padding:9px 12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button{background:var(--btn-bg);cursor:pointer}button:hover{filter:brightness(.96)}button.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}button.danger{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}button.good{background:var(--good);border-color:var(--good);color:var(--good-text)}input,select{background:var(--card)}.add-form{margin:24px auto 20px;max-width:720px}.add-form input{flex:1;min-width:175px}.add-form input[type=number]{flex:0 1 125px}
     .section-head{display:flex;align-items:center;justify-content:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}.section-head-actions{display:flex;gap:8px;flex-wrap:wrap}.section-title{margin:0;font-size:1.25rem}.action-panel,.save-panel{margin:0 0 18px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-bg)}.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.tag{border-color:var(--primary);background:var(--primary);color:var(--primary-text)}.tag.off{background:var(--tag-off-bg);border-color:var(--tag-off-border);color:var(--tag-off-text);text-decoration:line-through}.tag-delete{padding:6px 10px;background:var(--danger);color:var(--danger-text)}.initiative-panel{margin:0 0 22px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-bg)}.initiative-list{display:flex;flex-wrap:wrap;gap:9px}.initiative-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 6px 5px 11px;border-radius:999px;border:1px solid var(--tag-color,var(--primary));background:color-mix(in srgb,var(--tag-color,var(--primary)) 20%,var(--card));font-weight:600;font-size:.9rem}.initiative-tag.ended{opacity:.5;filter:grayscale(1)}.initiative-tag.current{border-width:2px;border-color:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 30%,transparent)}.initiative-tag.current.ended{opacity:.75;filter:none}.initiative-name{background:none;border:none;font:inherit;font-weight:inherit;color:inherit;padding:0;cursor:pointer;border-radius:4px}.initiative-name:hover{text-decoration:underline}.initiative-turn-toggle{padding:6px 10px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap;line-height:1.4;background:var(--tag-off-bg);border:1px solid var(--tag-off-border);color:var(--tag-off-text);cursor:pointer}.initiative-turn-toggle:hover{filter:brightness(.95)}.initiative-turn-toggle.active{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}.initiative-order{opacity:.65;font-weight:700;font-variant-numeric:tabular-nums}.initiative-move{padding:6px 11px;border-radius:999px;font-size:.85rem;line-height:1.4}.initiative-move:disabled{opacity:.3;cursor:not-allowed}.initiative-rename{padding:6px 10px;border-radius:999px;font-size:.86rem;line-height:1.4}.squad-option{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--muted);cursor:pointer;padding:6px 4px}.squad-option input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.squad-option input[type=number]{width:56px;padding:4px}.squad-badge{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:10px 0;padding:6px 9px;border-radius:10px;background:var(--manage-bg);border:1px solid var(--manage-border);font-size:.86rem;color:var(--muted)}.squad-badge-text{font-weight:600;margin-right:auto;color:var(--text)}.squad-badge button{padding:6px 10px;font-size:.85rem;border-radius:7px}.squad-disband{background:var(--danger);color:var(--danger-text)}.tag-form,.quick-monster,.save-form{display:flex;flex-wrap:wrap;gap:8px}.filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0}.filter-bar:empty{display:none;margin:0}.filter-label{color:var(--muted);font-size:.85rem}.batch-actions{display:inline-flex;align-items:center;gap:6px;padding-left:8px;margin-left:4px;border-left:1px solid var(--line)}.batch-amount{width:56px;padding:5px 4px;text-align:center}.floating-next-turn{position:fixed;right:calc(18px + env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));z-index:50;min-width:88px;max-width:150px;padding:10px 14px;border-radius:18px;background:var(--primary);color:var(--primary-text);border:none;font-size:.86rem;font-weight:700;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;text-align:center}.floating-next-turn:hover{filter:brightness(1.08)}.floating-next-turn-hint{display:block;margin-top:2px;font-size:.85rem;font-weight:600;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tag-form input,.save-form input{flex:1;min-width:150px}.save-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.save-list-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}.save-item{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 8px;border-radius:999px;background:var(--manage-bg);border:1px solid var(--manage-border);max-width:100%}.save-item input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.save-item-load{background:none;border:none;color:var(--text);font:inherit;font-weight:600;padding:8px 3px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}.save-item-load:hover{text-decoration:underline}.save-item-meta{font-size:.78rem;color:var(--muted);white-space:nowrap;padding:0 2px}.save-item-export{padding:6px 8px;background:none;border:none;color:var(--muted);border-radius:6px;font-size:1rem;line-height:1}.save-item-export:hover{color:var(--text);background:var(--card)}.storage-breakdown{margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden}.storage-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line)}.storage-row:last-child{border-bottom:none}.storage-row-label{font-weight:600;flex:1;min-width:140px}.storage-row-meta{color:var(--muted);font-size:.85rem;white-space:nowrap}.storage-row button{padding:6px 10px;font-size:.82rem;flex:none}.storage-total-row{font-weight:700;background:var(--summary-th-bg)}.storage-row input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.storage-row-spacer{display:inline-block;width:26px;flex:none}.storage-toolbar-row{background:var(--manage-bg);flex-wrap:wrap}.storage-toolbar-row .squad-option{padding:4px 0}.tag-form input{flex:1;min-width:150px}.quick-monster{justify-content:center;margin-top:10px}.quick-monster select{min-width:220px}.palette-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.color-palette{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.swatch{width:34px;height:34px;padding:0;border:2px solid transparent;border-radius:8px}.swatch:hover,.swatch.selected{border-color:var(--swatch-hover-border);transform:scale(1.12)}.swatch-wrap{display:flex;align-items:center;gap:1px}.swatch-delete{padding:5px 8px;background:var(--danger);color:var(--danger-text);border-radius:5px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:18px}.card{min-width:0;padding:18px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--unit-color);border-radius:16px;box-shadow:var(--shadow);position:relative;touch-action:pan-y}.card:not(.swiping){transition:transform .22s cubic-bezier(.22,.8,.32,1),box-shadow .15s ease}.card.swipe-damage{box-shadow:0 0 0 3px var(--danger) inset,var(--shadow)}.card.swipe-heal{box-shadow:0 0 0 3px var(--good) inset,var(--shadow)}.card.swipe-armed.swipe-damage{box-shadow:0 0 0 4px var(--danger) inset,0 0 22px rgba(217,80,95,.5)}.card.swipe-armed.swipe-heal{box-shadow:0 0 0 4px var(--good) inset,0 0 22px rgba(47,153,104,.5)}.swipe-badge{position:absolute;top:14px;font-weight:800;font-size:1.05rem;padding:5px 12px;border-radius:999px;pointer-events:none;z-index:5;box-shadow:0 4px 10px rgba(0,0,0,.3);opacity:.9}.swipe-badge.damage{right:14px;background:var(--danger);color:var(--danger-text)}.swipe-badge.heal{left:14px;background:var(--good);color:var(--good-text)}.card.player,.card.monster{cursor:pointer}.card.boss{border-top-color:#ffb703;box-shadow:0 0 0 2px rgba(255,183,3,.35),var(--shadow)}.card.hp-warning{box-shadow:0 0 0 2px rgba(255,173,66,.6),var(--shadow)}.card.hp-danger{box-shadow:0 0 0 3px rgba(255,74,88,.75),var(--shadow)}.threshold-block{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.threshold-title{font-size:.9rem;color:var(--muted);margin-bottom:7px}.threshold-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.card.turn-ended{opacity:.5;filter:grayscale(1);box-shadow:none}.head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.head h2{flex-basis:100%;font-size:1.15rem;margin:0;display:flex;align-items:center;gap:8px}.unit-color-picker{width:36px;height:36px;padding:0;border:2px solid var(--line);border-radius:8px;cursor:pointer;flex:none}.unit-color-picker::-webkit-color-swatch-wrapper{padding:2px}.unit-color-picker::-webkit-color-swatch{border:none;border-radius:4px}.title-attributes{display:flex;flex-basis:100%;flex-wrap:wrap;gap:5px}.title-attributes .attribute{font-size:.8rem;padding:3px 6px}.title-attributes .attribute input{width:52px;padding:2px}.title-passives{display:flex;flex-basis:100%;flex-wrap:wrap;gap:5px}.passive{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:.8rem;font-weight:600;color:var(--passive-color,#8a5cd6);border:1px solid var(--passive-color,#8a5cd6);background:color-mix(in srgb,var(--passive-color,#8a5cd6) 16%,var(--card));max-width:260px}.passive span.passive-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.passive button{padding:4px 6px;border:none;background:none;color:inherit;font-weight:700;line-height:1}.passives-section{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.passive-form{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.passive-form input[name=passiveName]{flex:1;min-width:180px}.title-status{display:flex;flex:1;flex-wrap:wrap;gap:5px}.title-status .condition{font-size:.8rem;padding:3px 6px}.hp{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}.hp-inline{display:flex;align-items:center;gap:4px}.hp-inline input{width:58px;padding:4px 3px;text-align:center;border-color:transparent;background:transparent}.hp-inline input:focus{border-color:var(--player);background:var(--focus-bg)}.unit-name-input{border-color:transparent;background:transparent;font:inherit;font-weight:700;padding:3px 5px;width:auto;min-width:70px;max-width:260px}.unit-name-input:focus{border-color:var(--player);background:var(--focus-bg)}.bar{height:20px;margin:16px 0 8px;border:1px solid var(--track-border);border-radius:999px;overflow:hidden;background:var(--track-bg)}.fill{height:100%;border-radius:inherit;transition:width .25s ease,background .25s ease;background:linear-gradient(90deg,#8a1c2b,#ff5b6d)}.bar{cursor:ew-resize;user-select:none;-webkit-user-select:none;touch-action:none}.bar.bar-dragging{cursor:grabbing}.bar.bar-dragging .fill{transition:none}.bar-drag-badge{position:fixed;left:0;top:0;transform:translate(-50%,-100%);padding:6px 13px;border-radius:999px;font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.35);background:var(--primary);color:var(--primary-text);opacity:0;transition:opacity .1s ease}.bar-drag-badge.show{opacity:1}.bar-drag-badge.negative{background:var(--danger);color:var(--danger-text)}.bar-drag-badge.positive{background:var(--good);color:var(--good-text)}.status{min-height:24px;color:var(--muted);font-size:.9rem}.attributes{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.attributes>.attribute-list{display:none}.attribute-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.attribute{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:8px;background:color-mix(in srgb,var(--attr-color,var(--attr-default)) 20%,var(--card));border:1px solid var(--attr-color,var(--attr-default))}.attribute .attr-color-picker{width:14px;height:14px;padding:0;border:1px solid rgba(255,255,255,.4);border-radius:4px;cursor:pointer;flex:none}.attribute .mini-palette{max-width:130px}.attribute input{width:66px;padding:4px}.attribute-form{display:flex;gap:7px;flex-wrap:wrap}.attribute-form input{flex:1;min-width:110px}.manage-toggle{display:block;width:100%;margin-top:12px;background:var(--manage-bg);border-color:var(--manage-border);color:var(--muted);text-align:center;font-size:.85rem}.manage-toggle:hover{color:var(--text)}.manage-panel[hidden]{display:none}.tab-panel[hidden]{display:none}.summary-table{width:100%;margin-bottom:18px;display:flex;flex-direction:column;gap:8px}.summary-table:empty{display:none;margin:0}.summary-row{background:var(--panel-bg);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:background .2s ease}.summary-row:hover{background:var(--summary-hover-bg)}.summary-row.turn-ended-row{opacity:.55;filter:grayscale(1)}.summary-row.hp-warning-row{background:rgba(255,173,66,.12)}.summary-row.hp-danger-row{background:rgba(255,74,88,.16)}.summary-line-1{display:flex;align-items:center;justify-content:space-between;gap:10px}.summary-name{font-weight:700;display:flex;align-items:center;gap:7px;font-size:1rem}.summary-dot{width:12px;height:12px;border-radius:50%;flex:none}.summary-line-2{width:100%}.summary-hp-cell{display:flex;align-items:center;gap:10px;width:100%}.summary-bar{flex:1;height:12px;border-radius:999px;overflow:hidden;background:var(--track-bg);border:1px solid var(--track-border)}.summary-fill{height:100%;background:linear-gradient(90deg,#8a1c2b,#ff5b6d)}.summary-hp-text{white-space:nowrap;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600}.summary-line-3,.summary-line-4{display:flex;flex-wrap:wrap;gap:6px}.summary-status .condition{padding:3px 8px;font-size:.85rem;border-radius:6px}.summary-status .passive{font-size:.85rem;padding:3px 8px;border-radius:999px;max-width:none}.summary-status .attribute{font-size:.85rem;padding:3px 8px;border-radius:6px}.summary-none{display:none}.summary-turn-toggle{margin-left:4px;padding:6px 11px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap;line-height:1.4;background:var(--tag-off-bg);border:1px solid var(--tag-off-border);color:var(--tag-off-text);cursor:pointer}.summary-turn-toggle:hover{filter:brightness(.95)}.summary-turn-toggle.active{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}.round-counter{display:flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid var(--line);border-radius:999px;background:var(--panel-bg)}.round-counter-label{font-size:.82rem;color:var(--muted);padding-left:4px}.round-counter button{width:40px;height:40px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;font-size:1.1rem}.round-counter-value{width:3.2em;min-width:1.6em;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;padding:6px 2px;border:1px solid transparent;background:transparent}.round-counter-value:focus{border-color:var(--primary);background:var(--focus-bg)}.round-counter-value::-webkit-inner-spin-button,.round-counter-value::-webkit-outer-spin-button{margin:0}.round-counter button#roundReset{width:auto;height:40px;border-radius:999px;padding:0 10px;font-size:.85rem}.summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}.summary-head-title{font-size:.85rem;font-weight:600;color:var(--muted)}.summary-head button{padding:5px 10px;font-size:.8rem}.summary-custom-bar{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:999px;border:1px solid var(--bar-color,#7c8db5);background:color-mix(in srgb,var(--bar-color,#7c8db5) 16%,var(--card));font-size:.85rem;max-width:180px}.summary-custom-bar-label{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}.summary-custom-bar-track{width:34px;height:6px;border-radius:999px;overflow:hidden;background:var(--track-bg);border:1px solid var(--track-border);flex:none}.summary-custom-bar-fill{height:100%;background:var(--bar-color,#7c8db5)}.summary-custom-bar-value{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}@media(max-width:700px){.summary-table{font-size:.85rem}.summary-hp-cell{min-width:100px}}.conditions{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.conditions>.condition-title,.conditions>.condition-list{display:none}.condition-title{font-size:.9rem;color:var(--muted);margin-bottom:7px}.condition-list,.saved-status-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.condition{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;border:1px solid}.condition.buff{color:var(--buff-text);border-color:var(--buff-border);background:var(--buff-bg)}.condition.debuff{color:var(--debuff-text);border-color:var(--debuff-border);background:var(--debuff-bg)}.condition .turns{opacity:.72;font-size:.85em;font-weight:400;padding-left:5px;margin-left:2px;border-left:1px solid currentColor}.condition button{padding:5px 8px;border-radius:6px}.template-tag{padding:5px 8px;background:var(--template-bg);border-color:var(--template-border);color:var(--template-text)}.template-delete{padding:6px 10px;background:var(--danger);color:var(--danger-text)}.condition-form{display:grid;grid-template-columns:1fr 90px 74px auto;gap:7px}.condition-form .saved-status-tags{grid-column:1/-1}.condition-form>*{min-width:0}.custom-bars{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.custom-bar{margin-bottom:14px}.custom-bar .bar-row{margin:6px 0 0}.bar-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;font-size:.85rem}.bar-name{font-weight:600}.bar-values{display:flex;align-items:center;gap:4px;color:var(--muted)}.bar-values input{width:56px;padding:3px;text-align:center}.bar-delete{padding:6px 10px;background:var(--danger);color:var(--danger-text);border-radius:6px}.color-field{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.mini-palette{display:flex;flex-wrap:wrap;gap:3px;max-width:170px}.mini-swatch{width:22px;height:22px;padding:0;border-radius:5px;border:1px solid var(--mini-swatch-border)}.mini-swatch:hover{transform:scale(1.15)}.bar-color-picker{width:30px;height:30px;padding:0;border:2px solid var(--line);border-radius:7px;cursor:pointer;flex:none}::-webkit-color-swatch-wrapper{padding:1px}.bar-color-picker::-webkit-color-swatch{border:none;border-radius:3px}.bar.custom-fill{height:14px;margin:0}.bar.custom-fill .fill{background:linear-gradient(90deg,color-mix(in srgb,var(--bar-color,#7c8db5) 60%,#000),var(--bar-color,#7c8db5))}.add-bar-form{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:8px}.add-bar-form input[name=barName]{flex:1;min-width:140px}.add-bar-form input[name=barMax]{width:90px}.bar-row{display:flex;align-items:center;gap:8px;margin:16px 0 8px}.bar-row .bar{flex:1;margin:0}.hp-btn{width:46px;height:46px;padding:0;border-radius:11px;font-size:1.35rem;font-weight:700;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}.hp-btn.minus{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}.hp-btn.plus{background:var(--good);border-color:var(--good);color:var(--good-text)}.hp-amount{width:60px;flex:none;text-align:center;padding:9px 4px}.just-added{animation:bar-flash 1.1s ease}@keyframes bar-flash{0%{background:var(--flash);border-radius:10px}100%{background:transparent}}.manage{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.manage button{flex:1;min-width:110px}.memory-tags{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}.memory-tags .saved-status-tags{margin-bottom:10px}.empty{grid-column:1/-1;padding:24px;text-align:center;color:var(--muted)}.card-tier-block{margin:0 0 14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-bg);scroll-margin-top:calc(130px + env(safe-area-inset-top))}.card-tier-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}.card-tier-title{font-weight:700}.card-chip-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}.card-draw-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}.card-draw-row input{width:70px;text-align:center}.card-draw-result{margin-top:10px;font-weight:600}.card-draw-result:empty{display:none}.card-chip-drawn{opacity:.45;text-decoration:line-through}.card-tier-history{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}.card-tier-history-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.card-tier-history-head button{padding:4px 8px;font-size:.8rem}.combat-log-list{margin:0;padding:0;list-style:none;font-size:.85rem;max-height:420px;overflow-y:auto;border:1px solid var(--line);border-radius:10px}.combat-log-list li{padding:7px 10px;border-bottom:1px solid var(--line)}.combat-log-list li:last-child{border-bottom:none}.combat-log-time{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}.combat-log-controls{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.combat-log-controls select{flex:1;min-width:140px}.combat-log-settings{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}.combat-log-settings label{display:inline-flex;align-items:center;gap:5px;cursor:pointer}.combat-log-settings input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--primary)}.card-history-list{margin:6px 0 0;padding-left:20px;font-size:.85rem;color:var(--muted)}.card-history-list li{margin-bottom:3px}.combat-log-note{margin:0 0 8px;font-size:.8rem;color:var(--muted)}
@@ -176,6 +176,15 @@
       </button>
       <div class="shop-section-body" id="cardDrawPanel" hidden>
         <form class="tag-form" id="cardTierForm"><input id="cardTierName" maxlength="20" required placeholder="新增等級名稱（例如：白）"><button class="primary">新增等級</button><button type="button" class="danger" id="btnClearAllHistory">清除所有抽取歷史紀錄</button></form>
+        <details class="shop-section" id="cardTierExcelSection"><summary class="shop-section-head"><span>📊 Excel 批次匯入卡池</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">
+          <p class="shop-hint" style="margin-bottom:10px">欄位如下（第一列要是標題）：<br><span class="shop-hint" style="font-family:monospace">卡池等級｜怪物名稱</span><br><br>匯入時「卡池等級」如果還沒有這個等級會自動新增，如果已經有會直接加卡片進去；同一個等級裡名稱重複的卡片不會重複加入。下載範例試算表後，裡面有「使用說明」分頁詳細解釋。</p>
+          <div class="toolbar">
+            <button type="button" id="btnCardTierExcelTemplate">⬇️ 下載範例試算表</button>
+            <button type="button" class="primary" id="btnCardTierExcelImport">📥 選擇檔案匯入</button>
+          </div>
+          <input type="file" id="cardTierExcelInput" accept=".xlsx,.xls,.csv" hidden>
+          <p class="shop-hint" id="cardTierExcelStatus" style="margin-top:8px"></p>
+        </div></details>
         <div id="cardTierList"></div>
       </div>
     </div>
@@ -234,7 +243,7 @@
       <div class="shop-sheet-scroll">
         <h3 style="margin-top:0">🏷 標籤庫</h3>
         <details class="shop-section" id="monsterTagExcelSection"><summary class="shop-section-head"><span>📊 Excel 批次匯入怪物標籤</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">
-          <p class="shop-hint" style="margin-bottom:10px">欄位如下（第一列要是標題）：<br><span class="shop-hint" style="font-family:monospace">名稱｜類別｜顏色｜血量上限｜等級｜是否組成小隊｜小隊人數｜先攻卡數</span><br><br>匯入結果只會存進下面的「標籤庫」，不會直接把怪物生成到戰場上；同名同等級的怪物標籤會直接覆蓋更新，不會重複建立。下載範例試算表後，裡面有「使用說明」分頁詳細解釋每個欄位。</p>
+          <p class="shop-hint" style="margin-bottom:10px">欄位如下（第一列要是標題）：<br><span class="shop-hint" style="font-family:monospace">名稱｜類別｜顏色｜血量上限｜等級｜是否組成小隊｜小隊人數｜先攻卡數</span><br><br>「類別」可以填「怪物」「頭目」或「召喚物」。匯入結果只會存進下面的「標籤庫」，不會直接把怪物生成到戰場上；名稱＋等級＋類別都相同才會覆蓋更新，不會重複建立。下載範例試算表後，裡面有「使用說明」分頁詳細解釋每個欄位。</p>
           <div class="toolbar">
             <button type="button" id="btnMonsterTagExcelTemplate">⬇️ 下載範例試算表</button>
             <button type="button" class="primary" id="btnMonsterTagExcelImport">📥 選擇檔案匯入</button>
@@ -264,7 +273,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.28-15';
+    const APP_VERSION='2026.07.28-21';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2155,27 +2164,83 @@ function adjustUnitHp(unit,action,amount){
         try{names=JSON.parse(generateMonsters.dataset.generateNames||'[]')}catch{names=[]}
         names=names.filter(n=>typeof n==='string'&&n.trim()).map(n=>n.trim());
         if(!names.length)return;
+        const tier=cardTiers.find(t=>t.id===tierId);
+        const tierLevel=tier?tier.name:'';
         const hpInput=document.querySelector(`[data-generate-hp="${tierId}"]`);
         const colorInput=document.querySelector(`[data-generate-color="${tierId}"]`);
         const bossInput=document.querySelector(`[data-generate-boss="${tierId}"]`);
         const cardCountInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);
-        const maxHp=Math.max(1,Math.min(999999,Math.floor(Number(hpInput?.value))||100));
-        const color=sanitizeColor(colorInput?.value,'#ff5b6d');
-        const asBoss=!!bossInput?.checked;
-        const cardCount=asBoss?Math.max(1,Math.min(10,Math.floor(Number(cardCountInput?.value))||1)):1;
+        const formHp=Math.max(1,Math.min(999999,Math.floor(Number(hpInput?.value))||100));
+        const formColor=sanitizeColor(colorInput?.value,'#ff5b6d');
+        const formAsBoss=!!bossInput?.checked;
+        const formCardCount=formAsBoss?Math.max(1,Math.min(10,Math.floor(Number(cardCountInput?.value))||1)):1;
+        // 逐一比對標籤庫：用「名稱＋卡池等級」找有沒有現成的怪物標籤，小隊／召喚物
+        // 類型的標籤不列入「套用」配對（它們的生成方式跟這裡不同，配對到反而會誤用）；
+        // 但如果名字剛好對到一個「小隊」標籤，要另外標記出來提醒使用者，並且不要因為
+        // 沒配對到就自動新增一筆跟小隊同名、但非小隊的重複標籤。
+        const matches=names.map(name=>{
+          const template=monsterTemplates.find(item=>item.name===name&&(item.level||'')===tierLevel&&!item.isSquad&&!item.isSummon)||null;
+          const squadTemplate=!template?(monsterTemplates.find(item=>item.name===name&&(item.level||'')===tierLevel&&item.isSquad)||null):null;
+          return {name,template,squadTemplate};
+        });
+        const matchedList=matches.filter(m=>m.template);
+        const squadCollisionList=matches.filter(m=>m.squadTemplate);
+        // 只有套用後的數值真的跟表單目前填的不一樣，才需要特別提醒「跟你填的不一樣」，
+        // 避免表單剛好跟標籤庫存的一樣時，講出不夠精確的提醒文字。
+        const differingList=matchedList.filter(m=>{
+          const t=m.template;
+          const tCardCount=t.isBoss?Math.max(1,Math.floor(Number(t.cardCount))||1):1;
+          return t.maxHp!==formHp||t.color!==formColor||!!t.isBoss!==formAsBoss||(t.isBoss&&tCardCount!==formCardCount);
+        });
+        const confirmParts=[];
+        if(differingList.length){
+          const lines=differingList.map(m=>{
+            const t=m.template;
+            return t.isBoss?`「${m.name}」→ 頭目／血量 ${t.maxHp}／顏色 ${t.color}／先攻卡 ${Math.max(1,Math.floor(Number(t.cardCount))||1)}張`:`「${m.name}」→ 怪物／血量 ${t.maxHp}／顏色 ${t.color}`;
+          }).join('\n');
+          confirmParts.push(`偵測到 ${differingList.length} 隻在標籤庫「${tierLevel||'（無等級）'}」已經有現成的怪物標籤，會直接套用標籤庫的設定，跟你剛剛在表單上填的不一樣：\n\n${lines}`);
+        }
+        if(squadCollisionList.length){
+          const names2=squadCollisionList.map(m=>`「${m.name}」`).join('、');
+          confirmParts.push(`${names2} 在標籤庫「${tierLevel||'（無等級）'}」裡是「小隊」類型的標籤，這個功能目前還不支援直接生成整個小隊，會照你表單設定生成 1 隻單體怪物；標籤庫裡原本的小隊標籤不會被更動，也不會另外新增重複的標籤。`);
+        }
+        if(confirmParts.length){
+          const ok=confirm(`${confirmParts.join('\n\n')}\n\n確定要繼續生成嗎？`);
+          if(!ok)return;
+        }
         saveHistory();
         names.forEach(name=>{
+          const m=matches.find(mm=>mm.name===name);
+          const matched=m?.template;
+          const isSquadCollision=!matched&&!!m?.squadTemplate;
+          const maxHp=matched?matched.maxHp:formHp;
+          const color=matched?matched.color:formColor;
+          const asBoss=matched?!!matched.isBoss:formAsBoss;
+          const matchedCardCount=matched?Math.max(1,Math.floor(Number(matched.cardCount))||1):formCardCount;
+          const cardCount=asBoss?matchedCardCount:1;
+          const matchedCardNames=matched&&Array.isArray(matched.cardNames)?matched.cardNames:[];
           const unit={id:uuid(),name,hp:maxHp,maxHp,type:'monster',color,statuses:[],attributes:[],bars:[],passives:[],isBoss:asBoss};
-          if(asBoss)unit.actionCards=Array.from({length:cardCount},()=>({id:uuid(),name:'',turnEnded:false}));
+          if(asBoss)unit.actionCards=Array.from({length:cardCount},(_,i)=>({id:uuid(),name:matchedCardNames[i]||'',turnEnded:false}));
           monsters.push(unit);
-          const old=monsterTemplates.find(item=>item.name===name&&!item.level&&!!item.isBoss===asBoss&&!item.isSquad);
-          const template={id:old?.id||uuid(),name,maxHp,color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:asBoss,cardCount:asBoss?cardCount:(old?.cardCount||1),cardNames:asBoss?unit.actionCards.map(()=>''):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[]};
-          if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
+          if(!matched&&!isSquadCollision){
+            const old=monsterTemplates.find(item=>item.name===name&&(item.level||'')===tierLevel&&!!item.isBoss===asBoss&&!item.isSquad&&!item.isSummon);
+            const template={id:old?.id||uuid(),name,maxHp,color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:[],attributes:[],bars:[],isBoss:asBoss,isSummon:false,cardCount:asBoss?cardCount:(old?.cardCount||1),cardNames:asBoss?unit.actionCards.map(c=>c.name):(old?.cardNames||[]),hpThresholds:old?.hpThresholds||[],level:tierLevel};
+            if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
+          }
         });
         saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
         render();
         const resultEl=document.querySelector(`[data-draw-result="${tierId}"]`);
-        if(resultEl)resultEl.innerHTML=`&#9989; \u5df2\u751f\u6210 ${names.length} \u96bb\u6015\u7269\uff1a${names.map(n=>escapeHtml(n)).join('\u3001')}`;
+        if(resultEl){
+          const matchedNames=matchedList.map(m=>m.name);
+          const squadCollisionNames=squadCollisionList.map(m=>m.name);
+          const unmatchedNames=matches.filter(m=>!m.template&&!m.squadTemplate).map(m=>m.name);
+          let resultHtml=`&#9989; \u5df2\u751f\u6210 ${names.length} \u96bb\u6015\u7269`;
+          if(matchedNames.length)resultHtml+=`<br>&#127991;\uFE0F \u5957\u7528\u6a19\u7c64\u5eab\u8a2d\u5b9a\uff1a${matchedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
+          if(squadCollisionNames.length)resultHtml+=`<br>&#128737;\uFE0F \u5c0f\u968a\u6a19\u7c64\u3001\u50c5\u751f\u6210\u55ae\u9ad4\uff1a${squadCollisionNames.map(n=>escapeHtml(n)).join('\u3001')}`;
+          if(unmatchedNames.length)resultHtml+=`<br>&#9881;\uFE0F \u4f7f\u7528\u8868\u55ae\u8a2d\u5b9a\uff1a${unmatchedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
+          resultEl.innerHTML=resultHtml;
+        }
         setActiveTab('monster',{scroll:true});
         return;
       }
@@ -3188,17 +3253,18 @@ function adjustUnitHp(unit,action,amount){
           ['哥布林','怪物','綠','30','日常等級','是','4',''],
           ['石像鬼頭目','頭目','','300','日常等級','否','','3'],
           ['野狼','怪物','#a0522d','40','菁英等級','否','',''],
+          ['火焰精靈','召喚物','橘','60','日常等級','否','','2'],
         ];
         const helpRows=[
           ['欄位','說明'],
-          ['名稱','怪物名稱，必填。系統會用「名稱＋等級＋類別」判斷是不是同一隻怪，三個都一樣才視為同一隻、匯入時直接覆蓋更新血量等資料；只要名稱、等級、類別（怪物/頭目/小隊）有任何一個不一樣，就會被當成不同的怪，另外新增一筆。血量上限不影響判斷——同一隻怪之後改血量重新匯入，會直接覆蓋更新血量，不會多一筆重複的。'],
-          ['類別','填「怪物」或「頭目」，其他文字一律視為「怪物」。頭目才能填寫「先攻卡數」；如果「是否組成小隊」填「是」，這欄會被忽略（小隊不能同時是頭目）。'],
+          ['名稱','怪物名稱，必填。系統會用「名稱＋等級＋類別」判斷是不是同一隻怪，三個都一樣才視為同一隻、匯入時直接覆蓋更新血量等資料；只要名稱、等級、類別（怪物/頭目/召喚物/小隊）有任何一個不一樣，就會被當成不同的怪，另外新增一筆。血量上限不影響判斷——同一隻怪之後改血量重新匯入，會直接覆蓋更新血量，不會多一筆重複的。'],
+          ['類別','填「怪物」「頭目」或「召喚物」，其他文字一律視為「怪物」。頭目、召喚物才能填寫「先攻卡數」；如果「是否組成小隊」填「是」，這欄會被忽略（小隊不能同時是頭目或召喚物）。召喚物新增到戰場時會歸在「玩家」那一側，不是怪物那一側，這是配合遊戲規則的既有設計，不是匯入功能自己決定的。'],
           ['顏色','可以直接打中文顏色名稱：紅、橘（橙）、黃、綠、藍、紫、粉（粉紅）、灰，也可以打 16 進位色碼（例如 #ff5b6d）給比較熟悉的人用。留空或打了看不懂的字都會用預設紅色，之後也可以在怪物卡片上手動改顏色，不一定要在這裡填對。'],
           ['血量上限','怪物的血量上限，留空預設 100。'],
           ['等級','怪物等級，格式不拘，只要同一等級打法前後一致。留空代表沒有等級分類。'],
           ['是否組成小隊','填「是」或「否／留空」。填「是」的話，之後從標籤庫點這隻怪物新增到戰場時，會自動生成「小隊人數」指定的隻數並組成一個小隊。'],
           ['小隊人數','只有「是否組成小隊」填「是」時才需要填，預設 3，沒有上限。如果數字偏大（超過12），點選標籤要生成到戰場時系統會先跳出確認視窗告訴你會生成幾隻，不會沒提醒就直接生成一大堆。'],
-          ['先攻卡數','只有「類別」填「頭目」時才需要填，代表這個頭目新增到戰場時會自動生成幾張先攻卡，預設 1，沒有上限。數字偏大（超過10）時，點選標籤生成到戰場前系統一樣會先跳出確認視窗。'],
+          ['先攻卡數','只有「類別」填「頭目」或「召喚物」時才需要填，代表新增到戰場時會自動生成幾張先攻卡，預設 1，沒有上限。數字偏大（超過10）時，點選標籤生成到戰場前系統一樣會先跳出確認視窗。'],
           ['',''],
           ['⚠️ 匯入結果只會存進「標籤庫」','這個匯入功能只會把資料存成「怪物標籤」範本，不會直接把怪物生成到戰場上。要生成到戰場時，請到 GM 區「🏷 標籤庫」點選對應的怪物標籤。'],
         ];
@@ -3238,6 +3304,7 @@ function adjustUnitHp(unit,action,amount){
         if(!name)return;
         const catRaw=String(row['類別']||'').trim();
         const isBoss=catRaw==='頭目';
+        const isSummonRaw=catRaw==='召喚物';
         const color=resolveMonsterColor(row['顏色']);
         const maxHp=Math.max(1,Math.min(999999,Math.floor(Number(row['血量上限']))||100));
         const level=String(row['等級']||'').trim().slice(0,20);
@@ -3246,13 +3313,13 @@ function adjustUnitHp(unit,action,amount){
         // 小隊人數／先攻卡數不再夾上限，只保留邏輯上必要的下限（小隊至少2人、
         // 先攻卡至少1張）；數量偏高時，改成點選標籤要生成到戰場時才跳出確認視窗。
         const squadCount=isSquad?Math.max(2,Math.floor(Number(row['小隊人數']))||3):3;
-        const cardCount=(isBoss&&!isSquad)?Math.max(1,Math.floor(Number(row['先攻卡數']))||1):1;
         const finalIsBoss=isSquad?false:isBoss;
-        // 名稱＋等級＋類別＋血量上限，四個條件都一樣才判斷是同一隻怪。
-        // 注意：這代表以後如果同一隻怪的血量上限改了，重新匯入會被當成
-        //「不同的怪」而新增一筆，不會覆蓋更新舊的那筆血量。
-        const old=monsterTemplates.find(item=>item.name===name&&(item.level||'')===level&&!!item.isBoss===finalIsBoss&&!!item.isSquad===isSquad);
-        const template={id:old?.id||uuid(),name,maxHp,color,statuses:old?.statuses||[],isSquad,squadCount,passives:old?.passives||[],attributes:old?.attributes||[],bars:old?.bars||[],isBoss:finalIsBoss,isSummon:false,cardCount,cardNames:old?.cardNames||[],hpThresholds:old?.hpThresholds||[],level};
+        const finalIsSummon=isSquad?false:isSummonRaw;
+        const cardCount=(finalIsBoss||finalIsSummon)?Math.max(1,Math.floor(Number(row['先攻卡數']))||1):1;
+        // 名稱＋等級＋類別（怪物／頭目／召喚物／小隊）判斷是不是同一隻怪，
+        // 血量不算在判斷條件裡——改血量重新匯入會直接覆蓋更新，不會多一筆。
+        const old=monsterTemplates.find(item=>item.name===name&&(item.level||'')===level&&!!item.isBoss===finalIsBoss&&!!item.isSummon===finalIsSummon&&!!item.isSquad===isSquad);
+        const template={id:old?.id||uuid(),name,maxHp,color,statuses:old?.statuses||[],isSquad,squadCount,passives:old?.passives||[],attributes:old?.attributes||[],bars:old?.bars||[],isBoss:finalIsBoss,isSummon:finalIsSummon,cardCount,cardNames:old?.cardNames||[],hpThresholds:old?.hpThresholds||[],level};
         if(old){Object.assign(old,template);updated++}
         else{pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);added++}
       });
@@ -3281,6 +3348,74 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#btnMonsterTagExcelTemplate').addEventListener('click',downloadMonsterExcelTemplate);
     document.querySelector('#btnMonsterTagExcelImport').addEventListener('click',()=>document.querySelector('#monsterTagExcelInput').click());
     document.querySelector('#monsterTagExcelInput').addEventListener('change',e=>{if(e.target.files[0])handleMonsterExcelImport(e.target.files[0]);e.target.value=''});
+    function downloadCardTierExcelTemplate(){
+      ensureXLSXLoaded().then(()=>{
+        const templateRows=[
+          ['卡池等級','怪物名稱'],
+          ['日常等級','哥布林A'],
+          ['日常等級','哥布林B'],
+          ['日常等級','野狼C'],
+          ['菁英等級','石像鬼頭目'],
+        ];
+        const helpRows=[
+          ['欄位','說明'],
+          ['卡池等級','對應到「怪物卡牌隨機抽取」裡的等級名稱，必填。標籤庫裡如果已經還沒有這個等級，匯入時會自動新增一個新等級；已經有的話，會直接把卡片加進那個既有等級裡，不會重複建立等級。'],
+          ['怪物名稱','要放進這個等級卡池裡的怪物名稱，必填。同一個等級裡，名稱重複的卡片不會重複加入（跳過，不會變成兩張一樣的卡）；不同等級可以放同名怪物，各自獨立。'],
+          ['',''],
+          ['⚠️ 這裡只是建立「卡池」，不是建立「怪物標籤」','這份匯入只會把名稱放進抽卡池，不會自動在「標籤庫」建立對應的怪物資料。要讓抽卡時自動套用血量/顏色/是否頭目，請另外用「🏷 標籤庫」裡的 Excel 匯入功能，把同樣名稱、同樣等級的怪物標籤也建立起來（等級名稱要跟這裡的「卡池等級」打法完全一致，系統才找得到）。'],
+          ['⚠️ 抽到「小隊」類型的標籤時','如果抽到的名稱在標籤庫裡被設定成「小隊」類型，系統不會直接生成整個小隊，只會生成 1 隻單體怪物，並在生成前跳出提醒。'],
+        ];
+        const wb=XLSX.utils.book_new();
+        const ws1=XLSX.utils.aoa_to_sheet(templateRows);
+        ws1['!cols']=[{wch:14},{wch:14}];
+        XLSX.utils.book_append_sheet(wb,ws1,'範本');
+        const ws2=XLSX.utils.aoa_to_sheet(helpRows);
+        ws2['!cols']=[{wch:24},{wch:70}];
+        XLSX.utils.book_append_sheet(wb,ws2,'使用說明');
+        XLSX.writeFile(wb,'怪物卡池匯入範例.xlsx');
+      }).catch(e=>{console.error(e);alert('範本產生失敗，請檢查網路連線')});
+    }
+    function parseCardTierExcelRows(rows){
+      let added=0,skippedDup=0,skippedFull=0;
+      rows.forEach(row=>{
+        const level=String(row['卡池等級']||'').trim().slice(0,20);
+        const name=String(row['怪物名稱']||'').trim().slice(0,30);
+        if(!level||!name)return;
+        let tier=cardTiers.find(t=>t.name===level);
+        if(!tier){
+          tier={id:uuid(),name:level,cards:[],drawnIds:[],history:[]};
+          cardTiers.push(tier);
+        }
+        if(tier.cards.some(c=>c.name===name)){skippedDup++;return}
+        if(tier.cards.length>=300){skippedFull++;return}
+        tier.cards.push({id:uuid(),name});
+        added++;
+      });
+      return {added,skippedDup,skippedFull};
+    }
+    function handleCardTierExcelImport(file){
+      const statusEl=document.querySelector('#cardTierExcelStatus');
+      if(statusEl)statusEl.textContent='讀取中…';
+      ensureXLSXLoaded().then(()=>file.arrayBuffer()).then(buf=>{
+        const wb=XLSX.read(buf,{type:'array'});
+        const sheet=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(sheet,{defval:''});
+        const {added,skippedDup,skippedFull}=parseCardTierExcelRows(rows);
+        saveMemory('battleTrackerCardTiers',cardTiers);
+        render();
+        let msg=`匯入完成，新增 ${added} 張卡片`;
+        if(skippedDup)msg+=`，跳過 ${skippedDup} 張同等級同名重複的卡片`;
+        if(skippedFull)msg+=`，${skippedFull} 張因為單一等級已達 300 張上限被跳過`;
+        if(statusEl)statusEl.textContent=msg;
+      }).catch(e=>{
+        console.error(e);
+        const msg='匯入失敗，請確認檔案格式是否正確，或檢查網路連線（第一次匯入需要下載 Excel 解析套件）';
+        if(statusEl)statusEl.textContent=msg;
+      });
+    }
+    document.querySelector('#btnCardTierExcelTemplate').addEventListener('click',downloadCardTierExcelTemplate);
+    document.querySelector('#btnCardTierExcelImport').addEventListener('click',()=>document.querySelector('#cardTierExcelInput').click());
+    document.querySelector('#cardTierExcelInput').addEventListener('change',e=>{if(e.target.files[0])handleCardTierExcelImport(e.target.files[0]);e.target.value=''});
     function renderGmPanel(){
       const wrap=document.querySelector('#gmPanelContent');
       if(!wrap)return;
