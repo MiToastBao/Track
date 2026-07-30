@@ -274,7 +274,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-04';
+    const APP_VERSION='2026.07.30-05';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -834,7 +834,7 @@
     }
 function cardDrawResultHtml(tierId,message,pickedNames){
       const namesJson=escapeAttr(JSON.stringify(pickedNames));
-      return `<div>${message}</div><div class="card-draw-row"><input type="color" value="#ff5b6d" data-generate-color="${tierId}" class="unit-color-picker" aria-label="&#38991;&#33394;" title="&#38991;&#33394;"><input type="number" min="1" max="999999" value="100" class="batch-amount" data-generate-hp="${tierId}" aria-label="&#34880;&#37327;&#19978;&#38480;"><select data-generate-category="${tierId}" aria-label="&#38957;&#21029;" title="&#38957;&#21029;"><option value="monster">&#24618;&#29289;</option><option value="boss">&#38957;&#30446;</option><option value="summon">&#21484;&#21624;&#29289;</option></select><span class="status" data-generate-card-count-label="${tierId}" style="align-self:center" hidden>&#20808;&#25915;&#21345;&#25976;&#37327;</span><input type="number" min="1" max="10" value="1" class="batch-amount" data-generate-card-count="${tierId}" aria-label="&#20808;&#25915;&#21345;&#25976;&#37327;" title="&#38957;&#30446;/&#21484;&#21624;&#29289;&#20808;&#25915;&#21345;&#25976;&#37327;" hidden><button type="button" class="good" data-generate-monsters="${tierId}" data-generate-names="${namesJson}">&#9989; &#30452;&#25509;&#29983;&#25104;&#24618;&#29289;</button></div>`;
+      return `<div>${message}</div><div class="card-draw-row"><input type="color" value="#ff5b6d" data-generate-color="${tierId}" class="unit-color-picker" aria-label="&#38991;&#33394;" title="&#38991;&#33394;"><input type="number" min="1" max="999999" value="100" class="batch-amount" data-generate-hp="${tierId}" aria-label="&#34880;&#37327;&#19978;&#38480;"><select data-generate-category="${tierId}" aria-label="&#38957;&#21029;" title="&#38957;&#21029;"><option value="monster">&#24618;&#29289;</option><option value="boss">&#38957;&#30446;</option><option value="summon">&#21484;&#21914;&#29289;</option></select><span class="status" data-generate-card-count-label="${tierId}" style="align-self:center" hidden>&#20808;&#25915;&#21345;&#25976;&#37327;</span><input type="number" min="1" max="10" value="1" class="batch-amount" data-generate-card-count="${tierId}" aria-label="&#20808;&#25915;&#21345;&#25976;&#37327;" title="&#38957;&#30446;/&#21484;&#21914;&#29289;&#20808;&#25915;&#21345;&#25976;&#37327;" hidden><button type="button" class="good" data-generate-monsters="${tierId}" data-generate-names="${namesJson}">&#9989; &#30452;&#25509;&#29983;&#25104;&#24618;&#29289;</button></div>`;
     }
 function currentTurnLabel(){
       if(!currentTurnId)return '';
@@ -1404,6 +1404,8 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         if(!setStorageItem('battleTrackerSaveFiles',JSON.stringify(saveFiles))){return}
         alert(`\u5df2\u532f\u5165\u5b58\u6a94\u300c${entry.name}\u300d\u3002`);
         render();
+        setTimeout(updateTabbarHeightVar,100);
+        setTimeout(updateTabbarHeightVar,500);
       };
       reader.onerror=()=>alert('\u532f\u5165\u5931\u6557\uff1a\u7121\u6cd5\u8b80\u53d6\u6a94\u6848\u3002');
       reader.readAsText(file);
@@ -1897,7 +1899,7 @@ function adjustUnitHp(unit,action,amount){
       const tagDelete=event.target.closest('[data-tag-delete]');
       if(tagDelete){saveHistory();actionTags=actionTags.filter(item=>item.id!==tagDelete.dataset.tagDelete);render();return}
       const saveLoad=event.target.closest('[data-save-load]');
-      if(saveLoad){const file=saveFiles.find(item=>item.id===saveLoad.dataset.saveLoad);if(file){saveHistory();loadSaveState(file.state);render()}return}
+      if(saveLoad){const file=saveFiles.find(item=>item.id===saveLoad.dataset.saveLoad);if(file){saveHistory();loadSaveState(file.state);render();setTimeout(updateTabbarHeightVar,100);setTimeout(updateTabbarHeightVar,500)}return}
       const saveExport=event.target.closest('[data-save-export]');
       if(saveExport){const file=saveFiles.find(item=>item.id===saveExport.dataset.saveExport);if(file)exportSingleSave(file);return}
       const saveDelete=event.target.closest('[data-save-delete]');
@@ -3298,6 +3300,8 @@ function adjustUnitHp(unit,action,amount){
         const added=parseShopExcelRows(rows);
         scheduleShopAutosave();
         renderGmPanel();
+        setTimeout(updateTabbarHeightVar,100);
+        setTimeout(updateTabbarHeightVar,500);
         const msg=`匯入完成，新增 ${added} 張商品卡`;
         if(statusEl)statusEl.textContent=msg;
       }).catch(e=>{
@@ -3397,6 +3401,8 @@ function adjustUnitHp(unit,action,amount){
         renderMonsterTagLevelOptions();
         renderMonsterTagLibraryList();
         updateMonsterTagLibraryCount();
+        setTimeout(updateTabbarHeightVar,100);
+        setTimeout(updateTabbarHeightVar,500);
         const msg=`匯入完成，新增 ${added} 筆、更新 ${updated} 筆怪物標籤`;
         if(statusEl)statusEl.textContent=msg;
       }).catch(e=>{
@@ -3464,6 +3470,8 @@ function adjustUnitHp(unit,action,amount){
         const {added,skippedDup,skippedFull}=parseCardTierExcelRows(rows);
         saveMemory('battleTrackerCardTiers',cardTiers);
         render();
+        setTimeout(updateTabbarHeightVar,100);
+        setTimeout(updateTabbarHeightVar,500);
         let msg=`匯入完成，新增 ${added} 張卡片`;
         if(skippedDup)msg+=`，跳過 ${skippedDup} 張同等級同名重複的卡片`;
         if(skippedFull)msg+=`，${skippedFull} 張因為單一等級已達 300 張上限被跳過`;
