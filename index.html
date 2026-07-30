@@ -274,7 +274,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-05';
+    const APP_VERSION='2026.07.30-07';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1102,7 +1102,12 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         if(h>0)document.documentElement.style.setProperty('--tabbar-h',h+'px');
       });
     }
-    window.addEventListener('resize',()=>{
+    function scheduleRotationSettle(){
+      // 手機在快速「轉過去又轉回來」的情況下，瀏覽器內部的視窗高度計算有時候
+      // 要等到下一次觸控才會真的定案（這是已知的行動瀏覽器怪癖，不是我們能完全
+      // 掌控的）。單純用固定的 100ms/500ms 時間點去猜，遇到連續兩次旋轉時可能
+      // 在還沒真正穩定前就先讀到過渡狀態的錯誤數值。改成拉長、多次檢查的排程，
+      // 盡量提高抓到「真正穩定後」那個時間點的機率。
       if(resizeNameTimer)clearTimeout(resizeNameTimer);
       resizeNameTimer=setTimeout(()=>{
         resizeNameTimer=null;
@@ -1110,12 +1115,28 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         sizeUnitNameInputs(true);
         updateTabbarHeightVar();
       },250);
-    });
+    }
+    window.addEventListener('resize',scheduleRotationSettle);
+    // visualViewport 是行動瀏覽器上追蹤「實際可視範圍」更準確的 API，跟
+    // window resize 事件的時機點常常不完全一致，兩個都聽可以互相補漏。
+    if(window.visualViewport)window.visualViewport.addEventListener('resize',scheduleRotationSettle);
     window.addEventListener('orientationchange',()=>{
       isRotating=true;
       setTimeout(updateTabbarHeightVar,100);
       setTimeout(updateTabbarHeightVar,500);
+      setTimeout(updateTabbarHeightVar,1000);
+      setTimeout(updateTabbarHeightVar,1600);
     });
+    // 保險機制：如果自動偵測沒抓準「真的穩定了」的時間點，使用者第一次碰觸畫面時
+    // 會立刻強制重新measure、把 isRotating 收尾——這跟原本「手動碰一下就恢復正常」
+    // 的行為是同一件事，只是不用使用者自己發現、自己去點，改成自動幫他做掉。
+    window.addEventListener('touchstart',()=>{
+      if(!isRotating&&resizeNameTimer===null)return;
+      if(resizeNameTimer){clearTimeout(resizeNameTimer);resizeNameTimer=null}
+      isRotating=false;
+      sizeUnitNameInputs(true);
+      updateTabbarHeightVar();
+    },{passive:true});
     function exportData(){
       flushAutosave();
       const data={};
@@ -1187,8 +1208,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
           if(crossed&&name&&!hasPassive){
             const templateColor=passiveTemplates.find(p=>p.name===name)?.color;
             (unit.passives||(unit.passives=[])).push({id:uuid(),name,color:templateColor||'#8a5cd6',sourceThresholdId:t.id});
+            logCombatEvent(unit,`血量低於門檻 ${t.value}，觸發被動「${name}」`,'passive');
           }else if(!crossed&&hasPassive){
             unit.passives=unit.passives.filter(p=>p.sourceThresholdId!==t.id);
+            logCombatEvent(unit,`血量回升至門檻 ${t.value} 以上，被動「${name}」解除`,'passive');
           }
           t.triggered=crossed;
         }else if(!t.triggered&&crossed){
@@ -1196,6 +1219,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
           if(name){
             const templateColor=passiveTemplates.find(p=>p.name===name)?.color;
             (unit.passives||(unit.passives=[])).push({id:uuid(),name,color:templateColor||'#8a5cd6',sourceThresholdId:t.id});
+            logCombatEvent(unit,`血量低於門檻 ${t.value}，觸發被動「${name}」`,'passive');
           }
         }
       });
@@ -3245,12 +3269,13 @@ function adjustUnitHp(unit,action,amount){
           ['名稱','分類','等級','價格','數量上限','連動另一面名稱','連動另一面分類'],
           ['飛彈魔杖','武器','日常等級','50','1','神奇護甲','護甲'],
           ['藥水','消耗品','日常等級','10','','',''],
+          ['藥水','消耗品','菁英等級','30','','',''],
         ];
         const helpRows=[
           ['欄位','說明'],
-          ['名稱','商品名稱，必填。'],
+          ['名稱','商品名稱，必填。系統會用「名稱＋等級」判斷是不是同一件商品，兩者都一樣才視為同一件、匯入時直接覆蓋更新；名稱一樣但等級不同（例如範本裡兩列都叫「藥水」，但一個是日常等級、一個是菁英等級），會當成兩件不同的商品各自建立，不會互相覆蓋。'],
           ['分類','例如：武器、護甲、消耗品，用來在商店/GM區分組顯示。'],
-          ['等級','商品等級，格式不拘，只要同一等級打法前後一致。留空代表永遠開放。'],
+          ['等級','商品等級，格式不拘，只要同一等級打法前後一致。留空代表永遠開放；也會被算進判斷是不是同一件商品的條件裡（都留空的話，視為同一種「等級」）。'],
           ['價格','這件商品的購買參考售價（賣出時系統仍會另外詢問實際賣出金額）。'],
           ['數量上限','這張卡在場上最多能同時持有幾件，留空代表沒有上限。'],
           ['連動另一面名稱','雙面卡專用，選填。只需要在「正面」那一列填寫，系統會自動幫你建立背面那張卡並完成連動。'],
@@ -3282,9 +3307,11 @@ function adjustUnitHp(unit,action,amount){
         const cap=(capRaw===undefined||capRaw==='')?null:Math.max(0,parseInt(capRaw,10)||0);
         const backName=String(row['連動另一面名稱']||'').trim();
         const backCategory=String(row['連動另一面分類']||'').trim();
-        let item=shopCatalog.find(x=>x.name===name);
+        // 跟怪物標籤一樣，改成「名稱＋等級」才算同一件商品——同名但等級不同會
+        // 是兩件獨立商品，各自建立，不會互相覆蓋。
+        let item=shopCatalog.find(x=>x.name===name&&(x.level||'')===level);
         if(!item){item={id:uuid(),name,category,level,price,cap,boughtCount:0,individuallyOpen:false,linkedNames:[]};shopCatalog.push(item);added++}
-        else{item.category=category||item.category;item.level=level||item.level;if(price!=null)item.price=price;if(cap!=null)item.cap=cap}
+        else{item.category=category||item.category;if(price!=null)item.price=price;if(cap!=null)item.cap=cap}
         if(backName){item.backName=backName;item.backCategory=backCategory;linkedItems.push(item)}
       });
       linkedItems.forEach(item=>syncShopLinkedCounterpart(item));
