@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-29';
+    const APP_VERSION='2026.07.30-30';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1321,8 +1321,12 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>({id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u5c0f\u968a',color:sanitizeColor(x.color,'#ff5b6d'),maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars)})):[];
     }
     function sanitizeActionTags(list){
-      const cleaned=Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>({id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u884c\u52d5',active:!!x.active})):[];
-      return cleaned.length?cleaned:defaultActionTags();
+      // 只有在原始資料「根本不是陣列」時（代表這個欄位缺漏、或是格式不對，
+      // 例如讀取很舊版本的存檔），才用預設標籤頂替。如果資料本身是陣列、
+      // 只是使用者刻意把裡面的標籤全部刪光變成空陣列，要尊重這個「刻意清空」
+      // 的狀態，不能自動幫使用者把已經刪掉的標籤又補回來。
+      if(!Array.isArray(list))return defaultActionTags();
+      return list.filter(x=>x&&typeof x==='object').map(x=>({id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u884c\u52d5',active:!!x.active}));
     }
     function sanitizeStatusTemplates(list){return sanitizeStatusList(list)}
     function sanitizeAttributeTemplates(list){return sanitizeAttributeList(list)}
