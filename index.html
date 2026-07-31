@@ -277,7 +277,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-19';
+    const APP_VERSION='2026.07.30-21';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -857,10 +857,13 @@
     function cardTierChipsHtml(tier){
       if(!tier.cards.length)return '<span class="status">&#23578;&#28961;&#21345;&#29255;&#65292;&#35531;&#22312;&#19979;&#26041;&#26032;&#22686;&#12290;</span>';
       const drawnIds=new Set(tier.drawnIds||[]);
-      const sortedCards=tier.cards.slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));
-      return sortedCards.map(c=>{
+      // 改成照陣列本身實際儲存的順序渲染，而不是每次都強制重新依字數排序——
+      // 這樣使用者手動調整過的順序才能真正保留，不會畫面一重繪就被打回原形。
+      // 新增卡片時已經會自動插入到正確的字數排序位置，所以平常看起來還是照字數排好的。
+      return tier.cards.map((c,idx)=>{
         const isDrawn=drawnIds.has(c.id);
-        return `<span><button type="button" class="template-tag${isDrawn?' card-chip-drawn':''}" style="cursor:default" title="${isDrawn?'&#24050;&#25277;&#20986;':''}">${escapeHtml(c.name)}</button><button type="button" class="template-delete" data-card-delete="${c.id}" data-tier-id="${tier.id}" title="&#21034;&#38500;&#36889;&#24373;&#21345;&#29255;">&#215;</button></span>`;
+        const moveBtns=`<span class="level-move-btns" style="margin-left:2px"><button type="button" data-card-move="up" data-card-move-id="${c.id}" data-tier-id="${tier.id}" ${idx===0?'disabled':''} title="上移這張卡片" style="width:24px;height:24px;font-size:.7rem">▲</button><button type="button" data-card-move="down" data-card-move-id="${c.id}" data-tier-id="${tier.id}" ${idx===tier.cards.length-1?'disabled':''} title="下移這張卡片" style="width:24px;height:24px;font-size:.7rem">▼</button></span>`;
+        return `<span><button type="button" class="template-tag${isDrawn?' card-chip-drawn':''}" style="cursor:default" title="${isDrawn?'&#24050;&#25277;&#20986;':''}">${escapeHtml(c.name)}</button>${moveBtns}<button type="button" class="template-delete" data-card-delete="${c.id}" data-tier-id="${tier.id}" title="&#21034;&#38500;&#36889;&#24373;&#21345;&#29255;">&#215;</button></span>`;
       }).join('');
     }
     let openCardTiers=new Set();
@@ -868,7 +871,7 @@
       const drawnIds=new Set(tier.drawnIds||[]);
       const remaining=tier.cards.filter(c=>!drawnIds.has(c.id)).length;
       const defaultCount=1;
-      const bodyContent=`<div class="card-chip-list">${cardTierChipsHtml(tier)}</div><form class="tag-form" data-card-add-form="${tier.id}"><input name="cardName" maxlength="500" required placeholder="&#26032;&#22686;&#21345;&#29255;&#21517;&#31281;"><button class="primary">&#26032;&#22686;&#21345;&#29255;</button></form><div class="card-draw-row"><span class="filter-label">&#25277;&#21462;&#24373;&#25976;&#65306;</span><input type="number" min="1" max="999" value="${defaultCount}" class="batch-amount" data-draw-count="${tier.id}" aria-label="&#25277;&#21462;&#24373;&#25976;"><button type="button" class="good" data-draw-action="${tier.id}">&#127183; &#38568;&#27231;&#25277;&#21462;</button><button type="button" data-reset-pool="${tier.id}" title="&#25226;&#24050;&#25277;&#20986;&#30340;&#21345;&#29255;&#25918;&#22238;&#21345;&#27744;&#65292;&#37325;&#26032;&#38283;&#22987;&#25277;&#21462;">&#128260; &#37325;&#32622;&#21345;&#27744;</button></div><div class="card-draw-result" data-draw-result="${tier.id}"></div>${cardTierHistoryHtml(tier)}`;
+      const bodyContent=`<div class="card-chip-list">${cardTierChipsHtml(tier)}</div><form class="tag-form" data-card-add-form="${tier.id}"><input name="cardName" maxlength="500" required placeholder="&#26032;&#22686;&#21345;&#29255;&#21517;&#31281;"><button class="primary">&#26032;&#22686;&#21345;&#29255;</button><button type="button" data-card-sort-reset="${tier.id}" title="把上面卡片的順序，重新依名稱字數排序（會清掉手動調整過的順序）">🔄 卡片自動排序</button></form><div class="card-draw-row"><span class="filter-label">&#25277;&#21462;&#24373;&#25976;&#65306;</span><input type="number" min="1" max="999" value="${defaultCount}" class="batch-amount" data-draw-count="${tier.id}" aria-label="&#25277;&#21462;&#24373;&#25976;"><button type="button" class="good" data-draw-action="${tier.id}">&#127183; &#38568;&#27231;&#25277;&#21462;</button><button type="button" data-reset-pool="${tier.id}" title="&#25226;&#24050;&#25277;&#20986;&#30340;&#21345;&#29255;&#25918;&#22238;&#21345;&#27744;&#65292;&#37325;&#26032;&#38283;&#22987;&#25277;&#21462;">&#128260; &#37325;&#32622;&#21345;&#27744;</button></div><div class="card-draw-result" data-draw-result="${tier.id}"></div>${cardTierHistoryHtml(tier)}`;
       const open=openCardTiers.has(tier.id);
       const moveBtns=`<span class="level-move-btns"><button type="button" data-tier-move="up" data-tier-move-id="${tier.id}" ${isFirst?'disabled':''} title="上移這個等級">▲</button><button type="button" data-tier-move="down" data-tier-move-id="${tier.id}" ${isLast?'disabled':''} title="下移這個等級">▼</button></span>`;
       return `<div class="card-tier-block" data-tier-id="${tier.id}"><div class="card-tier-head"><span class="card-tier-title"><input type="text" class="unit-name-input" data-tier-name="${tier.id}" value="${escapeAttr(tier.name)}" maxlength="500" title="\u6309\u4e00\u4e0b\u53ef\u4fee\u6539\u7b49\u7d1a\u540d\u7a31" onclick="event.stopPropagation()">&#65288;&#20849; ${tier.cards.length} &#24373;&#65292;&#21097;&#39192;&#21487;&#25277; ${remaining} &#24373;&#65289;</span>${moveBtns}<button type="button" class="danger" data-tier-delete="${tier.id}" title="&#21034;&#38500;&#25972;&#20491;&#31561;&#32026;&#65288;&#21253;&#21547;&#20854;&#20013;&#25152;&#26377;&#21345;&#29255;&#65289;">&#21034;&#38500;&#31561;&#32026;</button></div><details class="shop-section" data-cardtiersec="${tier.id}" ${open?'open':''}><summary class="shop-section-head"><span>📦 卡池內容</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">${bodyContent}</div></details></div>`;
@@ -2238,6 +2241,30 @@ function adjustUnitHp(unit,action,amount){
         }
         return;
       }
+      const cardSortReset=event.target.closest('[data-card-sort-reset]');
+      if(cardSortReset){
+        const tier=cardTiers.find(t=>t.id===cardSortReset.dataset.cardSortReset);
+        if(tier){
+          tier.cards=tier.cards.slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));
+          saveMemory('battleTrackerCardTiers',cardTiers);
+          render();
+        }
+        return;
+      }
+      const cardMove=event.target.closest('[data-card-move]');
+      if(cardMove){
+        const tier=cardTiers.find(t=>t.id===cardMove.dataset.tierId);
+        if(!tier)return;
+        const idx=tier.cards.findIndex(c=>c.id===cardMove.dataset.cardMoveId);
+        if(idx===-1)return;
+        const dir=cardMove.dataset.cardMove;
+        const swapIdx=dir==='up'?idx-1:idx+1;
+        if(swapIdx<0||swapIdx>=tier.cards.length)return;
+        [tier.cards[idx],tier.cards[swapIdx]]=[tier.cards[swapIdx],tier.cards[idx]];
+        saveMemory('battleTrackerCardTiers',cardTiers);
+        render();
+        return;
+      }
       const tierMove=event.target.closest('[data-tier-move]');
       if(tierMove){
         const id=tierMove.dataset.tierMoveId;
@@ -2701,7 +2728,9 @@ function adjustUnitHp(unit,action,amount){
         if(name===null)return;
         const dup=tier.cards.some(c=>c.name===name);
         if(dup&&!confirm(`\u300c${tier.name}\u300d\u9019\u500b\u7b49\u7d1a\u5df2\u7d93\u6709\u4e00\u5f35\u53eb\u300c${name}\u300d\u7684\u5361\u7247\u4e86\uff0c\u78ba\u5b9a\u8981\u518d\u65b0\u589e\u4e00\u5f35\u540c\u540d\u7684\u5361\u7247\u55ce\uff1f`))return;
-        tier.cards.push({id:uuid(),name});
+        const newCard={id:uuid(),name};
+        let insertIdx=tier.cards.findIndex(c=>c.name.length>name.length||(c.name.length===name.length&&c.name.localeCompare(name,'zh-Hant')>0));
+        if(insertIdx===-1)tier.cards.push(newCard);else tier.cards.splice(insertIdx,0,newCard);
         saveMemory('battleTrackerCardTiers',cardTiers);
         form.reset();
         render();
@@ -3084,12 +3113,21 @@ function adjustUnitHp(unit,action,amount){
       // 實際設定連動的卡片，價格被誤判成雙面卡而跟著被覆蓋掉。
       getLinkedItems(item).forEach(other=>{other.price=item.price});
     }
-    function renameShopCardEverywhere(oldName,newName){
+    function renameShopCardEverywhere(oldName,newName,myCap){
       newName=(newName||'').trim();
       if(!newName||oldName===newName)return true;
       const existingOthers=shopCatalog.filter(t=>t.name===newName);
       if(existingOthers.length){
-        if(!confirm(`已經有「${newName}」了，要合併成一張嗎？（庫存數量會加總，上限取其中一個有設定的值）`))return false;
+        // 如果雙方都有設定庫存上限、而且數值不一樣，直接把兩邊的數字都列出來，
+        // 不要只含糊地說「取其中一個有設定的值」，讓使用者可以清楚知道合併後
+        // 實際會採用哪個數字（規則是：保留原本那張卡「先」設定的值，也就是
+        // 這裡顯示的「已存在的」那張）。
+        const otherCap=existingOthers.find(o=>o.cap!=null)?.cap;
+        let capNote='庫存數量會加總，上限取其中一個有設定的值';
+        if(myCap!=null&&otherCap!=null&&myCap!==otherCap){
+          capNote=`庫存數量會加總；上限這邊是 ${otherCap}、那邊是 ${myCap}，合併後會採用「${newName}」原本的 ${otherCap}`;
+        }
+        if(!confirm(`已經有「${newName}」了，要合併成一張嗎？（${capNote}）`))return false;
       }
       shopCatalog.forEach(it=>{
         if(it.name===oldName)it.name=newName;
@@ -3647,11 +3685,16 @@ function adjustUnitHp(unit,action,amount){
         let tier=cardTiers.find(t=>t.name===level);
         if(!tier){
           tier={id:uuid(),name:level,cards:[],drawnIds:[],history:[]};
-          cardTiers.push(tier);
+          // 新等級依名稱字數插入到正確排序位置，跟手動新增等級的行為一致。
+          let tierInsertIdx=cardTiers.findIndex(t=>t.name.length>level.length||(t.name.length===level.length&&t.name.localeCompare(level,'zh-Hant')>0));
+          if(tierInsertIdx===-1)cardTiers.push(tier);else cardTiers.splice(tierInsertIdx,0,tier);
         }
         if(tier.cards.some(c=>c.name===name)){skippedDup++;return}
         if(tier.cards.length>=300){skippedFull++;return}
-        tier.cards.push({id:uuid(),name});
+        // 新卡片同樣依名稱字數插入到正確排序位置，而不是加到最後面。
+        const newCard={id:uuid(),name};
+        let cardInsertIdx=tier.cards.findIndex(c=>c.name.length>name.length||(c.name.length===name.length&&c.name.localeCompare(name,'zh-Hant')>0));
+        if(cardInsertIdx===-1)tier.cards.push(newCard);else tier.cards.splice(cardInsertIdx,0,newCard);
         added++;
       });
       return {added,skippedDup,skippedFull};
@@ -3768,7 +3811,7 @@ function adjustUnitHp(unit,action,amount){
         const oldName=ev.target.dataset.origValue;
         const newName=item.name.trim();
         if(oldName&&oldName!==newName&&newName){
-          const ok=renameShopCardEverywhere(oldName,newName);
+          const ok=renameShopCardEverywhere(oldName,newName,item.cap);
           if(ok===false){item.name=oldName;renderGmPanel();return}
         }
       }
@@ -3776,7 +3819,8 @@ function adjustUnitHp(unit,action,amount){
         const oldBackName=(ev.target.dataset.origValue||'').trim();
         const newBackName=item.backName.trim();
         if(oldBackName&&oldBackName!==newBackName&&newBackName&&item.linkedNames&&item.linkedNames.includes(oldBackName)){
-          const ok=renameShopCardEverywhere(oldBackName,newBackName);
+          const counterpartCap=shopCatalog.find(x=>x.name===oldBackName)?.cap;
+          const ok=renameShopCardEverywhere(oldBackName,newBackName,counterpartCap);
           if(ok===false){item.backName=oldBackName;renderGmPanel();return}
           scheduleShopAutosave();renderGmPanel();return;
         }
