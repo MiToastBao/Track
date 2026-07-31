@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-30';
+    const APP_VERSION='2026.07.30-31';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1645,6 +1645,22 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       setTimeout(correct,300);
       setTimeout(correct,500);
       setTimeout(correct,800);
+      // 平板橫屏時，鍵盤收起造成的不是單純畫面捲動，而是瀏覽器真的把「版面可視
+      // 高度」整個重新計算了一次（這是 iPad 橫屏鍵盤已知的特殊行為，跟直屏不
+      // 一樣）。這種情況下，光靠猜測的固定時間點去校正不夠準，改成直接監聽
+      // visualViewport 的 resize 事件——版面尺寸真正變動的那一刻會馬上觸發，
+      // 不管鍵盤收起動畫實際花多久都能準確抓到，比猜時間可靠。
+      if(window.visualViewport){
+        let vvCount=0;
+        const onVvResize=()=>{
+          correct();
+          requestAnimationFrame(correct);
+          vvCount++;
+          if(vvCount>=3)window.visualViewport.removeEventListener('resize',onVvResize);
+        };
+        window.visualViewport.addEventListener('resize',onVvResize);
+        setTimeout(()=>window.visualViewport.removeEventListener('resize',onVvResize),1500);
+      }
     }
     function scrollToBelowStickyHeader(el,stickySelector){
       // 用JS即時量測「目前實際渲染出來」的置頂區塊高度，而不是猜一個固定的px數字。
