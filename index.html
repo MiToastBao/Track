@@ -273,7 +273,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-16';
+    const APP_VERSION='2026.07.30-17';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1932,8 +1932,20 @@ function adjustUnitHp(unit,action,amount){
         const popup=field?.querySelector('.mini-palette-popup');
         if(popup){
           const wasHidden=popup.hidden;
-          document.querySelectorAll('.mini-palette-popup').forEach(p=>{if(p!==popup)p.hidden=true});
+          document.querySelectorAll('.mini-palette-popup').forEach(p=>{p.hidden=true;p.style.left='';p.style.right=''});
           popup.hidden=!wasHidden;
+          if(!popup.hidden){
+            // 展開後量測實際位置：如果面板右邊界會超出視窗範圍（例如觸發按鈕靠近
+            // 畫面右側、或手機螢幕本身較窄），改成貼齊觸發按鈕右緣往左展開，
+            // 避免面板被裁切或跑到畫面外碰不到。
+            requestAnimationFrame(()=>{
+              const rect=popup.getBoundingClientRect();
+              if(rect.right>window.innerWidth){
+                popup.style.left='auto';
+                popup.style.right='0';
+              }
+            });
+          }
         }
         return;
       }
@@ -2298,6 +2310,7 @@ function adjustUnitHp(unit,action,amount){
           // 單位、以及新建立的標籤上；新的被動名稱用預設紫色，如果之前已經有記住顏色
           // 的同名被動，直接沿用那個顏色。
           const passives=formPassiveNames.map(n=>{
+            n=n.slice(0,50);
             const pt=passiveTemplates.find(item=>item.name===n);
             if(!pt)pushWithLimit(passiveTemplates,{id:uuid(),name:n,color:'#8a5cd6'},MAX_TEMPLATES);
             return{id:uuid(),name:n,color:pt?pt.color:'#8a5cd6'};
@@ -3467,6 +3480,7 @@ function adjustUnitHp(unit,action,amount){
         const passiveRaw=String(row['被動能力']||'').trim();
         const passiveNames=passiveRaw?passiveRaw.split(/[,，、]/).map(s=>s.trim()).filter(Boolean):[];
         const passives=passiveNames.length?passiveNames.map(n=>{
+          n=n.slice(0,50);
           const pt=passiveTemplates.find(item=>item.name===n);
           if(!pt)pushWithLimit(passiveTemplates,{id:uuid(),name:n,color:'#8a5cd6'},MAX_TEMPLATES);
           return{id:uuid(),name:n,color:pt?pt.color:'#8a5cd6'};
