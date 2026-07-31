@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-37';
+    const APP_VERSION='2026.07.30-38';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1142,20 +1142,6 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return `<div class="passives-section"><div class="condition-title">&#34987;&#21205;&#33021;&#21147;</div><div class="saved-status-tags">${remembered}</div><form class="passive-form" data-passive-form="${unit.id}"><input name="passiveName" maxlength="500" required placeholder="&#36664;&#20837;&#34987;&#21205;&#33021;&#21147;&#65288;50&#23383;&#20197;&#20839;&#65289;"><button class="primary">&#26032;&#22686;&#34987;&#21205;&#33021;&#21147;</button></form></div>`;
     }
     function hpInlineHtml(unit){return `<form class="hp hp-inline" data-hp-form="${unit.id}"><input name="currentHp" type="number" min="0" max="${unit.maxHp}" value="${unit.hp}" aria-label="&#30446;&#21069; HP"><span>/</span><input name="maxHp" type="number" min="1" max="999999" value="${unit.maxHp}" aria-label="&#26368;&#22823; HP"><span>HP</span></form>`}
-    // Updating HP replaces the card DOM. On landscape tablets the virtual keyboard can
-    // then make the browser scroll to a different position; restore the user's viewport
-    // after the DOM update and again after the next layout frames.
-    function renderPreservingScroll(){
-      const x=window.scrollX;
-      const y=window.scrollY;
-      const restore=()=>window.scrollTo(x,y);
-      render();
-      restore();
-      requestAnimationFrame(()=>{
-        restore();
-        requestAnimationFrame(restore);
-      });
-    }
     function titleStatusHtml(unit){const statuses=unit.statuses||[];const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';return `<div class="title-status">${statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#8a8f98')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#8a8f98'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}<span class="turns">${item.turns}&#22238;&#21512;</span> <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function titlePassiveHtml(unit){const passives=unit.passives||[];if(!passives.length)return'';return `<div class="title-passives">${passives.map(item=>`<span class="passive" style="--passive-color:${sanitizeColor(passiveDisplayColor(unit,item),'#8a5cd6')}" title="${escapeAttr(item.name)}">${colorTriggerHtml(sanitizeColor(item.color,'#8a5cd6'),`data-passive-color="${unit.id}" data-passive-id="${item.id}"`)}&#10022; <span class="passive-text">${escapeHtml(item.name)}</span><button data-passive-delete="${unit.id}" data-passive-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function titleAttributeHtml(unit){return `<div class="title-attributes">${(unit.attributes||[]).map(item=>`<span class="attribute" style="--attr-color:${sanitizeColor(item.color,'#4c78a4')}">${colorTriggerHtml(sanitizeColor(item.color,'#4c78a4'),`data-attribute-color="${unit.id}" data-attribute-id="${item.id}"`)}${escapeHtml(item.name)} <input data-attribute-value="${unit.id}" data-attribute-id="${item.id}" value="${escapeAttr(String(item.value??''))}" placeholder="&#25976;&#20540;"><button data-attribute-delete="${unit.id}" data-attribute-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
@@ -1644,33 +1630,19 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
     }
     function withScrollAnchor(cardId,fn){
-      // 使用者實測回報：鎖定捲動位置這招，把「整張跳走」改善成「跳一半」，
-      // 代表這裡牽涉到兩種不同的成因：一種是單純捲動位置被誰推走了（鎖定
-      // 捲動位置能對抗這種），另一種是版面本身重新排版、卡片在頁面上的
-      // 實際位置真的變了（單純鎖定捲動位置沒辦法對抗這種，因為捲動位置
-      // 沒變，但卡片自己的座標變了）。這次同時對抗兩種：除了鎖定捲動位置，
-      // 也持續追蹤卡片本身在畫面上的相對位置，只要跟一開始不一樣，直接
-      // 用捲動去把卡片拉回原本的視覺位置，兩種成因都能涵蓋到。
+      // 這裡只單純鎖定捲動位置(window.scrollY)，不追蹤卡片本身在頁面上的
+      // 座標——因為實測下來，只鎖定捲動位置這個較簡單的版本，至少能把
+      // 「整張跳走」改善成「跳一半」；後來疊加的卡片座標追蹤機制，
+      // 實測反而讓情況又變回整張跳走，可能是新機制本身有問題、或是跟
+      // 捲動鎖定互相干擾。既然使用者希望先求穩、不要再繼續嘗試風險更高
+      // 的做法，這裡先退回到有實際改善效果、比較單純的版本。
       const lockedY=window.scrollY;
-      const cardEl=document.querySelector(`.card[data-card-id="${cardId}"]`);
-      const lockedTop=cardEl?cardEl.getBoundingClientRect().top:null;
       fn();
       let frames=0;
-      const MAX_FRAMES=90; // 約1.5秒（每影格約16ms），涵蓋鍵盤收起動畫最長可能的時間
+      const MAX_FRAMES=120; // 固定追蹤約2秒，涵蓋鍵盤收起動畫可能延遲才開始的情況
       function tick(){
         frames++;
-        const curCard=document.querySelector(`.card[data-card-id="${cardId}"]`);
-        if(curCard&&lockedTop!==null){
-          const curTop=curCard.getBoundingClientRect().top;
-          if(Math.abs(curTop-lockedTop)>1){
-            window.scrollBy(0,curTop-lockedTop);
-          }
-        }else if(Math.abs(window.scrollY-lockedY)>1){
-          window.scrollTo(0,lockedY);
-        }
-        // 連續12影格（約200ms）都穩定沒有再跑掉，才判定真的穩定了、可以放手；
-        // 不然就算已經穩定過一次，也可能是鍵盤動畫還沒完全結束、等一下又會跳。
-        // Keep the card anchored for the full keyboard/viewport settle period.
+        if(Math.abs(window.scrollY-lockedY)>1)window.scrollTo(0,lockedY);
         if(frames<MAX_FRAMES){
           requestAnimationFrame(tick);
         }
@@ -2789,7 +2761,7 @@ function adjustUnitHp(unit,action,amount){
       if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#8a8f98';const color=old?(old.color||defaultColor):defaultColor;saveHistory();unit.statuses.push({id:uuid(),name,kind,turns,color});logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合）`,'statusGain');if(old){old.turns=turns;old.color=color}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);render();return}
       if(form.dataset.attributeForm){event.preventDefault();const unit=findUnit(form.dataset.attributeForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('attributeName')).trim();if(!rawName)return;const name=confirmLongText(rawName,20);if(name===null)return;const oldTemplate=attributeTemplates.find(item=>item.name===name);const color=oldTemplate?oldTemplate.color:'#4c78a4';saveHistory();(unit.attributes||(unit.attributes=[])).push({id:uuid(),name,value:'',color});if(!oldTemplate)pushWithLimit(attributeTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);render();return}
       if(form.dataset.bossThresholdForm){event.preventDefault();const unit=findUnit(form.dataset.bossThresholdForm);if(!unit||!unit.isBoss)return;const data=new FormData(form);const value=Math.floor(Number(data.get('thresholdValue')));const passiveName=String(data.get('thresholdPassive')||'').trim().slice(0,30);const autoRemove=data.get('thresholdAutoRemove')==='on';if(!Number.isFinite(value)||value<1||value>999999){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u8840\u91cf\u6578\u503c\u3002');return}saveHistory();if(!Array.isArray(unit.hpThresholds))unit.hpThresholds=[];if(!unit.hpThresholds.some(t=>t.value===value))unit.hpThresholds.push({id:uuid(),value,passiveName,triggered:false,autoRemove});unit.hpThresholds=unit.hpThresholds.sort((a,b)=>b.value-a.value).slice(0,5);checkHpThresholds(unit);render();return}
-      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}renderPreservingScroll();return}
+      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();return}
       if(form.dataset.passiveForm){event.preventDefault();const unit=findUnit(form.dataset.passiveForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('passiveName')).trim();if(!rawName)return;const name=confirmLongText(rawName,50);if(name===null)return;const old=passiveTemplates.find(item=>item.name===name);const color=old?old.color:'#8a5cd6';saveHistory();(unit.passives||(unit.passives=[])).push({id:uuid(),name,color});if(!old)pushWithLimit(passiveTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);render();return}
       if(form.dataset.addBarForm){event.preventDefault();const unit=findUnit(form.dataset.addBarForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('barName')).trim();const maxValue=Number(data.get('barMax'));if(!rawName||!Number.isInteger(maxValue)||maxValue<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const old=barTemplates.find(item=>item.name===name);const color=old?old.color:'#7c8db5';saveHistory();const newBar={id:uuid(),name,value:maxValue,maxValue,color};(unit.bars||(unit.bars=[])).push(newBar);logCombatEvent(unit,`獲得新數值條：${name}（${maxValue}/${maxValue}）`,'bar');if(old){old.maxValue=maxValue}else{pushWithLimit(barTemplates,{id:uuid(),name,maxValue,color},MAX_TEMPLATES)}saveMemory('battleTrackerBarTemplates',barTemplates);render();const newBarEl=document.querySelector(`.custom-bar[data-bar-id="${newBar.id}"]`);if(newBarEl){newBarEl.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'center'});newBarEl.classList.add('just-added')}return}
       if(form.id==='addForm'){
