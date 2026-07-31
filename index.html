@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-31';
+    const APP_VERSION='2026.07.30-32';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1625,42 +1625,34 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
     }
     function withScrollAnchor(cardId,fn){
-      // 記住目前正在操作的卡片在畫面上的位置，執行完動作（可能觸發整批重繪，
-      // 或手機鍵盤收起造成的版面跳動）之後，把畫面捲動回原本的相對位置，
-      // 避免使用者正在操作中的卡片突然跳走、看不到。延遲二次檢查是為了應付
-      // 手機鍵盤收起的動畫通常需要一點時間才會讓版面真正穩定下來的狀況——
-      // 只檢查一次的話，鍵盤收完之後可能又會跳一次。
-      const before=document.querySelector(`.card[data-card-id="${cardId}"]`);
-      const beforeTop=before?before.getBoundingClientRect().top:null;
+      // 之前的做法是「量一次差異、補一次」，但使用者實測回報「跳上去之後
+      // 就卡在那邊、不會跳回來」——代表補救的時機太晚，或是有某個瀏覽器
+      // 原生的行為（例如收鍵盤時瀏覽器自己想把畫面捲到某個地方）晚一步
+      // 又把我補救完的位置蓋掉了。改成更強力的做法：直接鎖定當下的絕對
+      // 捲動位置，接下來一整段時間內（用 requestAnimationFrame 每一影格都
+      // 檢查）只要發現捲動位置跑掉，就立刻壓回鎖定的數值，不管是誰造成
+      // 的偏移都會被持續糾正回來，直到畫面確定不會再跑為止才放手。
+      const lockedY=window.scrollY;
       fn();
-      if(beforeTop===null)return;
-      const correct=()=>{
-        const after=document.querySelector(`.card[data-card-id="${cardId}"]`);
-        if(!after)return;
-        const diff=after.getBoundingClientRect().top-beforeTop;
-        if(Math.abs(diff)>1)window.scrollBy(0,diff);
-      };
-      correct();
-      setTimeout(correct,100);
-      setTimeout(correct,300);
-      setTimeout(correct,500);
-      setTimeout(correct,800);
-      // 平板橫屏時，鍵盤收起造成的不是單純畫面捲動，而是瀏覽器真的把「版面可視
-      // 高度」整個重新計算了一次（這是 iPad 橫屏鍵盤已知的特殊行為，跟直屏不
-      // 一樣）。這種情況下，光靠猜測的固定時間點去校正不夠準，改成直接監聽
-      // visualViewport 的 resize 事件——版面尺寸真正變動的那一刻會馬上觸發，
-      // 不管鍵盤收起動畫實際花多久都能準確抓到，比猜時間可靠。
-      if(window.visualViewport){
-        let vvCount=0;
-        const onVvResize=()=>{
-          correct();
-          requestAnimationFrame(correct);
-          vvCount++;
-          if(vvCount>=3)window.visualViewport.removeEventListener('resize',onVvResize);
-        };
-        window.visualViewport.addEventListener('resize',onVvResize);
-        setTimeout(()=>window.visualViewport.removeEventListener('resize',onVvResize),1500);
+      let frames=0;
+      const MAX_FRAMES=90; // 約1.5秒（每影格約16ms），涵蓋鍵盤收起動畫最長可能的時間
+      let stableStreak=0;
+      function tick(){
+        frames++;
+        const cur=window.scrollY;
+        if(Math.abs(cur-lockedY)>1){
+          window.scrollTo(0,lockedY);
+          stableStreak=0;
+        }else{
+          stableStreak++;
+        }
+        // 連續12影格（約200ms）都穩定沒有再跑掉，才判定真的穩定了、可以放手；
+        // 不然就算已經穩定過一次，也可能是鍵盤動畫還沒完全結束、等一下又會跳。
+        if(stableStreak<12&&frames<MAX_FRAMES){
+          requestAnimationFrame(tick);
+        }
       }
+      requestAnimationFrame(tick);
     }
     function scrollToBelowStickyHeader(el,stickySelector){
       // 用JS即時量測「目前實際渲染出來」的置頂區塊高度，而不是猜一個固定的px數字。
