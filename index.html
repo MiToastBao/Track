@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-36';
+    const APP_VERSION='2026.07.30-37';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1630,38 +1630,29 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
     }
     function withScrollAnchor(cardId,fn){
-      // 使用者實測回報：鎖定捲動位置這招，把「整張跳走」改善成「跳一半」，
-      // 代表這裡牽涉到兩種不同的成因：一種是單純捲動位置被誰推走了（鎖定
-      // 捲動位置能對抗這種），另一種是版面本身重新排版、卡片在頁面上的
-      // 實際位置真的變了（單純鎖定捲動位置沒辦法對抗這種，因為捲動位置
-      // 沒變，但卡片自己的座標變了）。這次同時對抗兩種：除了鎖定捲動位置，
-      // 也持續追蹤卡片本身在畫面上的相對位置，只要跟一開始不一樣，直接
-      // 用捲動去把卡片拉回原本的視覺位置，兩種成因都能涵蓋到。
+      // 之前的做法：只要連續12影格(約200ms)沒有跑掉，就判定「穩定了」提早
+      // 結束追蹤。但實測發現這樣還是會跳，很可能是因為：重繪的當下畫面通常
+      // 是「立刻」完成的，這時候鍵盤收起的動畫可能都還沒開始跑，我的偵測會
+      // 誤判成「一開始就很穩定」，200ms一到就提早放手——但鍵盤收起造成的
+      // 版面變動，其實是稍後才真正發生的，等我已經放手不管了，真正的跳動
+      // 才姍姍來遲，完全沒被抓到。改成不管中途看起來多穩定，都固定持續
+      // 追蹤滿完整的時間，不再提早放手，確保能抓到任何延遲發生的跳動。
       const lockedY=window.scrollY;
       const cardEl=document.querySelector(`.card[data-card-id="${cardId}"]`);
       const lockedTop=cardEl?cardEl.getBoundingClientRect().top:null;
       fn();
       let frames=0;
-      const MAX_FRAMES=90; // 約1.5秒（每影格約16ms），涵蓋鍵盤收起動畫最長可能的時間
-      let stableStreak=0;
+      const MAX_FRAMES=120; // 固定追蹤約2秒，涵蓋鍵盤收起動畫可能延遲才開始的情況
       function tick(){
         frames++;
-        let moved=false;
         const curCard=document.querySelector(`.card[data-card-id="${cardId}"]`);
         if(curCard&&lockedTop!==null){
           const curTop=curCard.getBoundingClientRect().top;
-          if(Math.abs(curTop-lockedTop)>1){
-            window.scrollBy(0,curTop-lockedTop);
-            moved=true;
-          }
+          if(Math.abs(curTop-lockedTop)>1)window.scrollBy(0,curTop-lockedTop);
         }else if(Math.abs(window.scrollY-lockedY)>1){
           window.scrollTo(0,lockedY);
-          moved=true;
         }
-        stableStreak=moved?0:stableStreak+1;
-        // 連續12影格（約200ms）都穩定沒有再跑掉，才判定真的穩定了、可以放手；
-        // 不然就算已經穩定過一次，也可能是鍵盤動畫還沒完全結束、等一下又會跳。
-        if(stableStreak<12&&frames<MAX_FRAMES){
+        if(frames<MAX_FRAMES){
           requestAnimationFrame(tick);
         }
       }
