@@ -72,7 +72,7 @@ self.addEventListener('fetch', event => {
           const networkResponse = await fetch(event.request);
           if (networkResponse && networkResponse.status === 200) {
             const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
           }
           return networkResponse;
         } catch {
@@ -91,7 +91,7 @@ self.addEventListener('fetch', event => {
           const networkResponse = preload || await fetch(event.request, { cache: 'no-store' });
           if (networkResponse && networkResponse.status === 200) {
             const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
           }
           return networkResponse;
         } catch {
