@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.07.30-35';
+    const APP_VERSION='2026.07.30-36';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2590,11 +2590,14 @@ function adjustUnitHp(unit,action,amount){
       const action=button.dataset.action;
       const amount=Math.floor(Number(button.closest('.card').querySelector('[data-amount]')?.value));
       if(action==='damage'||action==='heal'){
-        // 主動讓目前聚焦的輸入框先失焦，讓手機/平板收鍵盤這個動作提前發生，
-        // 不要跟畫面重繪同時搶時間——這樣withScrollAnchor量測「動作前」卡片
-        // 位置的那一刻，鍵盤已經收好了，量到的才會是真正穩定的位置。
-        if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
+        // 之前是「先讓輸入框失焦→才開始用withScrollAnchor量測位置」，但這樣
+        // 失焦這個動作本身造成的版面變動，會發生在withScrollAnchor開始追蹤
+        // 之前，完全不會被錨點機制抓到、修正到——等於白白讓一段跳動溜走，
+        // 這可能就是為什麼加了這個修正後，反而感覺跳更多的原因。改成把
+        // 失焦動作也放進withScrollAnchor的callback裡面，跟量測基準點同一個
+        //時間點開始追蹤，失焦造成的版面變動才會確實被算進去、修正到。
         withScrollAnchor(unit.id,()=>{
+          if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
           adjustUnitHp(unit,action,amount);
           if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}
           render();
