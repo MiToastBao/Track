@@ -184,6 +184,11 @@
       </button>
       <div class="shop-section-body" id="cardDrawPanel" hidden>
         <form class="tag-form" id="cardTierForm"><input id="cardTierName" maxlength="500" required placeholder="新增等級名稱（例如：白）"><button class="primary">新增等級</button><button type="button" id="btnResetCardTierOrder" title="把下面等級的順序，重新依名稱字數排序（會清掉手動調整過的順序）">🔄 等級自動排序</button><button type="button" class="danger" id="btnClearAllHistory">清除所有抽取歷史紀錄</button></form>
+        <div class="toolbar" style="margin:10px 0">
+          <button type="button" id="btnExportCardTiers">💾 單獨匯出隨機卡池</button>
+          <button type="button" id="btnImportCardTiers">📂 單獨匯入隨機卡池</button>
+          <input type="file" id="importCardTiersFile" accept="application/json,.json" hidden>
+        </div>
         <details class="shop-section" id="cardTierExcelSection"><summary class="shop-section-head"><span>📊 Excel 批次匯入卡池</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">
           <p class="shop-hint" style="margin-bottom:10px">欄位如下（第一列要是標題）：<br><span class="shop-hint" style="font-family:monospace">卡池等級｜怪物名稱</span><br><br>匯入時「卡池等級」如果還沒有這個等級會自動新增，如果已經有會直接加卡片進去；同一個等級裡名稱重複的卡片不會重複加入。下載範例試算表後，裡面有「使用說明」分頁詳細解釋。</p>
           <div class="toolbar">
@@ -264,6 +269,11 @@
           <select id="monsterTagLevelFilter" style="flex:1;min-width:100px"><option value="">全部等級</option></select>
           <button type="button" id="btnResetMonsterLevelOrder" title="把下面等級分類的順序，重新依名稱字數排序（會清掉手動調整過的順序）">🔄 等級自動排序</button>
         </div>
+        <div class="toolbar" style="margin-bottom:10px">
+          <button type="button" id="btnExportMonsterTemplates">💾 單獨匯出標籤庫</button>
+          <button type="button" id="btnImportMonsterTemplates">📂 單獨匯入標籤庫</button>
+          <input type="file" id="importMonsterTemplatesFile" accept="application/json,.json" hidden>
+        </div>
         <div id="monsterTagLibraryList" style="padding-bottom:20px"></div>
       </div>
     </div>
@@ -282,7 +292,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-42';
+    const APP_VERSION='2026.08.01-43';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -732,6 +742,44 @@
       monsterLevelOrder=[];
       saveMemory('battleTrackerMonsterLevelOrder',monsterLevelOrder);
       renderMonsterTagLibraryList();
+    });
+    document.addEventListener('change',event=>{
+      if(event.target.id!=='importShopFile')return;
+      const file=event.target.files[0];
+      event.target.value='';
+      if(!file)return;
+      importPartialData(file,'shopData','商店卡牌',data=>{
+        saveHistory();
+        shopCatalog=Array.isArray(data?.shopCatalog)?data.shopCatalog.map(sanitizeShopCatalogItem).filter(Boolean):[];
+        shopUnlockedLevels=Array.isArray(data?.shopUnlockedLevels)?data.shopUnlockedLevels.filter(v=>typeof v==='string'):[];
+        shopUnlockedLevelCats=Array.isArray(data?.shopUnlockedLevelCats)?data.shopUnlockedLevelCats.filter(v=>typeof v==='string'):[];
+        // 只還原商品清單跟等級開放狀態，不動目前的金幣數量，
+        // 避免匯入商品卡牌，卻順便把隊伍金幣重置掉。
+        saveShopData();
+        renderGmPanel();
+        renderShopPanel();
+        alert('已匯入商店卡牌備份。');
+      });
+    });
+    document.querySelector('#btnExportMonsterTemplates').addEventListener('click',()=>{
+      exportPartialData('monsterTemplates','怪物標籤庫備份',{monsterTemplates,monsterLevelOrder});
+    });
+    document.querySelector('#btnImportMonsterTemplates').addEventListener('click',()=>{
+      document.querySelector('#importMonsterTemplatesFile').click();
+    });
+    document.querySelector('#importMonsterTemplatesFile').addEventListener('change',event=>{
+      const file=event.target.files[0];
+      event.target.value='';
+      if(!file)return;
+      importPartialData(file,'monsterTemplates','怪物標籤庫',data=>{
+        saveHistory();
+        monsterTemplates=sanitizeMonsterTemplates(data?.monsterTemplates);
+        monsterLevelOrder=Array.isArray(data?.monsterLevelOrder)?data.monsterLevelOrder.filter(x=>typeof x==='string'):[];
+        saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
+        saveMemory('battleTrackerMonsterLevelOrder',monsterLevelOrder);
+        renderMonsterTagLibraryList();
+        alert('已匯入怪物標籤庫備份。');
+      });
     });
     function updateMonsterTagLibraryCount(){
       const el=document.querySelector('#monsterTagLibraryCount');
@@ -1215,6 +1263,36 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       sizeUnitNameInputs(true);
       updateTabbarHeightVar();
     },{passive:true});
+    function exportPartialData(partialType,label,data){
+      // 讓使用者可以只匯出「其中一部分」資料（例如只匯出怪物標籤庫），
+      // 不用每次都匯出全部資料，方便單獨備份、之後也能單獨還原，
+      // 不會因為弄丟一份完整備份，就連這部分資料也一起找不回來。
+      const payload={app:'battleTracker',partialType,version:EXPORT_VERSION,exportedAt:new Date().toISOString(),data};
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=`${label}_${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    function importPartialData(file,expectedType,label,onConfirmedData){
+      const reader=new FileReader();
+      reader.onload=()=>{
+        let payload;
+        try{payload=JSON.parse(reader.result)}catch{alert('\u8b80\u53d6\u6a94\u6848\u5931\u6557\uff0c\u8acb\u78ba\u8a8d\u9078\u5c0d\u6b63\u78ba\u7684\u5099\u4efd\u6a94\u6848\u3002');return}
+        if(!payload||payload.partialType!==expectedType){
+          alert(`\u9019\u500b\u6a94\u6848\u770b\u8d77\u4f86\u4e0d\u662f\u300c${label}\u300d\u7684\u5099\u4efd\u6a94\u6848\uff0c\u8acb\u78ba\u8a8d\u9078\u5c0d\u6a94\u6848\u3002`);
+          return;
+        }
+        if(!confirm(`\u78ba\u5b9a\u8981\u532f\u5165\u9019\u4efd\u300c${label}\u300d\u5099\u4efd\u55ce\uff1f\u6703\u76f4\u63a5\u8986\u84cb\u76ee\u524d\u7684\u5167\u5bb9\uff0c\u7121\u6cd5\u5fa9\u539f\uff08\u5efa\u8b70\u5148\u532f\u51fa\u76ee\u524d\u7684\u5167\u5bb9\u7576\u4f5c\u5099\u4efd\uff09\u3002`))return;
+        onConfirmedData(payload.data);
+      };
+      reader.readAsText(file);
+    }
     function exportData(){
       flushAutosave();
       const data={};
@@ -3051,6 +3129,24 @@ function adjustUnitHp(unit,action,amount){
       saveMemory('battleTrackerCardTiers',cardTiers);
       render();
     });
+    document.querySelector('#btnExportCardTiers').addEventListener('click',()=>{
+      exportPartialData('cardTiers','隨機卡池備份',{cardTiers});
+    });
+    document.querySelector('#btnImportCardTiers').addEventListener('click',()=>{
+      document.querySelector('#importCardTiersFile').click();
+    });
+    document.querySelector('#importCardTiersFile').addEventListener('change',event=>{
+      const file=event.target.files[0];
+      event.target.value='';
+      if(!file)return;
+      importPartialData(file,'cardTiers','隨機卡池',data=>{
+        saveHistory();
+        cardTiers=sanitizeCardTiers(data?.cardTiers);
+        saveMemory('battleTrackerCardTiers',cardTiers);
+        render();
+        alert('已匯入隨機卡池備份。');
+      });
+    });
     document.querySelector('#btnClearAllHistory').addEventListener('click',()=>{
       if(!cardTiers.some(t=>(t.history||[]).length)){alert('\u76ee\u524d\u6c92\u6709\u4efb\u4f55\u62bd\u53d6\u7d00\u9304\u53ef\u4ee5\u6e05\u9664\u3002');return}
       if(!confirm('\u78ba\u5b9a\u8981\u6e05\u9664\u6240\u6709\u7b49\u7d1a\u7684\u62bd\u53d6\u7d00\u9304\u55ce\uff1f\u9019\u4e0d\u6703\u5f71\u97ff\u5361\u7247\u5217\u8868\u6216\u5df2\u62bd\u51fa\u7684\u72c0\u614b\uff0c\u4e14\u7121\u6cd5\u5fa9\u539f\u3002'))return;
@@ -3868,6 +3964,11 @@ function adjustUnitHp(unit,action,amount){
           <input type="file" id="shopExcelInput" accept=".xlsx,.xls,.csv" hidden>
           <p class="shop-hint" id="shopExcelStatus" style="margin-top:8px"></p>
         </div></details>
+        <div class="toolbar" style="margin:10px 0">
+          <button type="button" data-export-shop>💾 單獨匯出商店卡牌</button>
+          <button type="button" data-import-shop>📂 單獨匯入商店卡牌</button>
+          <input type="file" id="importShopFile" accept="application/json,.json" hidden>
+        </div>
         <details class="shop-section" data-shopsec="gm:shop" ${open?'open':''}><summary class="shop-section-head"><span>🏪 商店卡牌管理（${shopCatalog.length}）</span><span class="shop-chev">▸</span></summary><div class="shop-section-body">${renderGmShopSection()}</div></details>
       `;
       wrap.querySelectorAll('details[data-shopsec]').forEach(d=>{
@@ -3967,6 +4068,16 @@ function adjustUnitHp(unit,action,amount){
       if(ev.target.classList.contains('gm-regroup'))renderGmPanel();
     });
     document.querySelector('#gmPanelContent')?.addEventListener('click',ev=>{
+      const exportShop=ev.target.closest('[data-export-shop]');
+      if(exportShop){
+        exportPartialData('shopData','商店卡牌備份',{shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats});
+        return;
+      }
+      const importShopBtn=ev.target.closest('[data-import-shop]');
+      if(importShopBtn){
+        document.querySelector('#importShopFile').click();
+        return;
+      }
       const addCard=ev.target.closest('[data-gm-addcard]');
       if(addCard){addBlankShopCard();return}
       const selectToggle=ev.target.closest('[data-gm-select-toggle]');
