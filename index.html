@@ -301,7 +301,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-54';
+    const APP_VERSION='2026.08.01-55';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1760,25 +1760,29 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     }
     let scrollAnchorToken=0;
     function cancelScrollAnchor(){scrollAnchorToken++}
-    function startScrollLock(){
-      // 這裡只單純鎖定捲動位置(window.scrollY)，不追蹤卡片本身在頁面上的
-      // 座標——因為實測下來，只鎖定捲動位置這個較簡單的版本，至少能把
-      // 「整張跳走」改善成「跳一半」；後來疊加的卡片座標追蹤機制，
-      // 實測反而讓情況又變回整張跳走，可能是新機制本身有問題、或是跟
-      // 捲動鎖定互相干擾。既然使用者希望先求穩、不要再繼續嘗試風險更高
-      // 的做法，這裡先退回到有實際改善效果、比較單純的版本。
-      // 用一個遞增的識別碼標記「這是第幾次呼叫」：如果使用者快速連續觸發
-      // 好幾次（同一張卡片或不同卡片都算），舊的追蹤迴圈發現有更新的
-      // 一次呼叫已經開始，會自動放棄，不會繼續跟新的一次互相搶著校正
-      // 捲動位置、彼此拉扯。
+    function startScrollLock(anchorEl){
+      // 之前的做法是單純鎖定捲動位置(window.scrollY)的數字，但實測發現：
+      // 新增狀態/屬性/被動能力/數值條之後，畫面會因為多了新的內容而重新
+      // 排版，就算捲動的「數字」沒變，畫面上看到的內容其實已經不一樣了
+      // （下面的東西被往下推）。改成優先追蹤「觸發這次保護的那個元素」
+      // 本身在畫面上的相對位置，不管是鍵盤收起、還是版面重新排版，
+      // 都會持續修正、確保它保持在原本看到的視覺位置；如果找不到元素
+      // （或元素在過程中消失了），才退回單純鎖定捲動數值這個比較不精準
+      // 但至少有基本保護的做法。
       const myToken=++scrollAnchorToken;
       const lockedY=window.scrollY;
+      const lockedTop=anchorEl?anchorEl.getBoundingClientRect().top:null;
       let frames=0;
       const MAX_FRAMES=120; // 固定追蹤約2秒，涵蓋鍵盤收起動畫可能延遲才開始的情況
       function tick(){
         if(myToken!==scrollAnchorToken)return;
         frames++;
-        if(Math.abs(window.scrollY-lockedY)>1)window.scrollTo(0,lockedY);
+        if(anchorEl&&anchorEl.isConnected&&lockedTop!==null){
+          const curTop=anchorEl.getBoundingClientRect().top;
+          if(Math.abs(curTop-lockedTop)>1)window.scrollBy(0,curTop-lockedTop);
+        }else if(Math.abs(window.scrollY-lockedY)>1){
+          window.scrollTo(0,lockedY);
+        }
         if(frames<MAX_FRAMES){
           requestAnimationFrame(tick);
         }
@@ -1797,7 +1801,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     document.addEventListener('focusout',event=>{
       const el=event.target;
       if(el&&el.matches&&el.matches('input[type=text],input:not([type]),input[type=number],textarea')){
-        startScrollLock();
+        startScrollLock(el.closest('.card')||el);
       }
     });
     function scrollToBelowStickyHeader(el,stickySelector){
