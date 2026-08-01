@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-38';
+    const APP_VERSION='2026.08.01-40';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1743,8 +1743,16 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         if(monsterFilter.size&&!monsterFilter.has(targetUnitId)){monsterFilter.clear();needsRerender=true}
       }
       if(needsRerender){scheduleAutosave();render()}
-      const card=document.querySelector(`.card[data-card-id="${targetUnitId}"]`);
-      if(card)card.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'center'});
+      // 原本用原生 scrollIntoView(block:'center') 置中卡片，但這個做法不知道
+      // 畫面上方有置頂功能列擋著——如果卡片本身比扣掉置頂列之後剩下的可視
+      // 空間還高（尤其置頂功能列展開、或篩選列很長的時候），置中的結果就會
+      // 把卡片最上面擠到置頂列底下，看不到完整卡片。改成跟其他跳轉功能一致，
+      // 用即時量測置頂列目前實際高度的精準捲動方式。
+      const stickySelector=unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster';
+      requestAnimationFrame(()=>{
+        const card=document.querySelector(`.card[data-card-id="${targetUnitId}"]`);
+        if(card)scrollToBelowStickyHeader(card,stickySelector);
+      });
     }
     function nextTurn(){
       syncInitiativeOrder();
@@ -2070,7 +2078,22 @@ function adjustUnitHp(unit,action,amount){
         return;
       }
       const filterToggle=event.target.closest('[data-filter-toggle]');
-      if(filterToggle){const set=filterToggle.dataset.filterToggle==='player'?playerFilter:monsterFilter;const id=filterToggle.dataset.filterId;if(set.has(id))set.delete(id);else set.add(id);render();return}
+      if(filterToggle){
+        const type=filterToggle.dataset.filterToggle;
+        const set=type==='player'?playerFilter:monsterFilter;
+        const id=filterToggle.dataset.filterId;
+        if(set.has(id))set.delete(id);else set.add(id);
+        render();
+        // 切換篩選狀態後，置頂列可能會因為「批次操作」區塊的出現／消失而
+        // 變高或變矮（有勾選才會顯示批次治療/扣血/上狀態的控制項），這樣
+        // 原本正確定位在置頂列下方的卡片，可能會被新的置頂列高度蓋住一部分。
+        // 如果被點的這個角色目前還看得到，重新精準捲動一次確保它完整露出來。
+        requestAnimationFrame(()=>{
+          const card=document.querySelector(`.card[data-card-id="${id}"]`);
+          if(card)scrollToBelowStickyHeader(card,type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');
+        });
+        return;
+      }
       const filterReset=event.target.closest('[data-filter-reset]');
       if(filterReset){(filterReset.dataset.filterReset==='player'?playerFilter:monsterFilter).clear();render();return}
       const batchStatus=event.target.closest('[data-batch-status]');
