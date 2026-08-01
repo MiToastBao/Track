@@ -293,7 +293,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-52';
+    const APP_VERSION='2026.08.01-53';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1752,20 +1752,19 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     }
     let scrollAnchorToken=0;
     function cancelScrollAnchor(){scrollAnchorToken++}
-    function withScrollAnchor(cardId,fn){
+    function startScrollLock(){
       // 這裡只單純鎖定捲動位置(window.scrollY)，不追蹤卡片本身在頁面上的
       // 座標——因為實測下來，只鎖定捲動位置這個較簡單的版本，至少能把
       // 「整張跳走」改善成「跳一半」；後來疊加的卡片座標追蹤機制，
       // 實測反而讓情況又變回整張跳走，可能是新機制本身有問題、或是跟
       // 捲動鎖定互相干擾。既然使用者希望先求穩、不要再繼續嘗試風險更高
       // 的做法，這裡先退回到有實際改善效果、比較單純的版本。
-      // 用一個遞增的識別碼標記「這是第幾次呼叫」：如果使用者快速連續調整
-      // 好幾次血量（同一張卡片或不同卡片都算），舊的追蹤迴圈發現有更新的
+      // 用一個遞增的識別碼標記「這是第幾次呼叫」：如果使用者快速連續觸發
+      // 好幾次（同一張卡片或不同卡片都算），舊的追蹤迴圈發現有更新的
       // 一次呼叫已經開始，會自動放棄，不會繼續跟新的一次互相搶著校正
       // 捲動位置、彼此拉扯。
       const myToken=++scrollAnchorToken;
       const lockedY=window.scrollY;
-      fn();
       let frames=0;
       const MAX_FRAMES=120; // 固定追蹤約2秒，涵蓋鍵盤收起動畫可能延遲才開始的情況
       function tick(){
@@ -1778,6 +1777,21 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }
       requestAnimationFrame(tick);
     }
+    function withScrollAnchor(cardId,fn){
+      startScrollLock();
+      fn();
+    }
+    // 這個問題不是只有調整HP才會發生：只要「打完字、切到下一個欄位」，
+    // 手機/平板收起鍵盤，都可能造成同樣的版面跳動——狀態/被動能力/自訂屬性
+    // 這些手動輸入名稱的欄位都會遇到。與其每個表單都個別加保護，改成
+    // 監聽「任何文字/數字輸入框失去焦點」這個更根本的時機點，統一觸發保護，
+    // 這樣不管使用者是在哪個輸入框打完字、切到哪裡，都會受到保護。
+    document.addEventListener('focusout',event=>{
+      const el=event.target;
+      if(el&&el.matches&&el.matches('input[type=text],input:not([type]),input[type=number],textarea')){
+        startScrollLock();
+      }
+    });
     function scrollToBelowStickyHeader(el,stickySelector){
       cancelScrollAnchor();
       // 用JS即時量測「目前實際渲染出來」的置頂區塊高度，而不是猜一個固定的px數字。
