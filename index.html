@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-40';
+    const APP_VERSION='2026.08.01-41';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1189,6 +1189,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     // visualViewport 是行動瀏覽器上追蹤「實際可視範圍」更準確的 API，跟
     // window resize 事件的時機點常常不完全一致，兩個都聽可以互相補漏。
     if(window.visualViewport)window.visualViewport.addEventListener('resize',scheduleRotationSettle);
+    // 使用者一旦自己開始觸控/滾輪捲動，代表他想自己控制畫面位置，
+    // 立刻取消掉還在背景運作中的HP捲動鎖定，不要跟使用者搶。
+    window.addEventListener('touchstart',()=>cancelScrollAnchor(),{passive:true});
+    window.addEventListener('wheel',()=>cancelScrollAnchor(),{passive:true});
     window.addEventListener('orientationchange',()=>{
       isRotating=true;
       setTimeout(updateTabbarHeightVar,100);
@@ -1650,6 +1654,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
     }
     let scrollAnchorToken=0;
+    function cancelScrollAnchor(){scrollAnchorToken++}
     function withScrollAnchor(cardId,fn){
       // 這裡只單純鎖定捲動位置(window.scrollY)，不追蹤卡片本身在頁面上的
       // 座標——因為實測下來，只鎖定捲動位置這個較簡單的版本，至少能把
@@ -1677,6 +1682,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       requestAnimationFrame(tick);
     }
     function scrollToBelowStickyHeader(el,stickySelector){
+      cancelScrollAnchor();
       // 用JS即時量測「目前實際渲染出來」的置頂區塊高度，而不是猜一個固定的px數字。
       // 置頂區塊的內容會變動（例如按鈕在窄螢幕換行、選取模式開關出現/消失等），
       // 固定猜測的數字很容易因為這些變動而跟著不準，改成每次都直接量測目前的真實高度最可靠。
@@ -1685,9 +1691,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const stickyHeight=stickyEl?stickyEl.getBoundingClientRect().height:0;
       const extraGap=10;
       const targetY=el.getBoundingClientRect().top+window.scrollY-stickyHeight-extraGap;
-      window.scrollTo({top:Math.max(0,targetY),behavior:'smooth'});
+      window.scrollTo({top:Math.max(0,targetY),behavior:isRotating?'auto':'smooth'});
     }
     function setActiveTab(tab,{scroll=true}={}){
+      cancelScrollAnchor();
       if(!VALID_TABS.includes(tab))return;
       activeTab=tab;
       Object.keys(TAB_PANELS).forEach(key=>{
@@ -2404,11 +2411,11 @@ function adjustUnitHp(unit,action,amount){
       const passiveTemplateDelete=event.target.closest('[data-passive-template-delete]');
       if(passiveTemplateDelete){saveHistory();passiveTemplates=passiveTemplates.filter(item=>item.id!==passiveTemplateDelete.dataset.passiveTemplateDelete);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);render();return}
       const barTemplateAdd=event.target.closest('[data-bar-template-add]');
-      if(barTemplateAdd){const unit=findUnit(barTemplateAdd.dataset.barTemplateAdd);const template=barTemplates.find(item=>item.id===barTemplateAdd.dataset.barTemplateId);if(unit&&template){saveHistory();const newBar={id:uuid(),name:template.name,value:template.maxValue,maxValue:template.maxValue,color:template.color||'#7c8db5'};(unit.bars||(unit.bars=[])).push(newBar);logCombatEvent(unit,`獲得新數值條：${newBar.name}（${newBar.value}/${newBar.maxValue}）`,'bar');render();const newBarEl=document.querySelector(`.custom-bar[data-bar-id="${newBar.id}"]`);if(newBarEl){newBarEl.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'center'});newBarEl.classList.add('just-added')}}return}
+      if(barTemplateAdd){const unit=findUnit(barTemplateAdd.dataset.barTemplateAdd);const template=barTemplates.find(item=>item.id===barTemplateAdd.dataset.barTemplateId);if(unit&&template){saveHistory();const newBar={id:uuid(),name:template.name,value:template.maxValue,maxValue:template.maxValue,color:template.color||'#7c8db5'};(unit.bars||(unit.bars=[])).push(newBar);logCombatEvent(unit,`獲得新數值條：${newBar.name}（${newBar.value}/${newBar.maxValue}）`,'bar');render();requestAnimationFrame(()=>{const newBarEl=document.querySelector(`.custom-bar[data-bar-id="${newBar.id}"]`);if(newBarEl){scrollToBelowStickyHeader(newBarEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');newBarEl.classList.add('just-added')}})}return}
       const barTemplateDelete=event.target.closest('[data-bar-template-delete]');
       if(barTemplateDelete){saveHistory();barTemplates=barTemplates.filter(item=>item.id!==barTemplateDelete.dataset.barTemplateDelete);saveMemory('battleTrackerBarTemplates',barTemplates);render();return}
       const barAdjust=event.target.closest('[data-bar-adjust]');
-      if(barAdjust){const unit=findUnit(barAdjust.dataset.barAdjust);const bar=unit?.bars?.find(item=>item.id===barAdjust.dataset.barId);const amount=Math.floor(Number(barAdjust.closest('.custom-bar')?.querySelector('[data-bar-amount]')?.value));if(bar&&amount>0){const oldValue=bar.value;const newValue=barAdjust.dataset.barAction==='increase'?Math.min(bar.maxValue,bar.value+amount):Math.max(0,bar.value-amount);if(newValue!==oldValue){saveHistory();bar.value=newValue;logCombatEvent(unit,`${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render()}}return}
+      if(barAdjust){const unit=findUnit(barAdjust.dataset.barAdjust);const bar=unit?.bars?.find(item=>item.id===barAdjust.dataset.barId);const amount=Math.floor(Number(barAdjust.closest('.custom-bar')?.querySelector('[data-bar-amount]')?.value));if(bar&&amount>0){const oldValue=bar.value;const newValue=barAdjust.dataset.barAction==='increase'?Math.min(bar.maxValue,bar.value+amount):Math.max(0,bar.value-amount);if(newValue!==oldValue){withScrollAnchor(unit.id,()=>{saveHistory();bar.value=newValue;logCombatEvent(unit,`${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render()})}}return}
       const barDelete=event.target.closest('[data-bar-delete]');
       if(barDelete){const unit=findUnit(barDelete.dataset.barDelete);if(unit){saveHistory();unit.bars=(unit.bars||[]).filter(bar=>bar.id!==barDelete.dataset.barId);render()}return}
       const statusDelete=event.target.closest('[data-condition-delete]');
@@ -2732,26 +2739,28 @@ function adjustUnitHp(unit,action,amount){
         barDrag=null;
         swipeJustActed=true;
         setTimeout(()=>{swipeJustActed=false},400);
-        if(isHp){
-          const newHp=Math.max(0,Math.min(unit.maxHp,previewValue));
-          if(newHp===unit.hp){render();return}
-          saveHistory();
-          const oldHp=unit.hp;
-          unit.hp=newHp;
-          checkHpThresholds(unit);
-          const delta=unit.hp-oldHp;
-          logCombatEvent(unit,`\u62d6\u66f3\u8abf\u6574\u8840\u91cf ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');
-          if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}
-        }else{
-          const newValue=Math.max(0,Math.min(bar.maxValue,previewValue));
-          if(newValue===bar.value){render();return}
-          saveHistory();
-          const oldValue=bar.value;
-          bar.value=newValue;
-          const delta=bar.value-oldValue;
-          logCombatEvent(unit,`\u62d6\u66f3\u8abf\u6574${bar.name} ${oldValue} \u2192 ${bar.value}\uff08${delta>=0?'+':''}${delta}\uff09`,'bar');
-        }
-        render();
+        withScrollAnchor(unit.id,()=>{
+          if(isHp){
+            const newHp=Math.max(0,Math.min(unit.maxHp,previewValue));
+            if(newHp===unit.hp){render();return}
+            saveHistory();
+            const oldHp=unit.hp;
+            unit.hp=newHp;
+            checkHpThresholds(unit);
+            const delta=unit.hp-oldHp;
+            logCombatEvent(unit,`\u62d6\u66f3\u8abf\u6574\u8840\u91cf ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');
+            if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}
+          }else{
+            const newValue=Math.max(0,Math.min(bar.maxValue,previewValue));
+            if(newValue===bar.value){render();return}
+            saveHistory();
+            const oldValue=bar.value;
+            bar.value=newValue;
+            const delta=bar.value-oldValue;
+            logCombatEvent(unit,`\u62d6\u66f3\u8abf\u6574${bar.name} ${oldValue} \u2192 ${bar.value}\uff08${delta>=0?'+':''}${delta}\uff09`,'bar');
+          }
+          render();
+        });
       }
       function onWindowPointerCancel(event){
         if(!barDrag||event.pointerId!==barDrag.pointerId)return;
@@ -2826,9 +2835,9 @@ function adjustUnitHp(unit,action,amount){
       if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';const color=old?(old.color||defaultColor):defaultColor;saveHistory();unit.statuses.push({id:uuid(),name,kind,turns,color});logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合）`,'statusGain');if(old){old.turns=turns;old.color=color}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);render();return}
       if(form.dataset.attributeForm){event.preventDefault();const unit=findUnit(form.dataset.attributeForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('attributeName')).trim();if(!rawName)return;const name=confirmLongText(rawName,20);if(name===null)return;const oldTemplate=attributeTemplates.find(item=>item.name===name);const color=oldTemplate?oldTemplate.color:'#4c78a4';saveHistory();(unit.attributes||(unit.attributes=[])).push({id:uuid(),name,value:'',color});if(!oldTemplate)pushWithLimit(attributeTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);render();return}
       if(form.dataset.bossThresholdForm){event.preventDefault();const unit=findUnit(form.dataset.bossThresholdForm);if(!unit||!unit.isBoss)return;const data=new FormData(form);const value=Math.floor(Number(data.get('thresholdValue')));const passiveName=String(data.get('thresholdPassive')||'').trim().slice(0,30);const autoRemove=data.get('thresholdAutoRemove')==='on';if(!Number.isFinite(value)||value<1||value>999999){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u8840\u91cf\u6578\u503c\u3002');return}saveHistory();if(!Array.isArray(unit.hpThresholds))unit.hpThresholds=[];if(!unit.hpThresholds.some(t=>t.value===value))unit.hpThresholds.push({id:uuid(),value,passiveName,triggered:false,autoRemove});unit.hpThresholds=unit.hpThresholds.sort((a,b)=>b.value-a.value).slice(0,5);checkHpThresholds(unit);render();return}
-      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();return}
+      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}withScrollAnchor(unit.id,()=>{saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render()});return}
       if(form.dataset.passiveForm){event.preventDefault();const unit=findUnit(form.dataset.passiveForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('passiveName')).trim();if(!rawName)return;const name=confirmLongText(rawName,50);if(name===null)return;const old=passiveTemplates.find(item=>item.name===name);const color=old?old.color:'#8a5cd6';saveHistory();(unit.passives||(unit.passives=[])).push({id:uuid(),name,color});if(!old)pushWithLimit(passiveTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);render();return}
-      if(form.dataset.addBarForm){event.preventDefault();const unit=findUnit(form.dataset.addBarForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('barName')).trim();const maxValue=Number(data.get('barMax'));if(!rawName||!Number.isInteger(maxValue)||maxValue<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const old=barTemplates.find(item=>item.name===name);const color=old?old.color:'#7c8db5';saveHistory();const newBar={id:uuid(),name,value:maxValue,maxValue,color};(unit.bars||(unit.bars=[])).push(newBar);logCombatEvent(unit,`獲得新數值條：${name}（${maxValue}/${maxValue}）`,'bar');if(old){old.maxValue=maxValue}else{pushWithLimit(barTemplates,{id:uuid(),name,maxValue,color},MAX_TEMPLATES)}saveMemory('battleTrackerBarTemplates',barTemplates);render();const newBarEl=document.querySelector(`.custom-bar[data-bar-id="${newBar.id}"]`);if(newBarEl){newBarEl.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'center'});newBarEl.classList.add('just-added')}return}
+      if(form.dataset.addBarForm){event.preventDefault();const unit=findUnit(form.dataset.addBarForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('barName')).trim();const maxValue=Number(data.get('barMax'));if(!rawName||!Number.isInteger(maxValue)||maxValue<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const old=barTemplates.find(item=>item.name===name);const color=old?old.color:'#7c8db5';saveHistory();const newBar={id:uuid(),name,value:maxValue,maxValue,color};(unit.bars||(unit.bars=[])).push(newBar);logCombatEvent(unit,`獲得新數值條：${name}（${maxValue}/${maxValue}）`,'bar');if(old){old.maxValue=maxValue}else{pushWithLimit(barTemplates,{id:uuid(),name,maxValue,color},MAX_TEMPLATES)}saveMemory('battleTrackerBarTemplates',barTemplates);render();requestAnimationFrame(()=>{const newBarEl=document.querySelector(`.custom-bar[data-bar-id="${newBar.id}"]`);if(newBarEl){scrollToBelowStickyHeader(newBarEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');newBarEl.classList.add('just-added')}});return}
       if(form.id==='addForm'){
         event.preventDefault();
         const formType=document.querySelector('#unitType').value;
@@ -3091,7 +3100,7 @@ function adjustUnitHp(unit,action,amount){
         const trigger=colorFieldInput.closest('.color-field')?.querySelector('.color-trigger');
         if(trigger)trigger.style.background=colorFieldInput.value;
       }
-      const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);const countLabel=document.querySelector(`[data-generate-card-count-label="${tierId}"]`);const show=generateCategorySelect.value!=='monster';if(countInput)countInput.hidden=!show;if(countLabel)countLabel.hidden=!show;return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const tierNameInput=event.target.closest('[data-tier-name]');if(tierNameInput){const tier=cardTiers.find(t=>t.id===tierNameInput.dataset.tierName);if(tier){const raw=tierNameInput.value.trim();if(raw&&raw!==tier.name){const val=confirmLongText(raw,20);if(val===null){tierNameInput.value=tier.name}else{const dup=cardTiers.some(t=>t.id!==tier.id&&t.name===val);if(!dup||confirm(`已經有另一個等級也叫做「${val}」了，確定要讓兩個等級同名嗎？（同名可能會讓 Excel 匯入卡池、或標籤庫配對時分不清楚要對應哪一個等級）`)){saveHistory();tier.name=val;cardTiers=cardTiers.slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));saveMemory('battleTrackerCardTiers',cardTiers)}else{tierNameInput.value=tier.name}}}}setTimeout(render,0);return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const raw=nameInput.value.trim();if(raw){const val=confirmLongText(raw,20);if(val===null){nameInput.value=unit.name}else{saveHistory();unit.name=val}}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render()}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;const t=barTemplates.find(item=>item.name===bar.name);if(t){t.color=bar.color;saveMemory('battleTrackerBarTemplates',barTemplates)}render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;const t=attributeTemplates.find(item=>item.name===attribute.name);if(t){t.color=attribute.color;saveMemory('battleTrackerAttributeTemplates',attributeTemplates)}render()}return}const passiveColorInput=event.target.closest('[data-passive-color]');if(passiveColorInput){const unit=findUnit(passiveColorInput.dataset.passiveColor);const passive=unit?.passives?.find(item=>item.id===passiveColorInput.dataset.passiveId);if(passive){saveHistory();passive.color=passiveColorInput.value;const t=passiveTemplates.find(item=>item.name===passive.name);if(t){t.color=passive.color;saveMemory('battleTrackerPassiveTemplates',passiveTemplates)}render()}return}const statusColorInput=event.target.closest('[data-status-color]');if(statusColorInput){const unit=findUnit(statusColorInput.dataset.statusColor);const status=unit?.statuses?.find(item=>item.id===statusColorInput.dataset.statusId);if(status){saveHistory();status.color=statusColorInput.value;const t=statusTemplates.find(item=>item.name===status.name&&item.kind===status.kind);if(t){t.color=status.color;saveMemory('battleTrackerStatusTemplates',statusTemplates)}render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);render()}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
+      const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);const countLabel=document.querySelector(`[data-generate-card-count-label="${tierId}"]`);const show=generateCategorySelect.value!=='monster';if(countInput)countInput.hidden=!show;if(countLabel)countLabel.hidden=!show;return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const tierNameInput=event.target.closest('[data-tier-name]');if(tierNameInput){const tier=cardTiers.find(t=>t.id===tierNameInput.dataset.tierName);if(tier){const raw=tierNameInput.value.trim();if(raw&&raw!==tier.name){const val=confirmLongText(raw,20);if(val===null){tierNameInput.value=tier.name}else{const dup=cardTiers.some(t=>t.id!==tier.id&&t.name===val);if(!dup||confirm(`已經有另一個等級也叫做「${val}」了，確定要讓兩個等級同名嗎？（同名可能會讓 Excel 匯入卡池、或標籤庫配對時分不清楚要對應哪一個等級）`)){saveHistory();tier.name=val;cardTiers=cardTiers.slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));saveMemory('battleTrackerCardTiers',cardTiers)}else{tierNameInput.value=tier.name}}}}setTimeout(render,0);return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const raw=nameInput.value.trim();if(raw){const val=confirmLongText(raw,20);if(val===null){nameInput.value=unit.name}else{saveHistory();unit.name=val}}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){withScrollAnchor(unit.id,()=>{saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render()})}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;const t=barTemplates.find(item=>item.name===bar.name);if(t){t.color=bar.color;saveMemory('battleTrackerBarTemplates',barTemplates)}render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;const t=attributeTemplates.find(item=>item.name===attribute.name);if(t){t.color=attribute.color;saveMemory('battleTrackerAttributeTemplates',attributeTemplates)}render()}return}const passiveColorInput=event.target.closest('[data-passive-color]');if(passiveColorInput){const unit=findUnit(passiveColorInput.dataset.passiveColor);const passive=unit?.passives?.find(item=>item.id===passiveColorInput.dataset.passiveId);if(passive){saveHistory();passive.color=passiveColorInput.value;const t=passiveTemplates.find(item=>item.name===passive.name);if(t){t.color=passive.color;saveMemory('battleTrackerPassiveTemplates',passiveTemplates)}render()}return}const statusColorInput=event.target.closest('[data-status-color]');if(statusColorInput){const unit=findUnit(statusColorInput.dataset.statusColor);const status=unit?.statuses?.find(item=>item.id===statusColorInput.dataset.statusId);if(status){saveHistory();status.color=statusColorInput.value;const t=statusTemplates.find(item=>item.name===status.name&&item.kind===status.kind);if(t){t.color=status.color;saveMemory('battleTrackerStatusTemplates',statusTemplates)}render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){withScrollAnchor(unit.id,()=>{saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);render()})}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
     document.querySelector('#togglePlayers').addEventListener('click',()=>{playersExpanded=!playersExpanded;document.querySelector('#playerContent').hidden=!playersExpanded;document.querySelector('#togglePlayers').textContent=playersExpanded?'\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a':'\u5c55\u958b\u73a9\u5bb6\u8cc7\u8a0a';scheduleAutosave()});
     document.querySelector('#toggleMonsters').addEventListener('click',()=>{monstersExpanded=!monstersExpanded;document.querySelector('#monsterContent').hidden=!monstersExpanded;document.querySelector('#toggleMonsters').textContent=monstersExpanded?'\u6536\u5408\u602a\u7269\u8cc7\u8a0a':'\u5c55\u958b\u602a\u7269\u8cc7\u8a0a';scheduleAutosave()});
     function applyToolbarCollapsed(){
@@ -3535,7 +3544,7 @@ function adjustUnitHp(unit,action,amount){
           // 但橫屏（或平板）時卡片相對畫面高度比較高，捲到卡片中心反而會落在售價/上限欄位一帶，
           // 名稱框可能還在畫面外看不到。改成直接對準名稱框本身，不管直橫屏都會精準對齊。
           const scrollTarget=nameInput||el;
-          scrollTarget.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'center'});
+          scrollToBelowStickyHeader(scrollTarget,'#gmStickyHeader');
           if(nameInput)setTimeout(()=>nameInput.focus(),250);
         }
       });
@@ -3927,7 +3936,7 @@ function adjustUnitHp(unit,action,amount){
         const counterpart=syncShopLinkedCounterpart(item);
         if(counterpart){
           renderGmPanel();
-          requestAnimationFrame(()=>{const el=document.getElementById('gmcard-'+counterpart.id);if(el)el.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'center'})});
+          requestAnimationFrame(()=>{const el=document.getElementById('gmcard-'+counterpart.id);if(el)scrollToBelowStickyHeader(el,'#gmStickyHeader')});
         }
         return;
       }
