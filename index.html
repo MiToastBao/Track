@@ -282,7 +282,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-41';
+    const APP_VERSION='2026.08.01-42';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -650,8 +650,10 @@
         const squadBars=(template.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}));
         const squad={id:uuid(),name:template.name,color:template.color,maxHp:template.maxHp,passives:squadPassives,attributes:squadAttributes,bars:squadBars,level:template.level||''};
         squads.push(squad);
+        const memberColors=Array.isArray(template.memberColors)?template.memberColors:null;
         for(let i=1;i<=template.squadCount;i++){
-          monsters.push({id:uuid(),name:`${template.name} ${i}`,hp:template.maxHp,maxHp:template.maxHp,type:'monster',color:template.color,squadId:squad.id,statuses:[],attributes:squadAttributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:squadBars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:squadPassives.map(p=>({id:uuid(),name:p.name,color:p.color})),level:template.level||''});
+          const memberColor=(memberColors&&memberColors[i-1])?memberColors[i-1]:template.color;
+          monsters.push({id:uuid(),name:`${template.name} ${i}`,hp:template.maxHp,maxHp:template.maxHp,type:'monster',color:memberColor,squadId:squad.id,statuses:[],attributes:squadAttributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:squadBars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:squadPassives.map(p=>({id:uuid(),name:p.name,color:p.color})),level:template.level||''});
         }
       }else if(template.isSummon){
         players.push({id:uuid(),name:template.name,hp:template.maxHp,maxHp:template.maxHp,type:'player',color:template.color,statuses:[],attributes:(template.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(template.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:(template.passives||[]).map(p=>({id:uuid(),name:p.name,color:p.color})),isSummon:true,level:template.level||'',actionCards:Array.from({length:Math.max(1,template.cardCount||1)},(_,i)=>({id:uuid(),name:(template.cardNames&&template.cardNames[i])||'',turnEnded:false}))});
@@ -1021,7 +1023,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const percent=Math.round(unit.hp/unit.maxHp*100);const low=percent<=25?'background:#ff4a58':percent<=50?'background:#ffad42':'';
         const icon=unit.isSummon?'&#128302;':unit.type==='player'?'&#128737;&#65039;':unit.isBoss?'&#128081;':'&#128126;';const state=unit.hp===0?text.defeated:unit.hp===unit.maxHp?text.good:text.hurt;
         const squad=unit.type==='monster'&&unit.squadId?findSquad(unit.squadId):null;
-        const squadBadge=squad?`<div class="squad-badge"><span class="squad-badge-text">&#128737; ${escapeHtml(squad.name)} &#183; &#23384;&#27963; ${squadAliveCount(squad.id)}/${squadMembers(squad.id).length}</span><button type="button" data-squad-rename="${unit.squadId}" title="&#37325;&#26032;&#21629;&#21517;&#23567;&#38538;&#65288;&#26371;&#8203;&#21516;&#27493;&#25913;&#21517;&#31526;&#21512;&#32232;&#34399;&#26684;&#24335;&#30340;&#25104;&#21729;&#65289;">&#9998; &#37325;&#21629;&#21517;</button><button type="button" data-squad-sync="${unit.id}" title="&#23559;&#34880;&#37327;&#19978;&#38480;/&#38991;&#33394;/&#34987;&#21205;&#33021;&#21147;/&#33258;&#35330;&#23660;&#24615;/&#25976;&#20540;&#26465;&#22871;&#29992;&#21040;&#20854;&#20182;&#25104;&#21729;">&#8635; &#22871;&#29992;&#21040;&#23567;&#38538;</button><button type="button" data-squad-add="${unit.squadId}">&#65291;&#22686;&#21152;1&#38587;</button><button type="button" class="squad-disband" data-squad-disband="${unit.squadId}">&#35299;&#25955;&#23567;&#38538;</button></div>`:'';
+        const squadBadge=squad?`<div class="squad-badge"><span class="squad-badge-text">🛡️ ${escapeHtml(squad.name)} · 存活 ${squadAliveCount(squad.id)}/${squadMembers(squad.id).length}</span><button type="button" data-squad-rename="${unit.squadId}" title="重新命名小隊（會同步改名符合編號格式的成員）">✎ 重命名</button><button type="button" data-squad-sync="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條套用到其他成員">↺ 套用到小隊</button><button type="button" data-squad-remember-colors="${unit.squadId}" title="分別記住目前每位成員自己的顏色，下次生成同一個標籤時會自動套用（不會強制統一成同一個顏色）">🎨 記住各自顏色</button><button type="button" data-squad-add="${unit.squadId}">＋增加1隻</button><button type="button" class="squad-disband" data-squad-disband="${unit.squadId}">解散小隊</button></div>`:'';
         const activeCard=(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.find(c=>currentTurnId===`card:${unit.id}:${c.id}`):null;
         const activeCardLabel=activeCard?(activeCard.name&&activeCard.name.trim()?activeCard.name.trim():`#${unit.actionCards.indexOf(activeCard)+1}`):'';
         const bossBadge=(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?`<div class="squad-badge"><span class="squad-badge-text">${unit.isSummon?'&#128302;':'&#128081;'} &#20808;&#25915;&#21345; &#183; &#24050;&#23436;&#25104; ${unit.actionCards.filter(c=>c.turnEnded).length}/${unit.actionCards.length}${activeCard?` &#183; &#9654; &#30446;&#21069;&#65306;${escapeHtml(activeCardLabel)}`:''}</span><button type="button" data-boss-card-add="${unit.id}" title="&#22312;&#20808;&#25915;&#21312;&#26049;&#30058;&#65275;&#22312;&#26356;&#22810;&#12290;">&#65291; &#26032;&#22686;&#19968;&#24373;&#20808;&#25915;&#21345;</button></div>`:'';
@@ -1349,7 +1351,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const cardNamesRaw=Array.isArray(x.cardNames)?x.cardNames.map(n=>String(n??'').trim().slice(0,30)):[];
         const cardNames=Array.from({length:cardCount},(_,i)=>cardNamesRaw[i]||'');
         const hpThresholds=sanitizeHpThresholds(x.hpThresholds).map(t=>({...t,triggered:false}));
-        return {id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u602a\u7269',maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),color:sanitizeColor(x.color,'#ff5b6d'),statuses:sanitizeStatusList(x.statuses),isSquad:!!x.isSquad,squadCount:Math.max(2,Math.min(12,Math.floor(Number(x.squadCount))||3)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars),isBoss:!!x.isBoss,isSummon:!!x.isSummon,cardCount,cardNames,hpThresholds,level:typeof x.level==='string'?x.level.trim().slice(0,TEXT_SAFETY_CAP):''};
+        const memberColors=(x.isSquad&&Array.isArray(x.memberColors))?x.memberColors.filter(c=>typeof c==='string').map(c=>sanitizeColor(c,'#ff5b6d')).slice(0,12):undefined;
+        const base={id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u602a\u7269',maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),color:sanitizeColor(x.color,'#ff5b6d'),statuses:sanitizeStatusList(x.statuses),isSquad:!!x.isSquad,squadCount:Math.max(2,Math.min(12,Math.floor(Number(x.squadCount))||3)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars),isBoss:!!x.isBoss,isSummon:!!x.isSummon,cardCount,cardNames,hpThresholds,level:typeof x.level==='string'?x.level.trim().slice(0,TEXT_SAFETY_CAP):''};
+        if(memberColors)base.memberColors=memberColors;
+        return base;
       }):[];
     }
     function sanitizePalette(list){return Array.isArray(list)?list.filter(c=>typeof c==='string'&&HEX_COLOR_RE.test(c)):[...defaultPalette]}
@@ -2339,6 +2344,25 @@ function adjustUnitHp(unit,action,amount){
             }
           });
           squad.name=newName;
+          render();
+        }
+        return;
+      }
+      const squadRememberColors=event.target.closest('[data-squad-remember-colors]');
+      if(squadRememberColors){
+        const squad=findSquad(squadRememberColors.dataset.squadRememberColors);
+        if(squad){
+          saveHistory();
+          const members=squadMembers(squad.id);
+          const memberColors=members.map(m=>m.color);
+          const oldTemplate=monsterTemplates.find(item=>item.name===squad.name&&(item.level||'')===(squad.level||'')&&item.isSquad&&!item.isBoss);
+          if(oldTemplate){
+            oldTemplate.memberColors=memberColors;
+            saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
+          }else{
+            alert('\u9084\u6c92\u6709\u5c0d\u61c9\u7684\u6a19\u7c64\u53ef\u4ee5\u8a18\u4f4f\u984f\u8272\uff0c\u8acb\u5148\u6309\u300c\u5957\u7528\u5230\u5c0f\u968a\u300d\u5efa\u7acb\u4e00\u6b21\u57fa\u672c\u8a2d\u5b9a\u5f8c\u518d\u8a66\u3002');
+            return;
+          }
           render();
         }
         return;
