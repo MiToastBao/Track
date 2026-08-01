@@ -591,7 +591,7 @@
     let combatLogEnabledKinds={};
     COMBAT_LOG_KINDS.forEach(k=>{combatLogEnabledKinds[k]=combatLogSettingsRaw[k]!==false});
     const MAX_COMBAT_LOG=200;
-    const STORAGE_KEYS=['battleTrackerCurrentState','battleTrackerStatusTemplates','battleTrackerMonsterTemplates','battleTrackerAttributeTemplates','battleTrackerBarTemplates','battleTrackerPassiveTemplates','battleTrackerSaveFiles','battleTrackerPalette','battleTrackerTheme','battleTrackerCardTiers','battleTrackerCombatLog','battleTrackerShopData'];
+    const STORAGE_KEYS=['battleTrackerCurrentState','battleTrackerStatusTemplates','battleTrackerMonsterTemplates','battleTrackerAttributeTemplates','battleTrackerBarTemplates','battleTrackerPassiveTemplates','battleTrackerSaveFiles','battleTrackerPalette','battleTrackerTheme','battleTrackerCardTiers','battleTrackerCombatLog','battleTrackerShopData','battleTrackerMonsterLevelOrder','battleTrackerActionPanelExpanded','battleTrackerCardDrawExpanded','battleTrackerCombatLogExpanded','battleTrackerCombatLogLimitRecent','battleTrackerCombatLogSettings','battleTrackerWakeLock'];
     const EXPORT_VERSION=1;
     const MAX_SAVE_FILES=50;
     const MAX_TEMPLATES=Infinity;
@@ -980,7 +980,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const crossedCount=u.isBoss&&Array.isArray(u.hpThresholds)?u.hpThresholds.filter(t=>u.hp<t.value).length:0;
         const rowSeverity=crossedCount>=2?'hp-danger-row':crossedCount===1?'hp-warning-row':'';
         const percent=u.maxHp>0?Math.max(0,Math.min(100,Math.round(u.hp/u.maxHp*100))):0;
-        const statuses=(u.statuses||[]).map(s=>`<span class="condition ${s.kind}" style="--condition-color:${sanitizeColor(s.color,s.kind==='buff'?'#2f9968':s.kind==='debuff'?'#d9505f':'#8a8f98')}">${s.kind==='buff'?'▲':s.kind==='debuff'?'▼':'●'} ${escapeHtml(s.name)}<span class="turns">${s.turns}回合</span></span>`).join('');
+        const statuses=(u.statuses||[]).map(s=>`<span class="condition ${s.kind}" style="--condition-color:${sanitizeColor(s.color,s.kind==='buff'?'#2f9968':s.kind==='debuff'?'#d9505f':'#c9962e')}">${s.kind==='buff'?'▲':s.kind==='debuff'?'▼':'●'} ${escapeHtml(s.name)}<span class="turns">${s.turns}回合</span></span>`).join('');
         const passives=(u.passives||[]).map(p=>`<span class="passive" style="--passive-color:${sanitizeColor(passiveDisplayColor(u,p),'#8a5cd6')}" title="${escapeAttr(p.name)}">✦ <span class="passive-text">${escapeHtml(p.name)}</span></span>`).join('');
         const attrs=(u.attributes||[]).map(a=>`<span class="attribute summary-attribute" style="--attr-color:${sanitizeColor(a.color,'#4c78a4')}">${escapeHtml(a.name)}: ${escapeHtml(String(a.value??''))}</span>`).join('');
         const bars=(u.bars||[]).map(b=>{
@@ -1030,14 +1030,14 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const thresholdWarning=crossedThresholds.length?` &#8226; ${crossedThresholds.length>=2?'&#128128;':'&#9888;&#65039;'} &#24050;&#20302;&#26044; ${crossedThresholds[0].value}${crossedThresholds.length>=2?`&#65288;&#20849;&#36386;&#30772; ${crossedThresholds.length} &#26465;&#8203;&#35686;&#25106;&#32218;&#65289;`:''}`:'';
         const thresholdSection=unit.isBoss?`<div class="threshold-block"><div class="threshold-title">血量警戒線（低於指定數值時明顯提示，可選自動附加被動能力，最多可設定5條）</div><div class="threshold-list">${(unit.hpThresholds||[]).map(t=>`<span class="condition ${unit.hp<t.value?'debuff':'buff'}">${t.triggered?'&#9889;':'&#9888;&#65039;'} &#20302;&#26044; ${t.value}${t.passiveName?` &#8594; ${escapeHtml(t.passiveName)} ${t.autoRemove?'&#128260;':'&#128274;'}`:''}<button data-boss-threshold-delete="${unit.id}" data-threshold-id="${t.id}">&#215;</button></span>`).join('')||'<span class="status">&#23578;&#26410;&#35373;&#23450;</span>'}</div><form class="add-bar-form" data-boss-threshold-form="${unit.id}"><input name="thresholdValue" type="number" min="1" max="999999" placeholder="&#20302;&#26044;&#27492;&#25976;&#20540;&#26178;&#38663;&#25552;&#31034;" style="width:130px" required><input name="thresholdPassive" type="text" maxlength="30" placeholder="&#65288;&#36984;&#22294;&#65289;&#33258;&#21205;&#38468;&#21152;&#30340;&#34987;&#21205;&#33021;&#21147;&#21517;&#31281;" style="width:170px"><label style="display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--muted)"><input type="checkbox" name="thresholdAutoRemove">回復到門檻以上時自動移除被動（否則永久生效）</label><button class="primary">&#65291; &#26032;&#22686;&#35686;&#25106;&#32218;</button></form></div>`:'';
         const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';
-        const conditions=unit.statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#8a8f98')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#8a8f98'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}<span class="turns">${item.turns}&#22238;&#21512;</span> <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')||'<span class="status">&#28961;&#29376;&#24907;</span>';
+        const conditions=unit.statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}<span class="turns">${item.turns}&#22238;&#21512;</span> <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')||'<span class="status">&#28961;&#29376;&#24907;</span>';
         const savedStatuses=unitTemplateListHtml(unit.id,statusTemplates,{addAttr:'template-add',idAttr:'template-id',deleteAttr:'template-delete',emptyText:'&#27794;&#26377;&#35352;&#25014;&#30340;&#29376;&#24907;&#27161;&#31844;'});
         return `<article class="card ${unit.type} ${unit.isBoss?'boss':''} ${turnEnded?'turn-ended':''} ${severityClass}" data-card-id="${unit.id}" data-turn-toggle="${unit.id}" style="--unit-color:${sanitizeColor(unit.color,'#4c78a4')}"><div class="head"><h2>${icon} <input type="text" class="unit-name-input" data-unit-name="${unit.id}" value="${escapeAttr(unit.name)}" maxlength="500" title="&#25353;&#20035;&#21487;&#20462;&#25913;&#21517;&#31281;&#25110;&#32232;&#34399;" onclick="event.stopPropagation()"><input type="color" class="unit-color-picker" data-unit-color="${unit.id}" value="${sanitizeColor(unit.color,'#4c78a4')}" title="&#26356;&#25913;&#38991;&#33394;" onclick="event.stopPropagation()"></h2>${titlePassiveHtml(unit)}${titleAttributeHtml(unit)}${titleStatusHtml(unit)}${hpInlineHtml(unit)}</div>${squadBadge}${bossBadge}<div class="bar-row"><button data-id="${unit.id}" data-action="damage" class="hp-btn minus" title="&#38477;&#20302;&#34880;&#37327;">&#8722;</button><div class="bar"><div class="fill" style="width:${percent}%;${low}"></div></div><button data-id="${unit.id}" data-action="heal" class="hp-btn plus" title="&#24674;&#24489;&#34880;&#37327;">+</button><input class="hp-amount" data-amount type="number" min="1" step="1" value="1" aria-label="&#34880;&#37327;&#38911;&#21205;&#25976;&#20540;"></div>${barsListHtml(unit)}<div class="status">${turnEnded?'&#22238;&#21512;&#32080;&#26463;':state} (${percent}%)${thresholdWarning}</div><button type="button" class="manage-toggle" data-manage-toggle="${unit.id}">${expandedManageIds.has(unit.id)?'\u25b2 \u6536\u5408\u7ba1\u7406':'\u25bc \u7ba1\u7406\u72c0\u614b\u30fb\u5c6c\u6027\u30fb\u6578\u503c\u689d'}</button><div class="manage-panel" data-manage-panel="${unit.id}" ${expandedManageIds.has(unit.id)?'':'hidden'}><div class="conditions"><div class="condition-title">&#29376;&#24907; / &#21097;&#39192;&#22238;&#21512;</div><div class="condition-list">${conditions}</div><form class="condition-form" data-status-form="${unit.id}"><div class="saved-status-tags">${savedStatuses}</div><input name="statusName" maxlength="500" required placeholder="&#29376;&#24907;&#21517;&#31281;"><select name="statusKind"><option value="buff">&#22686;&#30410;</option><option value="debuff">&#36000;&#38754;</option><option value="neutral">&#20013;&#31435;</option></select><input name="statusTurns" type="number" min="1" max="999" value="1" required><button class="primary">&#26032;&#22686;</button></form></div>${thresholdSection}${attributeHtml(unit)}${passiveFormHtml(unit)}${addBarFormHtml(unit)}${memoryHtml(unit)}</div><div class="manage">${(unit.type==='monster'||unit.isSummon)?`<button type="button" data-monster-remember="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條存成範本">💾 記住目前設定</button><button type="button" data-monster-duplicate="${unit.id}" title="複製出一隻設定完全相同的新角色(含當下狀態)">📋 複製</button>${unit.isBoss?`<button type="button" data-boss-reset="${unit.id}" title="血量補滿、警戒線觸發狀態重設、自動附加的被動一併移除">&#8635; 重置頭目狀態</button>`:''}`:''}${(unit.type==='player'&&!unit.isSummon)?`<button type="button" data-mark-absent="${unit.id}" title="暫時隱藏這位玩家的先攻卡與血量面板，資料不會被刪除，之後隨時可以再標記回出席">🙈 標記缺席</button>`:''}<button class="danger" data-id="${unit.id}" data-action="delete">&#21034;&#38500;</button></div></article>`;
     }
     function unitSig(unit){
       let s=unit.id+'|'+unit.name+'|'+unit.hp+'|'+unit.maxHp+'|'+unit.color+'|'+(unit.turnEnded?1:0)+'|'+(unit.isBoss?1:0)+'|'+(unit.squadId||'');
       const statuses=unit.statuses;
-      if(statuses&&statuses.length){s+='|S';for(let i=0;i<statuses.length;i++){const x=statuses[i];s+=x.id+','+x.kind+','+x.name+','+x.turns+';'}}
+      if(statuses&&statuses.length){s+='|S';for(let i=0;i<statuses.length;i++){const x=statuses[i];s+=x.id+','+x.kind+','+x.name+','+x.turns+','+x.color+';'}}
       const attributes=unit.attributes;
       if(attributes&&attributes.length){s+='|A';for(let i=0;i<attributes.length;i++){const x=attributes[i];s+=x.id+','+x.name+','+x.value+','+x.color+';'}}
       const bars=unit.bars;
@@ -1142,7 +1142,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return `<div class="passives-section"><div class="condition-title">&#34987;&#21205;&#33021;&#21147;</div><div class="saved-status-tags">${remembered}</div><form class="passive-form" data-passive-form="${unit.id}"><input name="passiveName" maxlength="500" required placeholder="&#36664;&#20837;&#34987;&#21205;&#33021;&#21147;&#65288;50&#23383;&#20197;&#20839;&#65289;"><button class="primary">&#26032;&#22686;&#34987;&#21205;&#33021;&#21147;</button></form></div>`;
     }
     function hpInlineHtml(unit){return `<form class="hp hp-inline" data-hp-form="${unit.id}"><input name="currentHp" type="number" min="0" max="${unit.maxHp}" value="${unit.hp}" aria-label="&#30446;&#21069; HP"><span>/</span><input name="maxHp" type="number" min="1" max="999999" value="${unit.maxHp}" aria-label="&#26368;&#22823; HP"><span>HP</span></form>`}
-    function titleStatusHtml(unit){const statuses=unit.statuses||[];const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';return `<div class="title-status">${statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#8a8f98')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#8a8f98'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}<span class="turns">${item.turns}&#22238;&#21512;</span> <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
+    function titleStatusHtml(unit){const statuses=unit.statuses||[];const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';return `<div class="title-status">${statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}<span class="turns">${item.turns}&#22238;&#21512;</span> <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function titlePassiveHtml(unit){const passives=unit.passives||[];if(!passives.length)return'';return `<div class="title-passives">${passives.map(item=>`<span class="passive" style="--passive-color:${sanitizeColor(passiveDisplayColor(unit,item),'#8a5cd6')}" title="${escapeAttr(item.name)}">${colorTriggerHtml(sanitizeColor(item.color,'#8a5cd6'),`data-passive-color="${unit.id}" data-passive-id="${item.id}"`)}&#10022; <span class="passive-text">${escapeHtml(item.name)}</span><button data-passive-delete="${unit.id}" data-passive-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function titleAttributeHtml(unit){return `<div class="title-attributes">${(unit.attributes||[]).map(item=>`<span class="attribute" style="--attr-color:${sanitizeColor(item.color,'#4c78a4')}">${colorTriggerHtml(sanitizeColor(item.color,'#4c78a4'),`data-attribute-color="${unit.id}" data-attribute-id="${item.id}"`)}${escapeHtml(item.name)} <input data-attribute-value="${unit.id}" data-attribute-id="${item.id}" value="${escapeAttr(String(item.value??''))}" placeholder="&#25976;&#20540;"><button data-attribute-delete="${unit.id}" data-attribute-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function currentSaveState(){return cloneState({players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,cardTiers,roundCounter,currentTurnId,initiativeMode,shuffleEachRound,initiativeValues,initiativeValueDesc,combatLog,teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats})}
@@ -1246,7 +1246,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function sanitizeStatusList(list){
       return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>{
         const kind=(x.kind==='debuff'||x.kind==='neutral')?x.kind:'buff';
-        const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#8a8f98';
+        const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';
         return {id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u72c0\u614b',kind,turns:Math.max(1,Math.min(999,Math.floor(Number(x.turns))||1)),color:sanitizeColor(x.color,defaultColor)};
       }):[];
     }
@@ -1435,6 +1435,17 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if('battleTrackerCombatLog' in data)out.battleTrackerCombatLog=sanitizeCombatLog(data.battleTrackerCombatLog);
       if('battleTrackerTheme' in data){const t=data.battleTrackerTheme;out.battleTrackerTheme=['light','dark','contrast'].includes(t)?t:'light'}
       if('battleTrackerShopData' in data){const sd=sanitizeShopData(data.battleTrackerShopData);if(sd)out.battleTrackerShopData=sd}
+      if('battleTrackerMonsterLevelOrder' in data){const v=data.battleTrackerMonsterLevelOrder;out.battleTrackerMonsterLevelOrder=Array.isArray(v)?v.filter(x=>typeof x==='string').slice(0,200):[];}
+      // 這幾個都是簡單的開關偏好，存的時候是'1'/'0'這種字串，但匯出時 JSON.parse
+      // 可能會把它們轉成數字 1/0（因為字串"1"剛好也是合法的JSON數字），這裡兩種
+      // 型態都接受，統一轉回原本預期的字串格式。
+      const toOneZero=v=>(v===1||v==='1')?'1':'0';
+      if('battleTrackerActionPanelExpanded' in data)out.battleTrackerActionPanelExpanded=toOneZero(data.battleTrackerActionPanelExpanded);
+      if('battleTrackerCardDrawExpanded' in data)out.battleTrackerCardDrawExpanded=toOneZero(data.battleTrackerCardDrawExpanded);
+      if('battleTrackerCombatLogExpanded' in data)out.battleTrackerCombatLogExpanded=toOneZero(data.battleTrackerCombatLogExpanded);
+      if('battleTrackerCombatLogLimitRecent' in data)out.battleTrackerCombatLogLimitRecent=toOneZero(data.battleTrackerCombatLogLimitRecent);
+      if('battleTrackerWakeLock' in data)out.battleTrackerWakeLock=data.battleTrackerWakeLock==='on'?'on':'off';
+      if('battleTrackerCombatLogSettings' in data){const v=data.battleTrackerCombatLogSettings;out.battleTrackerCombatLogSettings=(v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
       return out;
     }
     function importDataFromFile(file){
@@ -1454,6 +1465,11 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         // 匯入前先把「舊裝置上原本的所有資料」整批清空，而不是只覆蓋匯入檔案裡有的欄位。
         // 這樣才能保證每個遊戲的匯出檔案彼此完全獨立：改匯入另一個遊戲的檔案時，
         // 不會有上一個遊戲殘留的商店卡牌/玩家/怪物資料混進來。
+        // 清空之前，先把舊資料完整備份在記憶體裡——如果清空後、寫入新資料的過程中
+        // 有任何一項失敗（例如儲存空間不夠），能自動把舊資料還原回去，
+        // 不會留下「清空一半、寫入一半」這種殘破、難以復原的狀態。
+        const rollbackSnapshot={};
+        STORAGE_KEYS.forEach(key=>{const v=localStorage.getItem(key);if(v!==null)rollbackSnapshot[key]=v});
         STORAGE_KEYS.forEach(key=>{try{localStorage.removeItem(key)}catch{}});
         let allOk=true;
         STORAGE_KEYS.forEach(key=>{
@@ -1463,7 +1479,11 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
           if(!setStorageItem(key,raw))allOk=false;
         });
         if(!allOk){
-          alert('\u532f\u5165\u904e\u7a0b\u4e2d\u6709\u90e8\u5206\u8cc7\u6599\u5beb\u5165\u5931\u6557\uff08\u53ef\u80fd\u662f\u700f\u89bd\u5668\u5132\u5b58\u7a7a\u9593\u4e0d\u8db3\uff09\uff0c\u76ee\u524d\u88dd\u7f6e\u4e0a\u7684\u8cc7\u6599\u53ef\u80fd\u53ea\u6709\u90e8\u5206\u88ab\u66f4\u65b0\u3002\u5efa\u8b70\u5148\u6e05\u7406\u4e00\u4e9b\u820a\u5b58\u6a94\u6216\u7bc4\u672c\u5f8c\u518d\u91cd\u8a66\u4e00\u6b21\u532f\u5165\u3002');
+          // 匯入失敗，把備份的舊資料還原回去，避免留下殘破狀態。
+          STORAGE_KEYS.forEach(key=>{try{localStorage.removeItem(key)}catch{}});
+          let restoreOk=true;
+          Object.keys(rollbackSnapshot).forEach(key=>{if(!setStorageItem(key,rollbackSnapshot[key]))restoreOk=false});
+          alert(restoreOk?'\u532f\u5165\u904e\u7a0b\u4e2d\u6709\u90e8\u5206\u8cc7\u6599\u5beb\u5165\u5931\u6557\uff08\u53ef\u80fd\u662f\u700f\u89bd\u5668\u5132\u5b58\u7a7a\u9593\u4e0d\u8db3\uff09\uff0c\u5df2\u5c07\u88dd\u7f6e\u4e0a\u539f\u672c\u7684\u8cc7\u6599\u9084\u539f\u56de\u4f86\uff0c\u532f\u5165\u5931\u6557\u4f46\u820a\u8cc7\u6599\u6c92\u6709\u906e\u5931\u3002\u5efa\u8b70\u5148\u6e05\u7406\u4e00\u4e9b\u820a\u5b58\u6a94\u6216\u7bc4\u672c\u5f8c\u518d\u91cd\u8a66\u4e00\u6b21\u532f\u5165\u3002':'\u532f\u5165\u5931\u6557\uff0c\u800c\u4e14\u9084\u539f\u820a\u8cc7\u6599\u6642\u4e5f\u767c\u751f\u932f\u8aa4\uff0c\u76ee\u524d\u88dd\u7f6e\u4e0a\u7684\u8cc7\u6599\u53ef\u80fd\u4e0d\u5b8c\u6574\u3002\u5efa\u8b70\u7acb\u523b\u5148\u5230\u300c\u7cfb\u7d71\u300d\u5206\u9801\u78ba\u8a8d\u8cc7\u6599\u72c0\u614b\uff0c\u6216\u91cd\u65b0\u6574\u7406\u5132\u5b58\u7a7a\u9593\u5f8c\u518d\u8a66\u3002');
           return;
         }
         alert('\u532f\u5165\u6210\u529f\uff0c\u9801\u9762\u5373\u5c07\u91cd\u65b0\u6574\u7406\u3002');
@@ -1629,6 +1649,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const wrap=document.querySelector(wrapSelector);
       if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
     }
+    let scrollAnchorToken=0;
     function withScrollAnchor(cardId,fn){
       // 這裡只單純鎖定捲動位置(window.scrollY)，不追蹤卡片本身在頁面上的
       // 座標——因為實測下來，只鎖定捲動位置這個較簡單的版本，至少能把
@@ -1636,11 +1657,17 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       // 實測反而讓情況又變回整張跳走，可能是新機制本身有問題、或是跟
       // 捲動鎖定互相干擾。既然使用者希望先求穩、不要再繼續嘗試風險更高
       // 的做法，這裡先退回到有實際改善效果、比較單純的版本。
+      // 用一個遞增的識別碼標記「這是第幾次呼叫」：如果使用者快速連續調整
+      // 好幾次血量（同一張卡片或不同卡片都算），舊的追蹤迴圈發現有更新的
+      // 一次呼叫已經開始，會自動放棄，不會繼續跟新的一次互相搶著校正
+      // 捲動位置、彼此拉扯。
+      const myToken=++scrollAnchorToken;
       const lockedY=window.scrollY;
       fn();
       let frames=0;
       const MAX_FRAMES=120; // 固定追蹤約2秒，涵蓋鍵盤收起動畫可能延遲才開始的情況
       function tick(){
+        if(myToken!==scrollAnchorToken)return;
         frames++;
         if(Math.abs(window.scrollY-lockedY)>1)window.scrollTo(0,lockedY);
         if(frames<MAX_FRAMES){
@@ -1802,6 +1829,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     let lastInitiativeSig=null;
     let lastPlayerFilterSig=null;
     let lastAbsentPlayerSig=null;
+    let absentListExpanded=false;
     let lastMonsterFilterSig=null;
     let lastPlayerSummarySig=null;
     let lastMonsterSummarySig=null;
@@ -1838,10 +1866,18 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         lastPlayerFilterSig=playerFilterSig;
       }
       const absentPlayers=players.filter(p=>p.isAbsent);
-      const absentPlayerSig=JSON.stringify(absentPlayers.map(p=>[p.id,p.name]));
+      const absentPlayerSig=JSON.stringify(absentPlayers.map(p=>[p.id,p.name]))+'|'+absentListExpanded;
       if(absentPlayerSig!==lastAbsentPlayerSig){
         const absentBar=document.querySelector('#absentPlayerBar');
-        if(absentBar)absentBar.innerHTML=absentPlayers.length?`<span class="filter-label">🙈 缺席名單：</span>${absentPlayers.map(p=>`<button type="button" class="tag" data-mark-present="${p.id}" title="標記回出席，先攻卡與血量面板會重新出現">${escapeHtml(p.name)} ↩</button>`).join('')}`:'';
+        if(absentBar){
+          if(!absentPlayers.length){
+            absentBar.innerHTML='';
+          }else if(!absentListExpanded){
+            absentBar.innerHTML=`<button type="button" data-absent-list-toggle title="展開缺席名單">🙈 ${absentPlayers.length}人缺席 ▾</button>`;
+          }else{
+            absentBar.innerHTML=`<button type="button" data-absent-list-toggle title="收合缺席名單">🙈 缺席名單 ▴</button>${absentPlayers.map(p=>`<button type="button" class="tag" data-mark-present="${p.id}" title="標記回出席，先攻卡與血量面板會重新出現">${escapeHtml(p.name)} ↩</button>`).join('')}`;
+          }
+        }
         lastAbsentPlayerSig=absentPlayerSig;
       }
       const monsterFilterSig=JSON.stringify(monsters.map(m=>[m.id,m.name,m.color]))+'|'+JSON.stringify([...monsterFilter])+'|'+monsterFilterExpanded;
@@ -2013,6 +2049,12 @@ function adjustUnitHp(unit,action,amount){
         if(unit){saveHistory();unit.isAbsent=true;render()}
         return;
       }
+      const absentListToggle=event.target.closest('[data-absent-list-toggle]');
+      if(absentListToggle){
+        absentListExpanded=!absentListExpanded;
+        render();
+        return;
+      }
       const markPresent=event.target.closest('[data-mark-present]');
       if(markPresent){
         const unit=findUnit(markPresent.dataset.markPresent);
@@ -2049,7 +2091,7 @@ function adjustUnitHp(unit,action,amount){
         const targets=list.filter(unit=>filterSet.has(unit.id));
         if(!targets.length)return;
         const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);
-        const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#8a8f98';
+        const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';
         const color=old?(old.color||defaultColor):defaultColor;
         saveHistory();
         targets.forEach(unit=>{
@@ -2319,7 +2361,7 @@ function adjustUnitHp(unit,action,amount){
         return;
       }
       const templateAdd=event.target.closest('[data-template-add]');
-      if(templateAdd){const unit=findUnit(templateAdd.dataset.templateAdd);const template=statusTemplates.find(item=>item.id===templateAdd.dataset.templateId);if(unit&&template){saveHistory();unit.statuses.push({id:uuid(),name:template.name,kind:template.kind,turns:template.turns});logCombatEvent(unit,`獲得新狀態：${template.name}（${template.turns}回合）`,'statusGain');render()}return}
+      if(templateAdd){const unit=findUnit(templateAdd.dataset.templateAdd);const template=statusTemplates.find(item=>item.id===templateAdd.dataset.templateId);if(unit&&template){saveHistory();const defaultColor=template.kind==='buff'?'#2f9968':template.kind==='debuff'?'#d9505f':'#c9962e';unit.statuses.push({id:uuid(),name:template.name,kind:template.kind,turns:template.turns,color:template.color||defaultColor});logCombatEvent(unit,`獲得新狀態：${template.name}（${template.turns}回合）`,'statusGain');render()}return}
       const templateDelete=event.target.closest('[data-template-delete]');
       if(templateDelete){saveHistory();statusTemplates=statusTemplates.filter(item=>item.id!==templateDelete.dataset.templateDelete);saveMemory('battleTrackerStatusTemplates',statusTemplates);render();return}
       const attributeTemplateAdd=event.target.closest('[data-attribute-template-add]');
@@ -2758,7 +2800,7 @@ function adjustUnitHp(unit,action,amount){
         render();
         return;
       }
-      if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#8a8f98';const color=old?(old.color||defaultColor):defaultColor;saveHistory();unit.statuses.push({id:uuid(),name,kind,turns,color});logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合）`,'statusGain');if(old){old.turns=turns;old.color=color}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);render();return}
+      if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';const color=old?(old.color||defaultColor):defaultColor;saveHistory();unit.statuses.push({id:uuid(),name,kind,turns,color});logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合）`,'statusGain');if(old){old.turns=turns;old.color=color}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);render();return}
       if(form.dataset.attributeForm){event.preventDefault();const unit=findUnit(form.dataset.attributeForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('attributeName')).trim();if(!rawName)return;const name=confirmLongText(rawName,20);if(name===null)return;const oldTemplate=attributeTemplates.find(item=>item.name===name);const color=oldTemplate?oldTemplate.color:'#4c78a4';saveHistory();(unit.attributes||(unit.attributes=[])).push({id:uuid(),name,value:'',color});if(!oldTemplate)pushWithLimit(attributeTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);render();return}
       if(form.dataset.bossThresholdForm){event.preventDefault();const unit=findUnit(form.dataset.bossThresholdForm);if(!unit||!unit.isBoss)return;const data=new FormData(form);const value=Math.floor(Number(data.get('thresholdValue')));const passiveName=String(data.get('thresholdPassive')||'').trim().slice(0,30);const autoRemove=data.get('thresholdAutoRemove')==='on';if(!Number.isFinite(value)||value<1||value>999999){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u8840\u91cf\u6578\u503c\u3002');return}saveHistory();if(!Array.isArray(unit.hpThresholds))unit.hpThresholds=[];if(!unit.hpThresholds.some(t=>t.value===value))unit.hpThresholds.push({id:uuid(),value,passiveName,triggered:false,autoRemove});unit.hpThresholds=unit.hpThresholds.sort((a,b)=>b.value-a.value).slice(0,5);checkHpThresholds(unit);render();return}
       if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();return}
