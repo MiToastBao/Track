@@ -301,7 +301,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-59';
+    const APP_VERSION='2026.08.01-60';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1941,7 +1941,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(cur.members)cur.members.forEach(m=>m.turnEnded=true);else if(cur.card)cur.card.turnEnded=true;else cur.unit.turnEnded=true;
       if(idx>=entries.length-1){
         roundCounter=Math.min(9999,roundCounter+1);
-        players.forEach(p=>p.turnEnded=false);
+        players.forEach(p=>{p.turnEnded=false;if(Array.isArray(p.actionCards))p.actionCards.forEach(c=>c.turnEnded=false)});
         monsters.forEach(m=>{m.turnEnded=false;if(Array.isArray(m.actionCards))m.actionCards.forEach(c=>c.turnEnded=false)});
         document.querySelector('#roundValue').value=roundCounter;
         if(initiativeMode==='random'&&initiativeOrder.length>1)shuffleArray(initiativeOrder);
@@ -3104,10 +3104,19 @@ function adjustUnitHp(unit,action,amount){
       actionTags.forEach(tag=>{tag.active=true});
       render();
     });
-    document.querySelector('#resetPlayerTurns').addEventListener('click',()=>{if(!players.some(player=>player.turnEnded))return;saveHistory();players.forEach(player=>player.turnEnded=false);render()});
+    function unitHasAnyTurnEnded(unit){
+      // 這裡要問的是「這個單位身上，有沒有任何東西被標記成回合結束」，
+      // 用來判斷「有沒有東西需要重置」；跟isUnitTurnEnded()問的「畫面上
+      // 該不該顯示成整體結束的樣子」(所有先攻卡都結束才算)是不同的問題，
+      // 不能直接共用——頭目/召喚物只要有其中一張先攻卡被標記結束，
+      // 這裡就該回傳true，即使還沒到「全部都結束」的程度。
+      if(Array.isArray(unit.actionCards)&&unit.actionCards.length)return unit.actionCards.some(c=>c.turnEnded);
+      return !!unit.turnEnded;
+    }
+    document.querySelector('#resetPlayerTurns').addEventListener('click',()=>{if(!players.some(player=>unitHasAnyTurnEnded(player)))return;saveHistory();players.forEach(player=>{player.turnEnded=false;if(Array.isArray(player.actionCards))player.actionCards.forEach(c=>c.turnEnded=false)});render()});
     document.querySelector('#resetPlayerHpStatus').addEventListener('click',()=>{if(!players.some(player=>player.hp!==player.maxHp||player.statuses.length))return;saveHistory();players.forEach(player=>{player.hp=player.maxHp;player.statuses=[]});render()});
-    document.querySelector('#resetMonsterTurns').addEventListener('click',()=>{if(!monsters.some(monster=>monster.turnEnded||(Array.isArray(monster.actionCards)&&monster.actionCards.some(c=>c.turnEnded))))return;saveHistory();monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});render()});
-    document.querySelector('#resetAllTurns').addEventListener('click',()=>{const willChange=currentTurnId!==null||players.some(player=>player.turnEnded)||monsters.some(monster=>monster.turnEnded||(Array.isArray(monster.actionCards)&&monster.actionCards.some(c=>c.turnEnded)));if(!willChange)return;saveHistory();players.forEach(player=>player.turnEnded=false);monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});currentTurnId=null;render()});
+    document.querySelector('#resetMonsterTurns').addEventListener('click',()=>{if(!monsters.some(monster=>unitHasAnyTurnEnded(monster)))return;saveHistory();monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});render()});
+    document.querySelector('#resetAllTurns').addEventListener('click',()=>{const willChange=currentTurnId!==null||players.some(player=>unitHasAnyTurnEnded(player))||monsters.some(monster=>unitHasAnyTurnEnded(monster));if(!willChange)return;saveHistory();players.forEach(player=>{player.turnEnded=false;if(Array.isArray(player.actionCards))player.actionCards.forEach(c=>c.turnEnded=false)});monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});currentTurnId=null;render()});
     document.querySelector('#nextTurn').addEventListener('click',nextTurn);
     document.querySelector('#floatingNextTurn').addEventListener('click',nextTurn);
     document.querySelector('#clearAllMonsters').addEventListener('click',()=>{if(!monsters.length){alert('\u76ee\u524d\u6c92\u6709\u602a\u7269\u3002');return}if(!confirm('\u78ba\u5b9a\u8981\u6e05\u7a7a\u5834\u4e0a\u6240\u6709\u602a\u7269\u55ce\uff1f\u9019\u6642\u5019\u4e5f\u6703\u89e3\u6563\u6240\u6709\u602a\u7269\u5c0f\u968a\u3002'))return;saveHistory();monsters=[];squads=[];monsterFilter.clear();render()});
