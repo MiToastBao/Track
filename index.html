@@ -301,7 +301,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-61';
+    const APP_VERSION='2026.08.01-62';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1726,11 +1726,11 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
           if(!card)return null;
           const cardIndex=unit.actionCards.indexOf(card)+1;
           const cardLabel=card.name&&card.name.trim()?card.name.trim():`${unit.name} #${cardIndex}`;
-          return {id,color:unit.color,label:`&#128081; ${escapeHtml(cardLabel)}`,plainName:cardLabel,ended:!!card.turnEnded,card,unit,isCard:true};
+          return {id,color:unit.color,label:`${unit.isSummon?'&#128302;':'&#128081;'} ${escapeHtml(cardLabel)}`,plainName:cardLabel,ended:!!card.turnEnded,card,unit,isCard:true};
         }
         const unit=findUnit(id);
         if(!unit)return null;
-        const icon=unit.type==='player'?'&#128737;&#65039;':unit.isBoss?'&#128081;':'&#128126;';
+        const icon=unit.isSummon?'&#128302;':unit.type==='player'?'&#128737;&#65039;':unit.isBoss?'&#128081;':'&#128126;';
         return {id,color:unit.color,label:`${icon} ${escapeHtml(unit.name)}`,plainName:unit.name,ended:!!unit.turnEnded,unit};
       }).filter(Boolean);
     }
@@ -1927,17 +1927,41 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         if(target)scrollToBelowStickyHeader(target,stickySelector);
       });
     }
+    function startNewRound(entries){
+      roundCounter=Math.min(9999,roundCounter+1);
+      players.forEach(p=>{p.turnEnded=false;if(Array.isArray(p.actionCards))p.actionCards.forEach(c=>c.turnEnded=false)});
+      monsters.forEach(m=>{m.turnEnded=false;if(Array.isArray(m.actionCards))m.actionCards.forEach(c=>c.turnEnded=false)});
+      document.querySelector('#roundValue').value=roundCounter;
+      if(initiativeMode==='random'&&initiativeOrder.length>1)shuffleArray(initiativeOrder);
+      const freshEntries=initiativeEntries();
+      currentTurnId=freshEntries.length?freshEntries[0].id:null;
+    }
     function nextTurn(){
+      // 先在同步清理（會把陣亡、已經不存在的單位濾掉）之前，記住「目前這位」
+      // 原本排在先攻順序的第幾位——這樣萬一目前這位是在自己的回合當下死掉、
+      // 被移除，還是能用「牠原本排在第幾位」推算出牠死掉之後、原本排在牠
+      // 後面那位現在遞補到哪個位置，正確接續到下一位，而不是誤判成「目前
+      // 這位找不到了」就直接跳回本輪第一位重新開始。
+      const oldEntries=initiativeEntries();
+      const oldIdx=oldEntries.findIndex(e=>e.id===currentTurnId);
       syncInitiativeOrder();
       let entries=initiativeEntries();
       if(!entries.length){
         if(currentTurnId!==null){currentTurnId=null;render();scheduleAutosave()}
         return;
       }
-      const idx=entries.findIndex(e=>e.id===currentTurnId);
       saveHistory();
+      const idx=entries.findIndex(e=>e.id===currentTurnId);
       if(idx===-1){
-        currentTurnId=entries[0].id;
+        if(oldIdx===-1||oldIdx>=entries.length){
+          // 找不到牠原本排在哪、或牠原本就排在最後一位——這兩種情況都視為
+          // 本輪已經跑完，直接開始新的一輪（跟排到最後一位時的處理一致）。
+          startNewRound(entries);
+        }else{
+          // 牠死掉、從名單消失後，原本排在牠後面那位，會遞補到牠原本的
+          // 位置——直接接到這個位置的人，而不是跳回本輪最開頭。
+          currentTurnId=entries[oldIdx].id;
+        }
         render();
         scrollToCurrentCard();
         return;
@@ -1945,13 +1969,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const cur=entries[idx];
       if(cur.members)cur.members.forEach(m=>m.turnEnded=true);else if(cur.card)cur.card.turnEnded=true;else cur.unit.turnEnded=true;
       if(idx>=entries.length-1){
-        roundCounter=Math.min(9999,roundCounter+1);
-        players.forEach(p=>{p.turnEnded=false;if(Array.isArray(p.actionCards))p.actionCards.forEach(c=>c.turnEnded=false)});
-        monsters.forEach(m=>{m.turnEnded=false;if(Array.isArray(m.actionCards))m.actionCards.forEach(c=>c.turnEnded=false)});
-        document.querySelector('#roundValue').value=roundCounter;
-        if(initiativeMode==='random'&&initiativeOrder.length>1)shuffleArray(initiativeOrder);
-        entries=initiativeEntries();
-        currentTurnId=entries.length?entries[0].id:null;
+        startNewRound(entries);
       }else{
         currentTurnId=entries[idx+1].id;
       }
