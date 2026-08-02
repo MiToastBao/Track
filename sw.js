@@ -43,7 +43,7 @@ self.addEventListener('activate', event => {
       // Only notify existing tabs if this activation actually replaced an older
       // version's cache (i.e. skip the notification on a brand-new install).
       if (staleKeys.length === 0) return;
-      const clients = await self.clients.matchAll({ type: 'window' });
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       clients.forEach(client => client.postMessage({ type: 'SW_UPDATED' }));
     })()
   );
@@ -70,7 +70,13 @@ self.addEventListener('fetch', event => {
         if (cached) return cached;
         try {
           const networkResponse = await fetch(event.request);
-          if (networkResponse && networkResponse.status === 200) {
+          // 除了正常的 status===200，也接受 opaque 回應（跨網域、沒有帶
+          // CORS 標頭的請求會是這種類型，例如 Excel 匯入功能需要的函式庫
+          // 從 cdnjs 這類外部 CDN 載入時就常常是這樣）。Service Worker 本來
+          // 就能快取 opaque 回應，只是沒辦法檢視它實際的內容或狀態碼——
+          // 但快取起來，離線時還是能正常拿出來用，不需要依賴對方伺服器
+          // 有沒有穩定送出 CORS 標頭。
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
           }

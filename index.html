@@ -301,7 +301,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-56';
+    const APP_VERSION='2026.08.01-57';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -648,11 +648,18 @@
       return {order,changed};
     }
     const TEXT_SAFETY_CAP=500;
+    function safeSlice(str,len){
+      // 原生 .slice() 是照UTF-16編碼單位計算長度，如果截斷點剛好卡在
+      // emoji或罕見漢字（這些由「代理對」兩個編碼單位組成一個字）的正中間，
+      // 會把字元切一半、變成無效亂碼。改用展開運算子照「真正的字元」
+      // （Unicode code point）為單位截斷，確保不會切壞任何一個完整字元。
+      return [...String(str)].slice(0,len).join('');
+    }
     function confirmLongText(value,threshold){
       // 正常長度直接放行；超過「軟門檻」(例如20字)時跳出確認視窗，
       // 使用者確認才繼續、取消就中止這次修改（不套用）。不管有沒有超過，
       // 都還是有一個500字的硬性安全上限，防止不小心整段貼上超長文字。
-      const v=value.slice(0,TEXT_SAFETY_CAP);
+      const v=safeSlice(value,TEXT_SAFETY_CAP);
       if(v.length>threshold){
         if(!confirm(`字數已超出${threshold}字（目前${v.length}字），確定要用這個名稱嗎？`))return null;
       }
@@ -1254,7 +1261,16 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     // 使用者一旦自己開始觸控/滾輪捲動，代表他想自己控制畫面位置，
     // 立刻取消掉還在背景運作中的HP捲動鎖定，不要跟使用者搶。
     window.addEventListener('touchstart',()=>cancelScrollAnchor(),{passive:true});
-    window.addEventListener('wheel',()=>cancelScrollAnchor(),{passive:true});
+    window.addEventListener('wheel',()=>{
+      cancelScrollAnchor();
+      // 桌機用滑鼠時，如果焦點剛好停在數字輸入框上（例如血量、先攻值），
+      // 滾動滑鼠滾輪會被瀏覽器原生行為當成「調整數值」，容易在單純想
+      // 捲動頁面時不小心誤觸、改到重要數字。滾輪一滾動就讓它主動失焦，
+      // 避免這個意外。
+      if(document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.type==='number'){
+        document.activeElement.blur();
+      }
+    },{passive:true});
     window.addEventListener('orientationchange',()=>{
       isRotating=true;
       setTimeout(updateTabbarHeightVar,100);
