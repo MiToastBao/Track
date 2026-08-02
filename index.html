@@ -301,7 +301,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-58';
+    const APP_VERSION='2026.08.01-59';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -629,8 +629,30 @@
       {key:'battleTrackerShopData',label:'商店卡牌資料',count:()=>shopCatalog.length,unit:'張',clear:()=>{shopCatalog=[];shopUnlockedLevels=[];teamGold=0;saveShopData()}},
     ];
     function pushWithLimit(arr,item,max){arr.push(item);if(arr.length>max)arr.shift();return arr}
+    function countCJK(str){
+      // 只算中文字數量，不把數字或英文字母算進去——這樣「Lv2」跟「Lv10」
+      // 這種數字位數不同、但中文字數其實一樣（或都是0個）的名稱，才能先用
+      // 中文字數決定順序，數字位數不會干擾判斷。
+      const matches=String(str).match(/[\u4e00-\u9fff\u3400-\u4dbf]/g);
+      return matches?matches.length:0;
+    }
+    function firstNumberIn(str){
+      const match=String(str).match(/\d+/);
+      return match?parseInt(match[0],10):null;
+    }
+    function compareByTextRule(a,b){
+      // 規則：1) 先比中文字數量，少的排前面；2) 中文字數一樣多的話，
+      // 改比字串裡出現的數字（如果有），數字小的排前面（例如Lv2排在Lv10
+      // 前面，而不是照字串長度或字典順序把Lv10排到前面去）；3) 以上都
+      // 打平的話，才用一般字典順序決定最終順序。
+      const cjkDiff=countCJK(a)-countCJK(b);
+      if(cjkDiff!==0)return cjkDiff;
+      const numA=firstNumberIn(a),numB=firstNumberIn(b);
+      if(numA!==null&&numB!==null&&numA!==numB)return numA-numB;
+      return String(a).localeCompare(String(b),'zh-Hant');
+    }
     function sortByTextLength(list){
-      return list.slice().sort((a,b)=>a.length-b.length||a.localeCompare(b,'zh-Hant'));
+      return list.slice().sort(compareByTextRule);
     }
     function reconcileOrder(currentNames,orderArr){
       // 維護一份「顯示順序」清單：優先沿用使用者手動調整過的順序；已經不存在的
@@ -641,7 +663,7 @@
       const known=new Set(order);
       const newOnes=sortByTextLength(currentNames.filter(n=>!known.has(n)));
       newOnes.forEach(n=>{
-        let idx=order.findIndex(existing=>existing.length>n.length||(existing.length===n.length&&existing.localeCompare(n,'zh-Hant')>0));
+        let idx=order.findIndex(existing=>compareByTextRule(existing,n)>0);
         if(idx===-1)order.push(n);else order.splice(idx,0,n);
       });
       const changed=order.length!==orderArr.length||order.some((n,i)=>n!==orderArr[i]);
@@ -739,7 +761,7 @@
       // 其實只是分組被收合著。
       if(q)levels.forEach(lv=>openMonsterTagLevelSections.add('mtag:'+lv));
       listEl.innerHTML=levels.map((lv,idx)=>{
-        const lvItems=items.filter(t=>(t.level||'（無等級）')===lv).slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));
+        const lvItems=items.filter(t=>(t.level||'（無等級）')===lv).slice().sort((a,b)=>compareByTextRule(a.name,b.name));
         const displayItems=lvItems.map(t=>{
           if(t.isSquad)return{...t,name:`🛡️ ${t.name} ×${t.squadCount}`};
           if(t.isBoss)return{...t,name:`👑 ${t.name}${t.cardCount>1?` (${t.cardCount}張先攻卡)`:''}`};
@@ -930,7 +952,7 @@
     function cardTierChipsHtml(tier){
       if(!tier.cards.length)return '<span class="status">&#23578;&#28961;&#21345;&#29255;&#65292;&#35531;&#22312;&#19979;&#26041;&#26032;&#22686;&#12290;</span>';
       const drawnIds=new Set(tier.drawnIds||[]);
-      const sortedCards=tier.cards.slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));
+      const sortedCards=tier.cards.slice().sort((a,b)=>compareByTextRule(a.name,b.name));
       return sortedCards.map(c=>{
         const isDrawn=drawnIds.has(c.id);
         return `<span><button type="button" class="template-tag${isDrawn?' card-chip-drawn':''}" style="cursor:default" title="${isDrawn?'&#24050;&#25277;&#20986;':''}">${escapeHtml(c.name)}</button><button type="button" class="template-delete" data-card-delete="${c.id}" data-tier-id="${tier.id}" title="&#21034;&#38500;&#36889;&#24373;&#21345;&#29255;">&#215;</button></span>`;
@@ -2963,7 +2985,7 @@ function adjustUnitHp(unit,action,amount){
         const newTier={id:uuid(),name,cards:[],drawnIds:[],history:[]};
         // 依名稱字數，插入到目前清單中正確的排序位置（字數少的在前），
         // 而不是永遠加到最後面。
-        let insertIdx=cardTiers.findIndex(t=>t.name.length>name.length||(t.name.length===name.length&&t.name.localeCompare(name,'zh-Hant')>0));
+        let insertIdx=cardTiers.findIndex(t=>compareByTextRule(t.name,name)>0);
         if(insertIdx===-1)cardTiers.push(newTier);else cardTiers.splice(insertIdx,0,newTier);
         saveMemory('battleTrackerCardTiers',cardTiers);
         input.value='';
@@ -2982,7 +3004,7 @@ function adjustUnitHp(unit,action,amount){
         const dup=tier.cards.some(c=>c.name===name);
         if(dup&&!confirm(`\u300c${tier.name}\u300d\u9019\u500b\u7b49\u7d1a\u5df2\u7d93\u6709\u4e00\u5f35\u53eb\u300c${name}\u300d\u7684\u5361\u7247\u4e86\uff0c\u78ba\u5b9a\u8981\u518d\u65b0\u589e\u4e00\u5f35\u540c\u540d\u7684\u5361\u7247\u55ce\uff1f`))return;
         const newCard={id:uuid(),name};
-        let insertIdx=tier.cards.findIndex(c=>c.name.length>name.length||(c.name.length===name.length&&c.name.localeCompare(name,'zh-Hant')>0));
+        let insertIdx=tier.cards.findIndex(c=>compareByTextRule(c.name,name)>0);
         if(insertIdx===-1)tier.cards.push(newCard);else tier.cards.splice(insertIdx,0,newCard);
         saveMemory('battleTrackerCardTiers',cardTiers);
         form.reset();
@@ -3180,7 +3202,7 @@ function adjustUnitHp(unit,action,amount){
     });
     updateActionPanelToggleUI();
     document.querySelector('#btnResetCardTierOrder').addEventListener('click',()=>{
-      cardTiers=cardTiers.slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));
+      cardTiers=cardTiers.slice().sort((a,b)=>compareByTextRule(a.name,b.name));
       saveMemory('battleTrackerCardTiers',cardTiers);
       render();
     });
@@ -3275,7 +3297,7 @@ function adjustUnitHp(unit,action,amount){
         const trigger=colorFieldInput.closest('.color-field')?.querySelector('.color-trigger');
         if(trigger)trigger.style.background=colorFieldInput.value;
       }
-      const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);const countLabel=document.querySelector(`[data-generate-card-count-label="${tierId}"]`);const show=generateCategorySelect.value!=='monster';if(countInput)countInput.hidden=!show;if(countLabel)countLabel.hidden=!show;return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const tierNameInput=event.target.closest('[data-tier-name]');if(tierNameInput){const tier=cardTiers.find(t=>t.id===tierNameInput.dataset.tierName);if(tier){const raw=tierNameInput.value.trim();if(raw&&raw!==tier.name){const val=confirmLongText(raw,20);if(val===null){tierNameInput.value=tier.name}else{const dup=cardTiers.some(t=>t.id!==tier.id&&t.name===val);if(!dup||confirm(`已經有另一個等級也叫做「${val}」了，確定要讓兩個等級同名嗎？（同名可能會讓 Excel 匯入卡池、或標籤庫配對時分不清楚要對應哪一個等級）`)){saveHistory();tier.name=val;cardTiers=cardTiers.slice().sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'zh-Hant'));saveMemory('battleTrackerCardTiers',cardTiers)}else{tierNameInput.value=tier.name}}}}setTimeout(render,0);return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const raw=nameInput.value.trim();if(raw){const val=confirmLongText(raw,20);if(val===null){nameInput.value=unit.name}else{saveHistory();unit.name=val}}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render();requestAnimationFrame(()=>{const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;const t=barTemplates.find(item=>item.name===bar.name);if(t){t.color=bar.color;saveMemory('battleTrackerBarTemplates',barTemplates)}render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;const t=attributeTemplates.find(item=>item.name===attribute.name);if(t){t.color=attribute.color;saveMemory('battleTrackerAttributeTemplates',attributeTemplates)}render()}return}const passiveColorInput=event.target.closest('[data-passive-color]');if(passiveColorInput){const unit=findUnit(passiveColorInput.dataset.passiveColor);const passive=unit?.passives?.find(item=>item.id===passiveColorInput.dataset.passiveId);if(passive){saveHistory();passive.color=passiveColorInput.value;const t=passiveTemplates.find(item=>item.name===passive.name);if(t){t.color=passive.color;saveMemory('battleTrackerPassiveTemplates',passiveTemplates)}render()}return}const statusColorInput=event.target.closest('[data-status-color]');if(statusColorInput){const unit=findUnit(statusColorInput.dataset.statusColor);const status=unit?.statuses?.find(item=>item.id===statusColorInput.dataset.statusId);if(status){saveHistory();status.color=statusColorInput.value;const t=statusTemplates.find(item=>item.name===status.name&&item.kind===status.kind);if(t){t.color=status.color;saveMemory('battleTrackerStatusTemplates',statusTemplates)}render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);render();requestAnimationFrame(()=>{const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
+      const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);const countLabel=document.querySelector(`[data-generate-card-count-label="${tierId}"]`);const show=generateCategorySelect.value!=='monster';if(countInput)countInput.hidden=!show;if(countLabel)countLabel.hidden=!show;return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const tierNameInput=event.target.closest('[data-tier-name]');if(tierNameInput){const tier=cardTiers.find(t=>t.id===tierNameInput.dataset.tierName);if(tier){const raw=tierNameInput.value.trim();if(raw&&raw!==tier.name){const val=confirmLongText(raw,20);if(val===null){tierNameInput.value=tier.name}else{const dup=cardTiers.some(t=>t.id!==tier.id&&t.name===val);if(!dup||confirm(`已經有另一個等級也叫做「${val}」了，確定要讓兩個等級同名嗎？（同名可能會讓 Excel 匯入卡池、或標籤庫配對時分不清楚要對應哪一個等級）`)){saveHistory();tier.name=val;cardTiers=cardTiers.slice().sort((a,b)=>compareByTextRule(a.name,b.name));saveMemory('battleTrackerCardTiers',cardTiers)}else{tierNameInput.value=tier.name}}}}setTimeout(render,0);return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const raw=nameInput.value.trim();if(raw){const val=confirmLongText(raw,20);if(val===null){nameInput.value=unit.name}else{saveHistory();unit.name=val}}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render();requestAnimationFrame(()=>{const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;const t=barTemplates.find(item=>item.name===bar.name);if(t){t.color=bar.color;saveMemory('battleTrackerBarTemplates',barTemplates)}render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;const t=attributeTemplates.find(item=>item.name===attribute.name);if(t){t.color=attribute.color;saveMemory('battleTrackerAttributeTemplates',attributeTemplates)}render()}return}const passiveColorInput=event.target.closest('[data-passive-color]');if(passiveColorInput){const unit=findUnit(passiveColorInput.dataset.passiveColor);const passive=unit?.passives?.find(item=>item.id===passiveColorInput.dataset.passiveId);if(passive){saveHistory();passive.color=passiveColorInput.value;const t=passiveTemplates.find(item=>item.name===passive.name);if(t){t.color=passive.color;saveMemory('battleTrackerPassiveTemplates',passiveTemplates)}render()}return}const statusColorInput=event.target.closest('[data-status-color]');if(statusColorInput){const unit=findUnit(statusColorInput.dataset.statusColor);const status=unit?.statuses?.find(item=>item.id===statusColorInput.dataset.statusId);if(status){saveHistory();status.color=statusColorInput.value;const t=statusTemplates.find(item=>item.name===status.name&&item.kind===status.kind);if(t){t.color=status.color;saveMemory('battleTrackerStatusTemplates',statusTemplates)}render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);render();requestAnimationFrame(()=>{const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
     document.querySelector('#togglePlayers').addEventListener('click',()=>{playersExpanded=!playersExpanded;document.querySelector('#playerContent').hidden=!playersExpanded;document.querySelector('#togglePlayers').textContent=playersExpanded?'\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a':'\u5c55\u958b\u73a9\u5bb6\u8cc7\u8a0a';scheduleAutosave()});
     document.querySelector('#toggleMonsters').addEventListener('click',()=>{monstersExpanded=!monstersExpanded;document.querySelector('#monsterContent').hidden=!monstersExpanded;document.querySelector('#toggleMonsters').textContent=monstersExpanded?'\u6536\u5408\u602a\u7269\u8cc7\u8a0a':'\u5c55\u958b\u602a\u7269\u8cc7\u8a0a';scheduleAutosave()});
     function applyToolbarCollapsed(){
@@ -3471,7 +3493,7 @@ function adjustUnitHp(unit,action,amount){
       if(shopCatFilter)filtered=filtered.filter(it=>(it.category||'未分類')===shopCatFilter);
       const groups=Array.from(new Set(filtered.map(it=>it.category||'未分類')));
       const body=groups.length?groups.map(cat=>{
-        const catItems=filtered.filter(it=>(it.category||'未分類')===cat).slice().sort((a,b)=>(a.name||'').length-(b.name||'').length||(a.name||'').localeCompare(b.name||'','zh-Hant'));
+        const catItems=filtered.filter(it=>(it.category||'未分類')===cat).slice().sort((a,b)=>compareByTextRule(a.name||'',b.name||''));
         return shopSectionHtml('shop:'+(shopLevelFilter||'all')+':'+cat,`${escapeHtml(cat)}（${catItems.length}）`,`<div class="shop-grid">${catItems.map(shopCardHtml).join('')}</div>`);
       }).join(''):`<p class="empty">${shopCatalog.length?'目前沒有已開放的商品，請到 GM 區勾選要開放的等級或個別卡片。':'還沒有商品，請到 GM 區新增。'}</p>`;
       wrap.innerHTML=`
@@ -3979,14 +4001,14 @@ function adjustUnitHp(unit,action,amount){
         if(!tier){
           tier={id:uuid(),name:level,cards:[],drawnIds:[],history:[]};
           // 新等級依名稱字數插入到正確排序位置，跟手動新增等級的行為一致。
-          let tierInsertIdx=cardTiers.findIndex(t=>t.name.length>level.length||(t.name.length===level.length&&t.name.localeCompare(level,'zh-Hant')>0));
+          let tierInsertIdx=cardTiers.findIndex(t=>compareByTextRule(t.name,level)>0);
           if(tierInsertIdx===-1)cardTiers.push(tier);else cardTiers.splice(tierInsertIdx,0,tier);
         }
         if(tier.cards.some(c=>c.name===name)){skippedDup++;return}
         if(tier.cards.length>=300){skippedFull++;return}
         // 新卡片同樣依名稱字數插入到正確排序位置，而不是加到最後面。
         const newCard={id:uuid(),name};
-        let cardInsertIdx=tier.cards.findIndex(c=>c.name.length>name.length||(c.name.length===name.length&&c.name.localeCompare(name,'zh-Hant')>0));
+        let cardInsertIdx=tier.cards.findIndex(c=>compareByTextRule(c.name,name)>0);
         if(cardInsertIdx===-1)tier.cards.push(newCard);else tier.cards.splice(cardInsertIdx,0,newCard);
         added++;
       });
