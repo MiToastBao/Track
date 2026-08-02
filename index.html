@@ -301,7 +301,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-62';
+    const APP_VERSION='2026.08.01-64';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1936,14 +1936,12 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const freshEntries=initiativeEntries();
       currentTurnId=freshEntries.length?freshEntries[0].id:null;
     }
+    function entryIsEnded(entry){
+      if(entry.members)return entry.members.every(m=>m.turnEnded);
+      if(entry.card)return !!entry.card.turnEnded;
+      return !!entry.unit.turnEnded;
+    }
     function nextTurn(){
-      // 先在同步清理（會把陣亡、已經不存在的單位濾掉）之前，記住「目前這位」
-      // 原本排在先攻順序的第幾位——這樣萬一目前這位是在自己的回合當下死掉、
-      // 被移除，還是能用「牠原本排在第幾位」推算出牠死掉之後、原本排在牠
-      // 後面那位現在遞補到哪個位置，正確接續到下一位，而不是誤判成「目前
-      // 這位找不到了」就直接跳回本輪第一位重新開始。
-      const oldEntries=initiativeEntries();
-      const oldIdx=oldEntries.findIndex(e=>e.id===currentTurnId);
       syncInitiativeOrder();
       let entries=initiativeEntries();
       if(!entries.length){
@@ -1952,26 +1950,21 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }
       saveHistory();
       const idx=entries.findIndex(e=>e.id===currentTurnId);
-      if(idx===-1){
-        if(oldIdx===-1||oldIdx>=entries.length){
-          // 找不到牠原本排在哪、或牠原本就排在最後一位——這兩種情況都視為
-          // 本輪已經跑完，直接開始新的一輪（跟排到最後一位時的處理一致）。
-          startNewRound(entries);
-        }else{
-          // 牠死掉、從名單消失後，原本排在牠後面那位，會遞補到牠原本的
-          // 位置——直接接到這個位置的人，而不是跳回本輪最開頭。
-          currentTurnId=entries[oldIdx].id;
-        }
-        render();
-        scrollToCurrentCard();
-        return;
+      if(idx!==-1){
+        const cur=entries[idx];
+        if(cur.members)cur.members.forEach(m=>m.turnEnded=true);else if(cur.card)cur.card.turnEnded=true;else cur.unit.turnEnded=true;
+        entries=initiativeEntries(); // 剛才標記結束會影響ended狀態，重新取得最新的
       }
-      const cur=entries[idx];
-      if(cur.members)cur.members.forEach(m=>m.turnEnded=true);else if(cur.card)cur.card.turnEnded=true;else cur.unit.turnEnded=true;
-      if(idx>=entries.length-1){
-        startNewRound(entries);
+      // 不管目前指標原本停在陣列裡的哪個位置，統一改成「從陣列最前面開始找，
+      // 第一個還沒結束回合的人」。這樣才能同時處理兩種情況：1) 目前這位在
+      // 自己回合當下死亡、從名單消失了，也能正確接到本來排在後面那位；
+      // 2) 使用者手動把還沒行動過的人，重新排到目前位置「前面」，這個人一樣
+      // 會被找到、正確排進這一輪，不會因為陣列位置在前面就被永遠跳過。
+      const next=entries.find(e=>!entryIsEnded(e));
+      if(next){
+        currentTurnId=next.id;
       }else{
-        currentTurnId=entries[idx+1].id;
+        startNewRound(entries);
       }
       render();
       scrollToCurrentCard();
@@ -2374,7 +2367,20 @@ function adjustUnitHp(unit,action,amount){
       const miniSwatch=event.target.closest('[data-mini-swatch]');
       if(miniSwatch){const field=miniSwatch.closest('.color-field');const input=field?.querySelector('input[type=color]');if(input){input.value=miniSwatch.dataset.miniSwatch;input.dispatchEvent(new Event('change',{bubbles:true}))}return}
       const turnToggleCard=event.target.closest('[data-turn-toggle]');
-      if(turnToggleCard&&!event.target.closest('button,input,select,form')){const unit=findUnit(turnToggleCard.dataset.turnToggle);if(unit){saveHistory();toggleUnitTurn(unit);render()}return}
+      if(turnToggleCard&&!event.target.closest('button,input,select,form')){
+        const unit=findUnit(turnToggleCard.dataset.turnToggle);
+        if(unit){
+          saveHistory();
+          const wasEnded=isUnitTurnEnded(unit);
+          toggleUnitTurn(unit);
+          const nowEnded=isUnitTurnEnded(unit);
+          if(!wasEnded&&nowEnded){
+            currentTurnId=unit.squadId?`squad:${unit.squadId}`:unit.id;
+          }
+          render();
+        }
+        return;
+      }
       const tag=event.target.closest('[data-tag-id]');
       if(tag){const found=actionTags.find(item=>item.id===tag.dataset.tagId);if(found){saveHistory();found.active=!found.active;render()}return}
       const tagDelete=event.target.closest('[data-tag-delete]');
