@@ -156,6 +156,19 @@
     </div>
     <div id="monsterContent"><div class="summary-head"><span class="summary-head-title">&#24618;&#29289;&#29376;&#24907;&#25688;&#35201;</span><button type="button" id="toggleMonsterSummary">&#25910;&#21512;&#25688;&#35201;</button></div><div id="monsterSummary"></div><section class="grid" id="monsterCards"></section></div>
     </div>
+    <div class="tab-panel" id="tabPanelInfo" data-tab-panel="info" hidden>
+    <div class="sticky-wrap" id="stickyWrapInfo">
+    <div class="section-head" id="tabSectionInfo"><h2 class="section-title">📋 資訊總覽</h2></div>
+    <div id="actionPanelAnchorInfo"></div>
+    <div id="infoInitiativeBar" class="filter-bar initiative-bar"></div>
+    </div>
+    <div id="infoContent">
+      <div class="summary-head"><span class="summary-head-title">🛡️ 玩家狀態摘要</span><button type="button" id="toggleInfoPlayerSummary">收合摘要</button></div>
+      <div id="infoPlayerSummary"></div>
+      <div class="summary-head"><span class="summary-head-title">👾 怪物狀態摘要</span><button type="button" id="toggleInfoMonsterSummary">收合摘要</button></div>
+      <div id="infoMonsterSummary"></div>
+    </div>
+    </div>
     <div class="tab-panel" id="tabPanelShop" data-tab-panel="shop" hidden>
     <div class="section-head" id="tabSectionShop"><h2 class="section-title">🏪 商店系統</h2></div>
     <div id="shopPanelContent"></div>
@@ -293,6 +306,7 @@
     <button type="button" data-target="tabSectionInitiative"><span class="tab-icon">🎲</span>先攻</button>
     <button type="button" data-target="tabSectionPlayer"><span class="tab-icon">🛡️</span>玩家</button>
     <button type="button" data-target="tabSectionMonster"><span class="tab-icon">👾</span>怪物</button>
+    <button type="button" data-target="tabSectionInfo"><span class="tab-icon">📋</span>資訊</button>
     <button type="button" data-target="tabSectionShop"><span class="tab-icon">🏪</span>商店</button>
     <button type="button" data-target="tabSectionGM"><span class="tab-icon">🧰</span>GM區</button>
     <button type="button" data-target="tabSectionSystem"><span class="tab-icon">⚙️</span>系統</button>
@@ -303,7 +317,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-66';
+    const APP_VERSION='2026.08.01-69';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -585,7 +599,7 @@
     let initiativeValueDesc=savedCurrentState?.initiativeValueDesc!==false;
     let autoScrollOnNextTurn=savedCurrentState?.autoScrollOnNextTurn!==false;
     let nextTurnJumpTarget=savedCurrentState?.nextTurnJumpTarget==='summary'?'summary':'card';
-    const VALID_TABS=['initiative','player','monster','shop','gm','system'];
+    const VALID_TABS=['initiative','player','monster','shop','gm','system','info'];
     let activeTab=VALID_TABS.includes(savedCurrentState?.activeTab)?savedCurrentState.activeTab:'initiative';
     let squads=savedCurrentState?.squads||[];
     let statusTemplates=loadMemory('battleTrackerStatusTemplates');
@@ -850,8 +864,10 @@
     let playersExpanded=savedCurrentState?.playersExpanded??true,monstersExpanded=savedCurrentState?.monstersExpanded??true;
     let playerFilterExpanded=savedCurrentState?.playerFilterExpanded??true,monsterFilterExpanded=savedCurrentState?.monsterFilterExpanded??true;
     let playerInitiativeBarExpanded=savedCurrentState?.playerInitiativeBarExpanded??false,monsterInitiativeBarExpanded=savedCurrentState?.monsterInitiativeBarExpanded??false;
+    let infoInitiativeBarExpanded=savedCurrentState?.infoInitiativeBarExpanded??true;
     let playerToolbarCollapsed=savedCurrentState?.playerToolbarCollapsed??false,monsterToolbarCollapsed=savedCurrentState?.monsterToolbarCollapsed??false;
     let playerSummaryExpanded=savedCurrentState?.playerSummaryExpanded??true,monsterSummaryExpanded=savedCurrentState?.monsterSummaryExpanded??true;
+    let infoPlayerSummaryExpanded=savedCurrentState?.infoPlayerSummaryExpanded??true,infoMonsterSummaryExpanded=savedCurrentState?.infoMonsterSummaryExpanded??true;
     let playerFilter=new Set(),monsterFilter=new Set();
     let expandedManageIds=new Set();
     let swipeJustActed=false;
@@ -1254,7 +1270,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function loadSaveState(state){players=state.players||[];monsters=state.monsters||[];actionTags=state.actionTags||[];statusTemplates=state.statusTemplates||[];monsterTemplates=state.monsterTemplates||[];attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors||[...defaultPalette];initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];cardTiers=state.cardTiers||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:1;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;initiativeMode=['fixed','random','value'].includes(state.initiativeMode)?state.initiativeMode:'fixed';shuffleEachRound=state.shuffleEachRound===true;initiativeValues=(state.initiativeValues&&typeof state.initiativeValues==='object')?state.initiativeValues:{};initiativeValueDesc=state.initiativeValueDesc!==false;combatLog=Array.isArray(state.combatLog)?state.combatLog:[];teamGold=Number.isFinite(state.teamGold)?Math.max(0,Math.floor(state.teamGold)):0;shopCatalog=Array.isArray(state.shopCatalog)?state.shopCatalog:[];shopUnlockedLevels=Array.isArray(state.shopUnlockedLevels)?state.shopUnlockedLevels:[];shopUnlockedLevelCats=Array.isArray(state.shopUnlockedLevelCats)?state.shopUnlockedLevelCats:[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveMemory('battleTrackerCombatLog',combatLog);saveShopData();document.querySelector('#roundValue').value=roundCounter;const descBtn=document.querySelector('#initiativeValueDescToggle');if(descBtn)descBtn.textContent=initiativeValueDesc?'⬇️ 先攻值大的先行動':'⬆️ 先攻值小的先行動';scheduleAutosave()}
     function memoryHtml(unit){const bars=unitTemplateListHtml(unit.id,barTemplates,{addAttr:'bar-template-add',idAttr:'bar-template-id',deleteAttr:'bar-template-delete',emptyText:'&#28961;&#35352;&#25014;&#25976;&#20540;條'});return `<div class="memory-tags"><div class="condition-title">&#24050;&#35352;&#25014;&#25976;&#20540;條</div><div class="saved-status-tags">${bars}</div></div>`}
     let appIsResetting=false;
-    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,playerSummaryExpanded,monsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,nextTurnJumpTarget,squads,activeTab})}
+    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,playerSummaryExpanded,monsterSummaryExpanded,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,nextTurnJumpTarget,squads,activeTab})}
     let autosaveTimer=null;
     function scheduleAutosave(){
       if(autosaveTimer)clearTimeout(autosaveTimer);
@@ -1531,7 +1547,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const squadIds=new Set(squads.map(s=>s.id));
       const {players,monsters,initiativeOrder}=sanitizePlayersAndMonsters(raw,squadIds);
       const validTurnIds=new Set(initiativeOrder);
-      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,nextTurnJumpTarget:raw.nextTurnJumpTarget==='summary'?'summary':'card',squads};
+      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,nextTurnJumpTarget:raw.nextTurnJumpTarget==='summary'?'summary':'card',squads};
     }
     function sanitizeSaveFiles(list){
       if(!Array.isArray(list))return[];
@@ -1726,7 +1742,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
           const alive=squadMembers(squad.id).filter(m=>m.hp>0);
           if(!alive.length)return null;
           const ended=alive.every(m=>m.turnEnded);
-          return {id,color:squad.color,label:`&#128737; ${escapeHtml(squad.name)} &#215;${squadAliveCount(squad.id)}`,plainName:`${squad.name} \u00d7${squadAliveCount(squad.id)}`,ended,members:alive};
+          return {id,color:squad.color,label:`&#128126; ${escapeHtml(squad.name)} &#215;${squadAliveCount(squad.id)}`,plainName:`${squad.name} \u00d7${squadAliveCount(squad.id)}`,ended,members:alive};
         }
         if(id.startsWith('card:')){
           const[,unitId,cardId]=id.split(':');
@@ -1791,9 +1807,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       btn.innerHTML=`&#9654;&#65039; \u4e0b\u4e00\u4f4d<br><span class="floating-next-turn-hint">${escapeHtml(shortName)}</span>`;
       btn.title=`\u4e0b\u4e00\u4f4d\uff1a${nextEntry.plainName}\uff08\u4e0d\u7528\u6372\u56de\u9802\u7aef\uff09`;
     }
-    const TAB_PANELS={initiative:'#tabPanelInitiative',player:'#tabPanelPlayer',monster:'#tabPanelMonster',shop:'#tabPanelShop',gm:'#tabPanelGM',system:'#tabPanelSystem'};
-    const TAB_SECTION_TO_TAB={tabSectionInitiative:'initiative',tabSectionPlayer:'player',tabSectionMonster:'monster',tabSectionShop:'shop',tabSectionGM:'gm',tabSectionSystem:'system'};
-    const ACTION_PANEL_ANCHORS={initiative:'#actionPanelAnchorInitiative',player:'#actionPanelAnchorPlayer',monster:'#actionPanelAnchorMonster'};
+    const TAB_PANELS={initiative:'#tabPanelInitiative',player:'#tabPanelPlayer',monster:'#tabPanelMonster',shop:'#tabPanelShop',gm:'#tabPanelGM',system:'#tabPanelSystem',info:'#tabPanelInfo'};
+    const TAB_SECTION_TO_TAB={tabSectionInitiative:'initiative',tabSectionPlayer:'player',tabSectionMonster:'monster',tabSectionShop:'shop',tabSectionGM:'gm',tabSectionSystem:'system',tabSectionInfo:'info'};
+    const ACTION_PANEL_ANCHORS={initiative:'#actionPanelAnchorInitiative',player:'#actionPanelAnchorPlayer',monster:'#actionPanelAnchorMonster',info:'#actionPanelAnchorInfo'};
     function positionActionPanel(tab){
       const anchorSelector=ACTION_PANEL_ANCHORS[tab];
       if(!anchorSelector)return;
@@ -1801,7 +1817,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const block=document.querySelector('#actionPanelBlock');
       if(anchor&&block&&anchor.nextElementSibling!==block)anchor.after(block);
     }
-    const STICKY_WRAPS={initiative:'#stickyWrapInitiative',player:'#stickyWrapPlayer',monster:'#stickyWrapMonster'};
+    const STICKY_WRAPS={initiative:'#stickyWrapInitiative',player:'#stickyWrapPlayer',monster:'#stickyWrapMonster',info:'#stickyWrapInfo'};
     function positionCombatSharedPanel(tab){
       const wrapSelector=STICKY_WRAPS[tab];
       const panel=document.querySelector('#combatSharedPanel');
@@ -1892,7 +1908,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const navFab=document.querySelector('#shopNavFab');
       if(navFab)navFab.style.display=(tab==='shop'||tab==='gm')?'flex':'none';
       const nextTurnBtn=document.querySelector('#floatingNextTurn');
-      if(nextTurnBtn)nextTurnBtn.dataset.tabAllowed=(tab==='initiative'||tab==='player'||tab==='monster')?'1':'0';
+      if(nextTurnBtn)nextTurnBtn.dataset.tabAllowed=(tab==='initiative'||tab==='player'||tab==='monster'||tab==='info')?'1':'0';
       updateFloatingNextTurnVisibility();
       if(scroll){
         const panel=document.querySelector(TAB_PANELS[tab]);
@@ -1902,6 +1918,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function scrollToCurrentCard(){
       if(!autoScrollOnNextTurn)return;
       if(!currentTurnId)return;
+      // 如果使用者目前就是刻意待在資訊分頁操作（不想被跳去卡片畫面），
+      // 就不要自動捲動、也不要切分頁，讓他能一直停留在這裡管理回合。
+      if(activeTab==='info')return;
       let targetUnitId=null;
       if(currentTurnId.startsWith('card:')){
         targetUnitId=currentTurnId.split(':')[1];
@@ -1963,7 +1982,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const items=entries.map((e,i)=>{
         const isCurrent=i===currentIdx;
         const ended=entryIsEnded(e);
-        return `<span class="initiative-bar-item ${isCurrent?'current':''} ${ended?'ended':''}">${i+1}. ${e.label}</span>`;
+        return `<button type="button" class="initiative-bar-item ${isCurrent?'current':''} ${ended?'ended':''}" data-initiative-turn-toggle="${e.id}" title="\u9ede\u4e00\u4e0b\u5207\u63db\u56de\u5408\u7d50\u675f\u72c0\u614b">${i+1}. ${e.label}</button>`;
       }).join('');
       return `<button type="button" data-initiative-bar-toggle="${type}" title="\u6536\u5408\u5148\u653b\u9806\u5e8f\u5217\u8868">\u{1F3B2} \u5148\u653b\u9806\u5e8f \u25b4</button>${items}`;
     }
@@ -2062,6 +2081,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     let lastInitiativeSig=null;
     let lastPlayerFilterSig=null;
     let lastPlayerInitiativeBarSig=null,lastMonsterInitiativeBarSig=null;
+    let lastInfoInitiativeBarSig=null,lastInfoPlayerSummarySig=null,lastInfoMonsterSummarySig=null;
     let lastAbsentPlayerSig=null;
     let absentListExpanded=false;
     let lastMonsterFilterSig=null;
@@ -2105,6 +2125,24 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const bar=document.querySelector('#monsterInitiativeBar');
         if(bar)bar.innerHTML=initiativeBarHtml('monster',monsterInitiativeBarExpanded);
         lastMonsterInitiativeBarSig=monsterInitiativeBarSig;
+      }
+      const infoInitiativeBarSig=initiativeBarBaseSig+'|'+infoInitiativeBarExpanded;
+      if(infoInitiativeBarSig!==lastInfoInitiativeBarSig){
+        const bar=document.querySelector('#infoInitiativeBar');
+        if(bar)bar.innerHTML=initiativeBarHtml('info',infoInitiativeBarExpanded);
+        lastInfoInitiativeBarSig=infoInitiativeBarSig;
+      }
+      const infoPlayerSummarySig=unitsSig(visiblePlayers)+'|'+currentTurnId;
+      if(infoPlayerSummarySig!==lastInfoPlayerSummarySig){
+        const el=document.querySelector('#infoPlayerSummary');
+        if(el)el.innerHTML=summaryTableHtml(visiblePlayers);
+        lastInfoPlayerSummarySig=infoPlayerSummarySig;
+      }
+      const infoMonsterSummarySig=unitsSig(visibleMonsters)+'|'+currentTurnId;
+      if(infoMonsterSummarySig!==lastInfoMonsterSummarySig){
+        const el=document.querySelector('#infoMonsterSummary');
+        if(el)el.innerHTML=summaryTableHtml(visibleMonsters);
+        lastInfoMonsterSummarySig=infoMonsterSummarySig;
       }
       const playerFilterSig=JSON.stringify(players.map(p=>[p.id,p.name,p.color,p.isAbsent]))+'|'+JSON.stringify([...playerFilter])+'|'+playerFilterExpanded;
       if(playerFilterSig!==lastPlayerFilterSig){
@@ -2229,16 +2267,17 @@ function adjustUnitHp(unit,action,amount){
       if(initiativeTurnToggle){
         const id=initiativeTurnToggle.dataset.initiativeTurnToggle;
         if(id.startsWith('squad:')){
-          const members=squadMembers(id.slice(6)).filter(m=>m.hp>0);
-          if(members.length){const allEnded=members.every(m=>m.turnEnded);saveHistory();members.forEach(m=>m.turnEnded=!allEnded);render()}
+          const squadId=id.slice(6);
+          const members=squadMembers(squadId).filter(m=>m.hp>0);
+          if(members.length){const allEnded=members.every(m=>m.turnEnded);saveHistory();members.forEach(m=>m.turnEnded=!allEnded);if(currentTurnId===id)currentTurnActed=true;render()}
         }else if(id.startsWith('card:')){
           const[,unitId,cardId]=id.split(':');
           const unit=findUnit(unitId);
           const card=unit?.actionCards?.find(c=>c.id===cardId);
-          if(card){saveHistory();card.turnEnded=!card.turnEnded;render()}
+          if(card){saveHistory();card.turnEnded=!card.turnEnded;if(currentTurnId===id)currentTurnActed=true;render()}
         }else{
           const unit=findUnit(id);
-          if(unit){saveHistory();unit.turnEnded=!unit.turnEnded;render()}
+          if(unit){saveHistory();unit.turnEnded=!unit.turnEnded;markCurrentTurnActed(unit);render()}
         }
         return;
       }
@@ -2274,17 +2313,28 @@ function adjustUnitHp(unit,action,amount){
       if(summaryTurnToggle){const unit=findUnit(summaryTurnToggle.dataset.summaryTurnToggle);if(unit){saveHistory();toggleUnitTurn(unit);render()}return}
       const summaryJump=event.target.closest('[data-summary-jump]');
       if(summaryJump){
-        const target=document.querySelector(`.card[data-card-id="${summaryJump.dataset.summaryJump}"]`);
-        if(target){
-          // 原本用原生 scrollIntoView(block:'center') 置中卡片，但如果卡片本身比扣掉
-          // 置頂區塊後剩下的可視空間還高（尤其行動標籤展開時，置頂區塊變高、可視空間變
-          // 小），置中的結果會把卡片最上面（名稱）擠到置頂區塊底下，只看得到中間的血量
-          // 條。改成跟其他跳轉功能一致，用即時量測置頂區塊實際高度的方式，確保卡片最
-          // 上面一定會完整露出來，不會被擋住。
-          const stickySelector=target.classList.contains('player')?'#stickyWrapPlayer':'#stickyWrapMonster';
-          scrollToBelowStickyHeader(target,stickySelector);
-          target.classList.add('just-added');
-          target.addEventListener('animationend',()=>target.classList.remove('just-added'),{once:true});
+        const unitId=summaryJump.dataset.summaryJump;
+        const unit=findUnit(unitId);
+        if(unit){
+          const targetTab=unit.type==='player'?'player':'monster';
+          // 如果是從資訊分頁（或其他分頁）點擊過來，該角色所在的分頁目前是隱藏的，
+          // 要先切過去，等畫面真的顯示出來、版面穩定後，才能量到正確的卡片位置。
+          // 如果本來就已經在正確的分頁，就不用多這一步，直接照原本的方式捲動。
+          if(activeTab!==targetTab)setActiveTab(targetTab,{scroll:false});
+          requestAnimationFrame(()=>{
+            const target=document.querySelector(`.card[data-card-id="${unitId}"]`);
+            if(target){
+              // 原本用原生 scrollIntoView(block:'center') 置中卡片，但如果卡片本身比扣掉
+              // 置頂區塊後剩下的可視空間還高（尤其行動標籤展開時，置頂區塊變高、可視空間變
+              // 小），置中的結果會把卡片最上面（名稱）擠到置頂區塊底下，只看得到中間的血量
+              // 條。改成跟其他跳轉功能一致，用即時量測置頂區塊實際高度的方式，確保卡片最
+              // 上面一定會完整露出來，不會被擋住。
+              const stickySelector=target.classList.contains('player')?'#stickyWrapPlayer':'#stickyWrapMonster';
+              scrollToBelowStickyHeader(target,stickySelector);
+              target.classList.add('just-added');
+              target.addEventListener('animationend',()=>target.classList.remove('just-added'),{once:true});
+            }
+          });
         }
         return;
       }
@@ -2306,7 +2356,8 @@ function adjustUnitHp(unit,action,amount){
       if(initiativeBarToggle){
         const type=initiativeBarToggle.dataset.initiativeBarToggle;
         if(type==='player')playerInitiativeBarExpanded=!playerInitiativeBarExpanded;
-        else monsterInitiativeBarExpanded=!monsterInitiativeBarExpanded;
+        else if(type==='monster')monsterInitiativeBarExpanded=!monsterInitiativeBarExpanded;
+        else infoInitiativeBarExpanded=!infoInitiativeBarExpanded;
         scheduleAutosave();
         render();
         return;
@@ -2896,8 +2947,8 @@ function adjustUnitHp(unit,action,amount){
         if(resultEl){
           let resultHtml=`&#9989; \u5df2\u751f\u6210 ${totalSpawned} \u96bb\u55ae\u4f4d\uff08\u62bd\u5230 ${names.length} \u5f35\u5361\uff09`;
           if(matchedNames.length)resultHtml+=`<br>&#127991;\uFE0F \u5957\u7528\u6a19\u7c64\u5eab\u8a2d\u5b9a\uff1a${matchedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
-          if(squadSpawnedNames.length)resultHtml+=`<br>&#128737;\uFE0F \u751f\u6210\u6574\u500b\u5c0f\u968a\uff1a${squadSpawnedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
-          if(squadSingleNames.length)resultHtml+=`<br>&#128737;\uFE0F \u5c0f\u968a\u6a19\u7c64\u3001\u6539\u6210\u55ae\u9ad4\uff1a${squadSingleNames.map(n=>escapeHtml(n)).join('\u3001')}`;
+          if(squadSpawnedNames.length)resultHtml+=`<br>&#128126; \u751f\u6210\u6574\u500b\u5c0f\u968a\uff1a${squadSpawnedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
+          if(squadSingleNames.length)resultHtml+=`<br>&#128126; \u5c0f\u968a\u6a19\u7c64\u3001\u6539\u6210\u55ae\u9ad4\uff1a${squadSingleNames.map(n=>escapeHtml(n)).join('\u3001')}`;
           if(unmatchedNames.length)resultHtml+=`<br>&#9881;\uFE0F \u4f7f\u7528\u8868\u55ae\u8a2d\u5b9a\uff1a${unmatchedNames.map(n=>escapeHtml(n)).join('\u3001')}`;
           resultEl.innerHTML=resultHtml;
         }
@@ -3413,6 +3464,8 @@ function adjustUnitHp(unit,action,amount){
     applyToolbarCollapsed();
     document.querySelector('#togglePlayerSummary').addEventListener('click',()=>{playerSummaryExpanded=!playerSummaryExpanded;document.querySelector('#playerSummary').hidden=!playerSummaryExpanded;document.querySelector('#togglePlayerSummary').textContent=playerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
     document.querySelector('#toggleMonsterSummary').addEventListener('click',()=>{monsterSummaryExpanded=!monsterSummaryExpanded;document.querySelector('#monsterSummary').hidden=!monsterSummaryExpanded;document.querySelector('#toggleMonsterSummary').textContent=monsterSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
+    document.querySelector('#toggleInfoPlayerSummary').addEventListener('click',()=>{infoPlayerSummaryExpanded=!infoPlayerSummaryExpanded;document.querySelector('#infoPlayerSummary').hidden=!infoPlayerSummaryExpanded;document.querySelector('#toggleInfoPlayerSummary').textContent=infoPlayerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
+    document.querySelector('#toggleInfoMonsterSummary').addEventListener('click',()=>{infoMonsterSummaryExpanded=!infoMonsterSummaryExpanded;document.querySelector('#infoMonsterSummary').hidden=!infoMonsterSummaryExpanded;document.querySelector('#toggleInfoMonsterSummary').textContent=infoMonsterSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
     document.querySelector('#playerContent').hidden=!playersExpanded;
     document.querySelector('#togglePlayers').textContent=playersExpanded?'\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a':'\u5c55\u958b\u73a9\u5bb6\u8cc7\u8a0a';
     document.querySelector('#monsterContent').hidden=!monstersExpanded;
@@ -3421,6 +3474,10 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#togglePlayerSummary').textContent=playerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
     document.querySelector('#monsterSummary').hidden=!monsterSummaryExpanded;
     document.querySelector('#toggleMonsterSummary').textContent=monsterSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
+    document.querySelector('#infoPlayerSummary').hidden=!infoPlayerSummaryExpanded;
+    document.querySelector('#toggleInfoPlayerSummary').textContent=infoPlayerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
+    document.querySelector('#infoMonsterSummary').hidden=!infoMonsterSummaryExpanded;
+    document.querySelector('#toggleInfoMonsterSummary').textContent=infoMonsterSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
     const roundValueInput=document.querySelector('#roundValue');
     function setRoundCounter(n){roundCounter=Math.max(0,Math.min(9999,Math.round(Number(n)||0)));roundValueInput.value=roundCounter;scheduleAutosave()}
     document.querySelector('#roundMinus').addEventListener('click',()=>{setRoundCounter(roundCounter-1)});
