@@ -301,7 +301,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-64';
+    const APP_VERSION='2026.08.01-65';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -570,6 +570,13 @@
     let initiativeExpanded=savedCurrentState?.initiativeExpanded??true;
     let roundCounter=savedCurrentState?.roundCounter??1;
     let currentTurnId=typeof savedCurrentState?.currentTurnId==='string'?savedCurrentState.currentTurnId:null;
+    let currentTurnActed=false;
+    function markCurrentTurnActed(unit){
+      // 只有「這個動作影響的剛好是目前回合這位（或他所屬的小隊）」時，
+      // 才算數——標記過後，重新排序先攻順序就不會再自動同步目前回合，
+      // 避免打斷正在進行中的回合。
+      if(currentTurnId===unit.id||(unit.squadId&&currentTurnId===`squad:${unit.squadId}`))currentTurnActed=true;
+    }
     let shuffleEachRound=savedCurrentState?.shuffleEachRound===true;
     let initiativeMode=['fixed','random','value'].includes(savedCurrentState?.initiativeMode)?savedCurrentState.initiativeMode:(shuffleEachRound?'random':'fixed');
     let initiativeValues=(savedCurrentState&&typeof savedCurrentState.initiativeValues==='object'&&savedCurrentState.initiativeValues)?savedCurrentState.initiativeValues:{};
@@ -1935,6 +1942,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(initiativeMode==='random'&&initiativeOrder.length>1)shuffleArray(initiativeOrder);
       const freshEntries=initiativeEntries();
       currentTurnId=freshEntries.length?freshEntries[0].id:null;
+      currentTurnActed=false;
     }
     function entryIsEnded(entry){
       if(entry.members)return entry.members.every(m=>m.turnEnded);
@@ -1963,6 +1971,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const next=entries.find(e=>!entryIsEnded(e));
       if(next){
         currentTurnId=next.id;
+        currentTurnActed=false;
       }else{
         startNewRound(entries);
       }
@@ -1998,7 +2007,21 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const swapIdx=dir==='prev'?idx-1:idx+1;
       if(swapIdx<0||swapIdx>=initiativeOrder.length)return;
       saveHistory();
+      // 只有在「目前回合這位還沒有真的被行動過」（currentTurnActed是false，
+      // 例如剛開始新的一輪，系統只是自動把排序第一位設成目前回合，使用者
+      // 都還沒有實際操作過）的情況下，重新排序後才會同步把目前回合更新成
+      // 新排序後的第一位。如果目前回合這位已經有實際行動過（調過血量、
+      // 或被手動標記回合結束），代表這個回合正在進行中，重新排序就不去動
+      // 目前回合，避免打斷；且不會有「系統以為還輪到原本那位，實際上使用者
+      // 已經在玩別人」這種目前回合跟實際行動對不起來、進而錯誤標記結束的
+      // 混亂狀況。
+      const beforeEntries=initiativeEntries();
+      const wasAtFront=beforeEntries.length&&beforeEntries[0].id===currentTurnId&&!currentTurnActed;
       [initiativeOrder[idx],initiativeOrder[swapIdx]]=[initiativeOrder[swapIdx],initiativeOrder[idx]];
+      if(wasAtFront){
+        const afterEntries=initiativeEntries();
+        if(afterEntries.length)currentTurnId=afterEntries[0].id;
+      }
       render();
     }
     function sizeUnitNameInputs(force){
@@ -2369,16 +2392,7 @@ function adjustUnitHp(unit,action,amount){
       const turnToggleCard=event.target.closest('[data-turn-toggle]');
       if(turnToggleCard&&!event.target.closest('button,input,select,form')){
         const unit=findUnit(turnToggleCard.dataset.turnToggle);
-        if(unit){
-          saveHistory();
-          const wasEnded=isUnitTurnEnded(unit);
-          toggleUnitTurn(unit);
-          const nowEnded=isUnitTurnEnded(unit);
-          if(!wasEnded&&nowEnded){
-            currentTurnId=unit.squadId?`squad:${unit.squadId}`:unit.id;
-          }
-          render();
-        }
+        if(unit){saveHistory();toggleUnitTurn(unit);markCurrentTurnActed(unit);render()}
         return;
       }
       const tag=event.target.closest('[data-tag-id]');
@@ -2855,6 +2869,7 @@ function adjustUnitHp(unit,action,amount){
       if(action==='damage'||action==='heal'){
         if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
         adjustUnitHp(unit,action,amount);
+        markCurrentTurnActed(unit);
         if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}
         render();
         // 不再嘗試鎖定原本的捲動位置，改成直接捲動到血量條，讓使用者
@@ -3043,7 +3058,7 @@ function adjustUnitHp(unit,action,amount){
       if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';const color=old?(old.color||defaultColor):defaultColor;saveHistory();const newStatus={id:uuid(),name,kind,turns,color};unit.statuses.push(newStatus);logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合）`,'statusGain');if(old){old.turns=turns;old.color=color}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-status-item="${newStatus.id}"]`);if(el){scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');el.classList.add('just-added')}});return}
       if(form.dataset.attributeForm){event.preventDefault();const unit=findUnit(form.dataset.attributeForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('attributeName')).trim();if(!rawName)return;const name=confirmLongText(rawName,20);if(name===null)return;const oldTemplate=attributeTemplates.find(item=>item.name===name);const color=oldTemplate?oldTemplate.color:'#4c78a4';saveHistory();const newAttr={id:uuid(),name,value:'',color};(unit.attributes||(unit.attributes=[])).push(newAttr);if(!oldTemplate)pushWithLimit(attributeTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-attribute-item="${newAttr.id}"]`);if(el){scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');el.classList.add('just-added')}});return}
       if(form.dataset.bossThresholdForm){event.preventDefault();const unit=findUnit(form.dataset.bossThresholdForm);if(!unit||!unit.isBoss)return;const data=new FormData(form);const value=Math.floor(Number(data.get('thresholdValue')));const passiveName=String(data.get('thresholdPassive')||'').trim().slice(0,30);const autoRemove=data.get('thresholdAutoRemove')==='on';if(!Number.isFinite(value)||value<1||value>999999){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u8840\u91cf\u6578\u503c\u3002');return}saveHistory();if(!Array.isArray(unit.hpThresholds))unit.hpThresholds=[];if(!unit.hpThresholds.some(t=>t.value===value))unit.hpThresholds.push({id:uuid(),value,passiveName,triggered:false,autoRemove});unit.hpThresholds=unit.hpThresholds.sort((a,b)=>b.value-a.value).slice(0,5);checkHpThresholds(unit);render();return}
-      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();requestAnimationFrame(()=>{const barRow=document.querySelector(`.card[data-card-id="${unit.id}"] .bar-row`);if(barRow)scrollToBelowStickyHeader(barRow,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
+      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');markCurrentTurnActed(unit);}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();requestAnimationFrame(()=>{const barRow=document.querySelector(`.card[data-card-id="${unit.id}"] .bar-row`);if(barRow)scrollToBelowStickyHeader(barRow,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
       if(form.dataset.passiveForm){event.preventDefault();const unit=findUnit(form.dataset.passiveForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('passiveName')).trim();if(!rawName)return;const name=confirmLongText(rawName,50);if(name===null)return;const old=passiveTemplates.find(item=>item.name===name);const color=old?old.color:'#8a5cd6';saveHistory();const newPassive={id:uuid(),name,color};(unit.passives||(unit.passives=[])).push(newPassive);if(!old)pushWithLimit(passiveTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-passive-item="${newPassive.id}"]`);if(el){scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');el.classList.add('just-added')}});return}
       if(form.dataset.addBarForm){event.preventDefault();const unit=findUnit(form.dataset.addBarForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('barName')).trim();const maxValue=Number(data.get('barMax'));if(!rawName||!Number.isInteger(maxValue)||maxValue<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const old=barTemplates.find(item=>item.name===name);const color=old?old.color:'#7c8db5';saveHistory();const newBar={id:uuid(),name,value:maxValue,maxValue,color};(unit.bars||(unit.bars=[])).push(newBar);logCombatEvent(unit,`獲得新數值條：${name}（${maxValue}/${maxValue}）`,'bar');if(old){old.maxValue=maxValue}else{pushWithLimit(barTemplates,{id:uuid(),name,maxValue,color},MAX_TEMPLATES)}saveMemory('battleTrackerBarTemplates',barTemplates);render();requestAnimationFrame(()=>{const newBarEl=document.querySelector(`.custom-bar[data-bar-id="${newBar.id}"]`);if(newBarEl){scrollToBelowStickyHeader(newBarEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');newBarEl.classList.add('just-added')}});return}
       if(form.id==='addForm'){
