@@ -318,7 +318,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.06-75';
+    const APP_VERSION='2026.08.06-78';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2487,7 +2487,28 @@ function adjustUnitHp(unit,action,amount){
         const set=type==='player'?playerFilter:monsterFilter;
         const id=filterToggle.dataset.filterId;
         if(set.has(id))set.delete(id);else set.add(id);
+        if(activeTab==='info'){
+          // 在資訊分頁篩選，沒有卡片可以捲動——但篩選會改變摘要要顯示的
+          // 內容，如果對應的摘要區塊剛好是收合的，篩選完使用者根本看不到
+          // 結果，等於篩選了卻沒有任何畫面回饋。篩選後主動展開對應的摘要。
+          let infoNeedsExpand=false;
+          if(type==='player'&&!infoPlayerSummaryExpanded){
+            infoPlayerSummaryExpanded=true;
+            infoNeedsExpand=true;
+          }else if(type==='monster'&&!infoMonsterSummaryExpanded){
+            infoMonsterSummaryExpanded=true;
+            infoNeedsExpand=true;
+          }
+          if(infoNeedsExpand)scheduleAutosave();
+        }
         render();
+        if(activeTab==='info'){
+          if(type==='player')document.querySelector('#infoPlayerSummary').hidden=!infoPlayerSummaryExpanded;
+          else document.querySelector('#infoMonsterSummary').hidden=!infoMonsterSummaryExpanded;
+          const toggleBtn=document.querySelector(type==='player'?'#toggleInfoPlayerSummary':'#toggleInfoMonsterSummary');
+          if(toggleBtn)toggleBtn.textContent=(type==='player'?infoPlayerSummaryExpanded:infoMonsterSummaryExpanded)?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
+          return;
+        }
         // 切換篩選狀態後，置頂列可能會因為「批次操作」區塊的出現／消失而
         // 變高或變矮（有勾選才會顯示批次治療/扣血/上狀態的控制項），這樣
         // 原本正確定位在置頂列下方的卡片，可能會被新的置頂列高度蓋住一部分。
@@ -2499,7 +2520,24 @@ function adjustUnitHp(unit,action,amount){
         return;
       }
       const filterReset=event.target.closest('[data-filter-reset]');
-      if(filterReset){(filterReset.dataset.filterReset==='player'?playerFilter:monsterFilter).clear();render();return}
+      if(filterReset){
+        const type=filterReset.dataset.filterReset;
+        (type==='player'?playerFilter:monsterFilter).clear();
+        if(activeTab==='info'){
+          let infoNeedsExpand=false;
+          if(type==='player'&&!infoPlayerSummaryExpanded){infoPlayerSummaryExpanded=true;infoNeedsExpand=true}
+          else if(type==='monster'&&!infoMonsterSummaryExpanded){infoMonsterSummaryExpanded=true;infoNeedsExpand=true}
+          if(infoNeedsExpand)scheduleAutosave();
+          render();
+          if(type==='player')document.querySelector('#infoPlayerSummary').hidden=!infoPlayerSummaryExpanded;
+          else document.querySelector('#infoMonsterSummary').hidden=!infoMonsterSummaryExpanded;
+          const toggleBtn=document.querySelector(type==='player'?'#toggleInfoPlayerSummary':'#toggleInfoMonsterSummary');
+          if(toggleBtn)toggleBtn.textContent=(type==='player'?infoPlayerSummaryExpanded:infoMonsterSummaryExpanded)?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
+          return;
+        }
+        render();
+        return;
+      }
       const batchStatus=event.target.closest('[data-batch-status]');
       if(batchStatus){
         const type=batchStatus.dataset.batchStatus;

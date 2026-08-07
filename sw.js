@@ -122,7 +122,16 @@ self.addEventListener('fetch', event => {
           }
           return networkResponse;
         } catch {
-          return appShellFallback;
+          // 極端情況：連app shell本身的快取都不存在（正常情況下不會發生，
+          // 因為install事件成功時，precache()一定已經把index.html存進去了；
+          // 唯一可能是外部把快取清空過）。這種情況下appShellFallback也會是
+          // undefined，如果直接把undefined交給respondWith()，瀏覽器只會顯示
+          // 一個很難懂的原生錯誤畫面。加上一個最基本的純文字離線提示當作
+          // 最後防線，至少讓使用者知道發生了什麼事、該怎麼處理。
+          return appShellFallback || new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>離線中</title></head><body style="font-family:sans-serif;padding:40px;text-align:center;color:#333"><h1>目前離線，且找不到可用的快取版本</h1><p>請確認網路連線後重新整理，或至少成功連線一次讓應用程式完成離線快取。</p></body></html>',
+            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          );
         }
       })();
       return cached || appShellFallback || networkFetch;
