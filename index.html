@@ -317,7 +317,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-103';
+    const APP_VERSION='2026.08.07-104';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -3008,7 +3008,30 @@ function adjustUnitHp(unit,action,amount){
       const barTemplateDelete=event.target.closest('[data-bar-template-delete]');
       if(barTemplateDelete){saveHistory();barTemplates=barTemplates.filter(item=>item.id!==barTemplateDelete.dataset.barTemplateDelete);saveMemory('battleTrackerBarTemplates',barTemplates);render();return}
       const barAdjust=event.target.closest('[data-bar-adjust]');
-      if(barAdjust){const unit=findUnit(barAdjust.dataset.barAdjust);const bar=unit?.bars?.find(item=>item.id===barAdjust.dataset.barId);const amount=Math.floor(Number(barAdjust.closest('.custom-bar')?.querySelector('[data-bar-amount]')?.value));if(bar&&amount>0){const oldValue=bar.value;const newValue=barAdjust.dataset.barAction==='increase'?Math.min(bar.maxValue,bar.value+amount):Math.max(0,bar.value-amount);if(newValue!==oldValue){saveHistory();bar.value=newValue;logCombatEvent(unit,`${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render()}}return}
+      if(barAdjust){
+        const unit=findUnit(barAdjust.dataset.barAdjust);
+        const bar=unit?.bars?.find(item=>item.id===barAdjust.dataset.barId);
+        const amountInput=barAdjust.closest('.custom-bar')?.querySelector('[data-bar-amount]');
+        const hadTypedAmount=!!(amountInput&&document.activeElement===amountInput);
+        const amount=Math.floor(Number(amountInput?.value));
+        if(bar&&amount>0){
+          const oldValue=bar.value;
+          const newValue=barAdjust.dataset.barAction==='increase'?Math.min(bar.maxValue,bar.value+amount):Math.max(0,bar.value-amount);
+          if(newValue!==oldValue){
+            saveHistory();
+            bar.value=newValue;
+            logCombatEvent(unit,`${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');
+            render();
+            if(hadTypedAmount){
+              requestAnimationFrame(()=>{
+                const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);
+                if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');
+              });
+            }
+          }
+        }
+        return;
+      }
       const barDelete=event.target.closest('[data-bar-delete]');
       if(barDelete){const unit=findUnit(barDelete.dataset.barDelete);if(unit){saveHistory();unit.bars=(unit.bars||[]).filter(bar=>bar.id!==barDelete.dataset.barId);render()}return}
       const statusDelete=event.target.closest('[data-condition-delete]');
@@ -3237,11 +3260,23 @@ function adjustUnitHp(unit,action,amount){
       const action=button.dataset.action;
       const amount=Math.floor(Number(button.closest('.card').querySelector('[data-amount]')?.value));
       if(action==='damage'||action==='heal'){
+        // 判斷點擊+/-「之前」，焦點是不是在本卡片的血量調整數量輸入框上——
+        // 代表使用者剛剛有輸入過數字，需要明確捲動確認結果；如果焦點根本
+        // 不在這個輸入框上（單純直接點+/-，沒有先打字），維持原地不動，
+        // 不要主動捲動，避免打斷使用者原本盯著看的畫面位置。
+        const amountInput=button.closest('.card')?.querySelector('[data-amount]');
+        const hadTypedAmount=!!(amountInput&&document.activeElement===amountInput);
         if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
         adjustUnitHp(unit,action,amount);
         markCurrentTurnActed(unit);
         if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}
         render();
+        if(hadTypedAmount){
+          requestAnimationFrame(()=>{
+            const barRow=document.querySelector(`.card[data-card-id="${unit.id}"] .bar-row`);
+            if(barRow)scrollToBelowStickyHeader(barRow,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');
+          });
+        }
         return;
       }
       if(action==='delete'){
