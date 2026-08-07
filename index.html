@@ -318,7 +318,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.06-78';
+    const APP_VERSION='2026.08.06-81';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1829,6 +1829,15 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         btn.title='\u4e0b\u4e00\u4f4d\uff08\u4e0d\u7528\u6372\u56de\u9802\u7aef\uff09';
         return;
       }
+      if(currentTurnId===null&&entries.every(e=>entryIsEnded(e))){
+        // 目前回合是空的、且全部人都已經標記結束——對應「剛按過回合數重置，
+        // 準備迎接新一輪」的狀態。這種情況不直接顯示某個特定名字，因為如果
+        // 是隨機排序模式，洗牌要等按下一位當下才會真的發生，這時候先攻順序
+        // 還是重置前的舊順序，顯示某個名字反而會誤導使用者。
+        btn.innerHTML=`&#9654;&#65039; \u4e0b\u4e00\u4f4d<br><span class="floating-next-turn-hint">\u958b\u59cb\u65b0\u4e00\u8f2a</span>`;
+        btn.title='\u9ede\u4e0b\u53bb\u6703\u6b63\u5f0f\u958b\u59cb\u65b0\u7684\u4e00\u8f2a\uff08\u96a8\u6a5f\u6392\u5e8f\u6a21\u5f0f\u4e0b\u6703\u5728\u9019\u6642\u624d\u6d17\u724c\uff09\uff0c\u4e0d\u7528\u6372\u56de\u9802\u7aef\u3002';
+        return;
+      }
       const idx=entries.findIndex(e=>e.id===currentTurnId);
       let nextEntry,wrapping=false;
       if(idx===-1){
@@ -2513,6 +2522,23 @@ function adjustUnitHp(unit,action,amount){
         // 變高或變矮（有勾選才會顯示批次治療/扣血/上狀態的控制項），這樣
         // 原本正確定位在置頂列下方的卡片，可能會被新的置頂列高度蓋住一部分。
         // 如果被點的這個角色目前還看得到，重新精準捲動一次確保它完整露出來。
+        // 另外，如果玩家/怪物資訊卡片區塊本身是收合的，卡片雖然還在DOM裡，
+        // 但因為外層容器被隱藏，量出來的位置會是空的，捲動也捲不到正確
+        // 位置——篩選前先確認卡片區塊有展開，跟「下一位」按鈕原本就有的
+        // 自動展開邏輯手法一致。
+        let cardSectionNeedsExpand=false;
+        if(type==='player'&&!playersExpanded){
+          playersExpanded=true;
+          document.querySelector('#playerContent').hidden=false;
+          document.querySelector('#togglePlayers').textContent='\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a';
+          cardSectionNeedsExpand=true;
+        }else if(type==='monster'&&!monstersExpanded){
+          monstersExpanded=true;
+          document.querySelector('#monsterContent').hidden=false;
+          document.querySelector('#toggleMonsters').textContent='\u6536\u5408\u602a\u7269\u8cc7\u8a0a';
+          cardSectionNeedsExpand=true;
+        }
+        if(cardSectionNeedsExpand){scheduleAutosave();render()}
         requestAnimationFrame(()=>{
           const card=document.querySelector(`.card[data-card-id="${id}"]`);
           if(card)scrollToBelowStickyHeader(card,type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');
@@ -2535,7 +2561,30 @@ function adjustUnitHp(unit,action,amount){
           if(toggleBtn)toggleBtn.textContent=(type==='player'?infoPlayerSummaryExpanded:infoMonsterSummaryExpanded)?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
           return;
         }
+        let cardSectionNeedsExpand=false;
+        if(type==='player'&&!playersExpanded){
+          playersExpanded=true;
+          document.querySelector('#playerContent').hidden=false;
+          document.querySelector('#togglePlayers').textContent='\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a';
+          cardSectionNeedsExpand=true;
+        }else if(type==='monster'&&!monstersExpanded){
+          monstersExpanded=true;
+          document.querySelector('#monsterContent').hidden=false;
+          document.querySelector('#toggleMonsters').textContent='\u6536\u5408\u602a\u7269\u8cc7\u8a0a';
+          cardSectionNeedsExpand=true;
+        }
+        if(cardSectionNeedsExpand)scheduleAutosave();
         render();
+        // 「顯示全部」雖然沒有單一個「被點的角色」，但還是可以捲動到目前
+        // 顯示順序中的第一位，給使用者一個明確的視覺落點確認畫面有反應——
+        // 怪物要用實際顯示排序（可能依等級/群組排過序），不是原始陣列順序，
+        // 才會跟畫面上真正看到的「第一位」一致。
+        requestAnimationFrame(()=>{
+          const firstUnit=type==='player'?players[0]:sortMonstersForDisplay(monsters)[0];
+          if(!firstUnit)return;
+          const card=document.querySelector(`.card[data-card-id="${firstUnit.id}"]`);
+          if(card)scrollToBelowStickyHeader(card,type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');
+        });
         return;
       }
       const batchStatus=event.target.closest('[data-batch-status]');
@@ -3625,7 +3674,28 @@ function adjustUnitHp(unit,action,amount){
     function setRoundCounter(n){roundCounter=Math.max(0,Math.min(9999,Math.round(Number(n)||0)));roundValueInput.value=roundCounter;scheduleAutosave()}
     document.querySelector('#roundMinus').addEventListener('click',()=>{setRoundCounter(roundCounter-1)});
     document.querySelector('#roundPlus').addEventListener('click',()=>{setRoundCounter(roundCounter+1)});
-    document.querySelector('#roundReset').addEventListener('click',()=>{setRoundCounter(0)});
+    document.querySelector('#roundReset').addEventListener('click',()=>{
+      // 回合數重置按鈕，代表的意思通常是「這一關結束了，準備迎接下一關」——
+      // 不只是單純把數字歸零，「目前回合」也應該跟著清空，先攻卡的隨機排序
+      // （如果有開啟）也不該現在就先洗，而是要等使用者真正按下一位、正式
+      // 開始新的一關時才洗牌，才符合「下一關設置好後，重新進行第一輪」
+      // 這個實際的使用情境。
+      //
+      // 做法是把所有玩家/怪物(含頭目/召喚物的先攻卡)都標記成「已結束」，
+      // 模擬「上一輪剛剛結束」的狀態——這樣之後使用者按下一位時，會自動
+      // 走既有、已經測試過的「所有人都結束了，開始新一輪」那條路徑
+      // （nextTurn()裡的startNewRound()），正確在那個時間點才洗牌、並跳轉到
+      // 新一輪的第一位，不需要另外重新寫一套邏輯。
+      saveHistory();
+      roundCounter=0;
+      roundValueInput.value=0;
+      currentTurnId=null;
+      currentTurnActed=false;
+      players.forEach(p=>{p.turnEnded=true;if(Array.isArray(p.actionCards))p.actionCards.forEach(c=>c.turnEnded=true)});
+      monsters.forEach(m=>{m.turnEnded=true;if(Array.isArray(m.actionCards))m.actionCards.forEach(c=>c.turnEnded=true)});
+      scheduleAutosave();
+      render();
+    });
     roundValueInput.addEventListener('change',()=>{setRoundCounter(roundValueInput.value)});
     roundValueInput.addEventListener('blur',()=>{setRoundCounter(roundValueInput.value)});
     roundValueInput.value=roundCounter;
