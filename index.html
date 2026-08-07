@@ -318,7 +318,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.06-85';
+    const APP_VERSION='2026.08.06-88';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1330,6 +1330,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     window.addEventListener('pagehide',flushAutosave);
     let resizeNameTimer=null;
     let isRotating=false;
+    let orientationSettleTimers=[];
     function updateTabbarHeightVar(){
       const tabbar=document.querySelector('#bottomTabbar');
       if(!tabbar)return;
@@ -1371,10 +1372,13 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     },{passive:true});
     window.addEventListener('orientationchange',()=>{
       isRotating=true;
-      setTimeout(updateTabbarHeightVar,100);
-      setTimeout(updateTabbarHeightVar,500);
-      setTimeout(updateTabbarHeightVar,1000);
-      setTimeout(updateTabbarHeightVar,1600);
+      // 快速連續旋轉時，如果不清掉上一次還沒執行完的排程，計時器會一直
+      // 累積（每次旋轉都新增4個），全部堆疊在接下來1.6秒內陸續觸發——
+      // 每一個都可能量到稍微不同的高度數值，造成畫面像故障一樣持續跳動。
+      // 先清掉舊的，只保留最新這一次旋轉排程的4個，確保穩定後只會定案
+      // 一次，不會反覆抖動。
+      orientationSettleTimers.forEach(t=>clearTimeout(t));
+      orientationSettleTimers=[100,500,1000,1600].map(delay=>setTimeout(updateTabbarHeightVar,delay));
       // 旋轉裝置時，如果剛好有色票彈出面板開著，它的位置是旋轉前計算的，
       // 旋轉後版面改變，面板位置可能會跑掉或跑到畫面外，直接關掉最保險。
       document.querySelectorAll('.mini-palette-popup').forEach(p=>{p.hidden=true;p.style.left='';p.style.right=''});
@@ -1891,6 +1895,31 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const wrap=document.querySelector(wrapSelector);
       if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
     }
+    // 「收合功能列」按鈕，原本固定寫在各分頁自己的標題區塊裡，跟「返回上一步/
+    // 下一步/標籤庫/行動標籤」那排（屬於會在分頁間搬動的共用面板）是分開的
+    // 兩個地方，所以畫面上看起來不同行。這裡記住每個收合按鈕「原本」所在的
+    // 容器，切到對應分頁時，把它動態搬進共用工具列裡（跟其他4顆按鈕同一行）；
+    // 切到別的分頁時，再搬回原本的位置——純粹只是移動DOM位置，按鈕本身的
+    // id、點擊事件完全沒有變動，功能不受影響。
+    const TOOLBAR_COLLAPSE_OWNERS={player:'#togglePlayerToolbar',monster:'#toggleMonsterToolbar'};
+    const toolbarCollapseOriginalParents=new Map();
+    Object.values(TOOLBAR_COLLAPSE_OWNERS).forEach(sel=>{
+      const btn=document.querySelector(sel);
+      if(btn)toolbarCollapseOriginalParents.set(sel,btn.parentElement);
+    });
+    function positionToolbarCollapseBtn(tab){
+      const toolbar=document.querySelector('#combatSharedPanel .toolbar');
+      Object.entries(TOOLBAR_COLLAPSE_OWNERS).forEach(([ownerTab,sel])=>{
+        const btn=document.querySelector(sel);
+        if(!btn)return;
+        if(ownerTab===tab&&toolbar){
+          if(btn.parentElement!==toolbar)toolbar.appendChild(btn);
+        }else{
+          const originalParent=toolbarCollapseOriginalParents.get(sel);
+          if(originalParent&&btn.parentElement!==originalParent)originalParent.appendChild(btn);
+        }
+      });
+    }
     let scrollAnchorToken=0;
     function cancelScrollAnchor(){scrollAnchorToken++}
     function startScrollLock(anchorEl){
@@ -1967,6 +1996,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       });
       positionActionPanel(tab);
       positionCombatSharedPanel(tab);
+      positionToolbarCollapseBtn(tab);
       const combatShared=document.querySelector('#combatSharedPanel');
       if(combatShared)combatShared.hidden=(tab==='system'||tab==='shop'||tab==='gm');
       const tabbar=document.querySelector('#bottomTabbar');
