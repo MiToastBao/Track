@@ -121,7 +121,7 @@
     </div>
     <div class="tab-panel" id="tabPanelInitiative" data-tab-panel="initiative">
     <div class="sticky-wrap" id="stickyWrapInitiative">
-    <div class="section-head" id="tabSectionInitiative"><h2 class="section-title">🎲 先攻區</h2><div class="section-head-actions"><div class="round-counter"><span class="round-counter-label">回合數</span><button type="button" id="roundMinus" aria-label="減少回合數">−</button><input id="roundValue" class="round-counter-value" type="number" inputmode="numeric" min="0" max="9999" step="1" value="1" aria-label="回合數"><button type="button" id="roundPlus" aria-label="增加回合數">+</button><button type="button" id="roundReset" aria-label="重置回合數為0" title="重置回合數為0">↺0</button></div><button type="button" id="nextTurn" class="primary">▶ 下一位</button><button type="button" id="shuffleInitiative">🔀 隨機排序</button><button type="button" id="toggleShuffleMode">🔒 固定順序</button><button type="button" id="toggleAutoScroll">📍 自動捲動：開</button><button type="button" id="toggleJumpTarget" title="切換「下一位」時要跳轉到角色的卡片、還是狀態摘要那一列">🎯 跳轉至：卡片</button><button type="button" id="resetAllTurns">↺ 重置全部回合</button><button type="button" id="toggleInitiative">收合先攻區</button></div></div>
+    <div class="section-head" id="tabSectionInitiative"><h2 class="section-title">🎲 先攻區</h2><div class="section-head-actions"><div class="round-counter"><span class="round-counter-label">回合數</span><button type="button" id="roundMinus" aria-label="減少回合數">−</button><input id="roundValue" class="round-counter-value" type="number" inputmode="numeric" min="0" max="9999" step="1" value="1" aria-label="回合數"><button type="button" id="roundPlus" aria-label="增加回合數">+</button><button type="button" id="roundReset" aria-label="重置回合數為0" title="重置回合數為0">↺0</button></div><button type="button" id="nextTurn" class="primary">▶ 下一位</button><button type="button" id="shuffleInitiative">🔀 隨機排序</button><button type="button" id="toggleShuffleMode">🔒 固定順序</button><button type="button" id="toggleAutoScroll">📍 自動捲動：開</button><button type="button" id="resetAllTurns">↺ 重置全部回合</button><button type="button" id="toggleInitiative">收合先攻區</button></div></div>
     </div>
     <section class="initiative-panel" id="initiativeContent"><div class="initiative-list" id="initiativeList"></div></section>
     <div id="initiativeValuePanel" hidden style="margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)">
@@ -142,8 +142,6 @@
     <div id="absentPlayerBar" class="filter-bar"></div>
     </div>
     <div id="playerContent">
-    <div class="summary-head"><span class="summary-head-title">&#29609;&#23478;&#29376;&#24907;&#25688;&#35201;</span><button type="button" id="togglePlayerSummary">&#25910;&#21512;&#25688;&#35201;</button></div>
-    <div id="playerSummary"></div>
     <section class="grid" id="playerCards"></section>
     </div>
     </div>
@@ -154,7 +152,7 @@
     <div id="monsterInitiativeBar" class="filter-bar initiative-bar"></div>
     <div id="monsterFilterBar" class="filter-bar"></div>
     </div>
-    <div id="monsterContent"><div class="summary-head"><span class="summary-head-title">&#24618;&#29289;&#29376;&#24907;&#25688;&#35201;</span><button type="button" id="toggleMonsterSummary">&#25910;&#21512;&#25688;&#35201;</button></div><div id="monsterSummary"></div><section class="grid" id="monsterCards"></section></div>
+    <div id="monsterContent"><section class="grid" id="monsterCards"></section></div>
     </div>
     <div class="tab-panel" id="tabPanelInfo" data-tab-panel="info" hidden>
     <div class="sticky-wrap" id="stickyWrapInfo">
@@ -318,7 +316,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.06-88';
+    const APP_VERSION='2026.08.07-90';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -632,7 +630,6 @@
     let initiativeValues=(savedCurrentState&&typeof savedCurrentState.initiativeValues==='object'&&savedCurrentState.initiativeValues)?savedCurrentState.initiativeValues:{};
     let initiativeValueDesc=savedCurrentState?.initiativeValueDesc!==false;
     let autoScrollOnNextTurn=savedCurrentState?.autoScrollOnNextTurn!==false;
-    let nextTurnJumpTarget=savedCurrentState?.nextTurnJumpTarget==='summary'?'summary':'card';
     const VALID_TABS=['initiative','player','monster','shop','gm','system','info'];
     let activeTab=VALID_TABS.includes(savedCurrentState?.activeTab)?savedCurrentState.activeTab:'initiative';
     let squads=savedCurrentState?.squads||[];
@@ -903,7 +900,6 @@
     let infoPlayerFilterExpanded=savedCurrentState?.infoPlayerFilterExpanded??true;
     let infoMonsterFilterExpanded=savedCurrentState?.infoMonsterFilterExpanded??true;
     let playerToolbarCollapsed=savedCurrentState?.playerToolbarCollapsed??false,monsterToolbarCollapsed=savedCurrentState?.monsterToolbarCollapsed??false;
-    let playerSummaryExpanded=savedCurrentState?.playerSummaryExpanded??true,monsterSummaryExpanded=savedCurrentState?.monsterSummaryExpanded??true;
     let infoPlayerSummaryExpanded=savedCurrentState?.infoPlayerSummaryExpanded??true,infoMonsterSummaryExpanded=savedCurrentState?.infoMonsterSummaryExpanded??true;
     let playerFilter=new Set(),monsterFilter=new Set();
     let expandedManageIds=new Set();
@@ -1316,7 +1312,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function loadSaveState(state){players=state.players||[];monsters=state.monsters||[];actionTags=state.actionTags||[];statusTemplates=state.statusTemplates||[];monsterTemplates=state.monsterTemplates||[];attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors||[...defaultPalette];initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];cardTiers=state.cardTiers||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:1;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;initiativeMode=['fixed','random','value'].includes(state.initiativeMode)?state.initiativeMode:'fixed';shuffleEachRound=state.shuffleEachRound===true;initiativeValues=(state.initiativeValues&&typeof state.initiativeValues==='object')?state.initiativeValues:{};initiativeValueDesc=state.initiativeValueDesc!==false;combatLog=Array.isArray(state.combatLog)?state.combatLog:[];teamGold=Number.isFinite(state.teamGold)?Math.max(0,Math.floor(state.teamGold)):0;shopCatalog=Array.isArray(state.shopCatalog)?state.shopCatalog:[];shopUnlockedLevels=Array.isArray(state.shopUnlockedLevels)?state.shopUnlockedLevels:[];shopUnlockedLevelCats=Array.isArray(state.shopUnlockedLevelCats)?state.shopUnlockedLevelCats:[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveMemory('battleTrackerCombatLog',combatLog);saveShopData();document.querySelector('#roundValue').value=roundCounter;const descBtn=document.querySelector('#initiativeValueDescToggle');if(descBtn)descBtn.textContent=initiativeValueDesc?'⬇️ 先攻值大的先行動':'⬆️ 先攻值小的先行動';scheduleAutosave()}
     function memoryHtml(unit){const bars=unitTemplateListHtml(unit.id,barTemplates,{addAttr:'bar-template-add',idAttr:'bar-template-id',deleteAttr:'bar-template-delete',emptyText:'&#28961;&#35352;&#25014;&#25976;&#20540;條'});return `<div class="memory-tags"><div class="condition-title">&#24050;&#35352;&#25014;&#25976;&#20540;條</div><div class="saved-status-tags">${bars}</div></div>`}
     let appIsResetting=false;
-    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,infoInitiativeBarExpanded,infoFilterExpanded,infoPlayerFilterExpanded,infoMonsterFilterExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,playerSummaryExpanded,monsterSummaryExpanded,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,nextTurnJumpTarget,squads,activeTab})}
+    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,infoInitiativeBarExpanded,infoFilterExpanded,infoPlayerFilterExpanded,infoMonsterFilterExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,squads,activeTab})}
     let autosaveTimer=null;
     function scheduleAutosave(){
       if(autosaveTimer)clearTimeout(autosaveTimer);
@@ -1607,7 +1603,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const squadIds=new Set(squads.map(s=>s.id));
       const {players,monsters,initiativeOrder}=sanitizePlayersAndMonsters(raw,squadIds);
       const validTurnIds=new Set(initiativeOrder);
-      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,infoInitiativeBarExpanded:raw.infoInitiativeBarExpanded!==false,infoFilterExpanded:raw.infoFilterExpanded===true,infoPlayerFilterExpanded:raw.infoPlayerFilterExpanded!==false,infoMonsterFilterExpanded:raw.infoMonsterFilterExpanded!==false,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,nextTurnJumpTarget:raw.nextTurnJumpTarget==='summary'?'summary':'card',activeTab:VALID_TABS.includes(raw.activeTab)?raw.activeTab:'initiative',squads};
+      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,infoInitiativeBarExpanded:raw.infoInitiativeBarExpanded!==false,infoFilterExpanded:raw.infoFilterExpanded===true,infoPlayerFilterExpanded:raw.infoPlayerFilterExpanded!==false,infoMonsterFilterExpanded:raw.infoMonsterFilterExpanded!==false,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,activeTab:VALID_TABS.includes(raw.activeTab)?raw.activeTab:'initiative',squads};
     }
     function sanitizeSaveFiles(list){
       if(!Array.isArray(list))return[];
@@ -1838,10 +1834,16 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function updateFloatingNextTurnLabel(){
       const btn=document.querySelector('#floatingNextTurn');
       if(!btn)return;
+      // 這顆浮動按鈕只會出現在先攻分頁跟資訊分頁（其他分頁時 hidden），但這兩個
+      // 分頁按下去的實際效果不一樣：先攻分頁會切換捲動到對應的玩家/怪物卡片，
+      // 資訊分頁則是留在原地捲動到對應的狀態摘要列、不切換分頁。提示文字依照
+      // 「目前所在分頁」動態產生對應說明，而不是固定寫死同一句，避免使用者
+      // 誤以為兩個分頁的行為相同。
+      const jumpHint=activeTab==='info'?'\uff08\u7559\u5728\u8cc7\u8a0a\u5206\u9801\uff0c\u6372\u52d5\u5230\u5c0d\u61c9\u7684\u72c0\u614b\u6458\u8981\u5217\uff09':'\uff08\u4e0d\u7528\u6372\u56de\u9802\u7aef\uff0c\u6703\u76f4\u63a5\u6372\u52d5\u5230\u5c0d\u61c9\u5361\u7247\uff09';
       const entries=initiativeEntries();
       if(!entries.length){
         btn.innerHTML='&#9654;&#65039;<br>&#19979;&#19968;&#20301;';
-        btn.title='\u4e0b\u4e00\u4f4d\uff08\u4e0d\u7528\u6372\u56de\u9802\u7aef\uff09';
+        btn.title='\u4e0b\u4e00\u4f4d'+jumpHint;
         return;
       }
       if(currentTurnId===null&&entries.every(e=>entryIsEnded(e))){
@@ -1850,7 +1852,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         // 是隨機排序模式，洗牌要等按下一位當下才會真的發生，這時候先攻順序
         // 還是重置前的舊順序，顯示某個名字反而會誤導使用者。
         btn.innerHTML=`&#9654;&#65039; \u4e0b\u4e00\u4f4d<br><span class="floating-next-turn-hint">\u958b\u59cb\u65b0\u4e00\u8f2a</span>`;
-        btn.title='\u9ede\u4e0b\u53bb\u6703\u6b63\u5f0f\u958b\u59cb\u65b0\u7684\u4e00\u8f2a\uff08\u96a8\u6a5f\u6392\u5e8f\u6a21\u5f0f\u4e0b\u6703\u5728\u9019\u6642\u624d\u6d17\u724c\uff09\uff0c\u4e0d\u7528\u6372\u56de\u9802\u7aef\u3002';
+        btn.title='\u9ede\u4e0b\u53bb\u6703\u6b63\u5f0f\u958b\u59cb\u65b0\u7684\u4e00\u8f2a\uff08\u96a8\u6a5f\u6392\u5e8f\u6a21\u5f0f\u4e0b\u6703\u5728\u9019\u6642\u624d\u6d17\u724c\uff09'+jumpHint;
         return;
       }
       const idx=entries.findIndex(e=>e.id===currentTurnId);
@@ -1870,11 +1872,11 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         // 順序模式下，下一輪第一位可能剛好抽到跟目前完全無關的名字，
         // 更容易讓人搞不清楚「這是這輪的下一位」還是「下一輪的開始」）。
         btn.innerHTML=`&#9654;&#65039; \u4e0b\u4e00\u4f4d<br><span class="floating-next-turn-hint">&#26412;&#36650;&#32080;&#26463;</span>`;
-        btn.title=`\u9019\u662f\u672c\u8f2a\u6700\u5f8c\u4e00\u4f4d\uff0c\u9ede\u4e0b\u53bb\u6703\u958b\u59cb\u65b0\u4e00\u8f2a\uff08\u7b2c\u4e00\u4f4d\uff1a${nextEntry.plainName}\uff09\uff08\u4e0d\u7528\u6372\u56de\u9802\u7aef\uff09`;
+        btn.title=`\u9019\u662f\u672c\u8f2a\u6700\u5f8c\u4e00\u4f4d\uff0c\u9ede\u4e0b\u53bb\u6703\u958b\u59cb\u65b0\u4e00\u8f2a\uff08\u7b2c\u4e00\u4f4d\uff1a${nextEntry.plainName}\uff09`+jumpHint;
         return;
       }
       btn.innerHTML=`&#9654;&#65039; \u4e0b\u4e00\u4f4d<br><span class="floating-next-turn-hint">${escapeHtml(shortName)}</span>`;
-      btn.title=`\u4e0b\u4e00\u4f4d\uff1a${nextEntry.plainName}\uff08\u4e0d\u7528\u6372\u56de\u9802\u7aef\uff09`;
+      btn.title=`\u4e0b\u4e00\u4f4d\uff1a${nextEntry.plainName}`+jumpHint;
     }
     const TAB_PANELS={initiative:'#tabPanelInitiative',player:'#tabPanelPlayer',monster:'#tabPanelMonster',shop:'#tabPanelShop',gm:'#tabPanelGM',system:'#tabPanelSystem',info:'#tabPanelInfo'};
     const TAB_SECTION_TO_TAB={tabSectionInitiative:'initiative',tabSectionPlayer:'player',tabSectionMonster:'monster',tabSectionShop:'shop',tabSectionGM:'gm',tabSectionSystem:'system',tabSectionInfo:'info'};
@@ -2011,8 +2013,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const navFab=document.querySelector('#shopNavFab');
       if(navFab)navFab.style.display=(tab==='shop'||tab==='gm')?'flex':'none';
       const nextTurnBtn=document.querySelector('#floatingNextTurn');
-      if(nextTurnBtn)nextTurnBtn.dataset.tabAllowed=(tab==='initiative'||tab==='player'||tab==='monster'||tab==='info')?'1':'0';
+      if(nextTurnBtn)nextTurnBtn.dataset.tabAllowed=(tab==='initiative'||tab==='info')?'1':'0';
       updateFloatingNextTurnVisibility();
+      updateFloatingNextTurnLabel();
       if(scroll){
         const panel=document.querySelector(TAB_PANELS[tab]);
         if(panel)panel.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'start'});
@@ -2037,8 +2040,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         // 使用者刻意待在資訊分頁操作，不想被跳去卡片畫面——但還是想直觀看到
         // 「換誰了」，所以改成捲動到資訊分頁自己這份狀態摘要裡對應的那一列，
         // 不切分頁、也不去動玩家/怪物分頁各自的篩選/展開狀態（那些跟資訊
-        // 分頁無關）。用 #infoContent 限定範圍，避免不小心抓到玩家/怪物分頁
-        // 裡（目前隱藏著）也有同一個id的摘要列。
+        // 分頁無關）。玩家/怪物分頁本身已經沒有狀態摘要了，摘要列只存在於
+        // 資訊分頁，但還是用 #infoContent 限定查詢範圍，讓這段程式碼本身的
+        // 意圖清楚、不必依賴「別的分頁沒有同id元素」這個外部前提。
         let infoNeedsRerender=false;
         if(unit.type==='player'&&!infoPlayerSummaryExpanded){
           infoPlayerSummaryExpanded=true;
@@ -2063,12 +2067,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         setActiveTab('player',{scroll:false});
         if(!playersExpanded){playersExpanded=true;document.querySelector('#playerContent').hidden=false;document.querySelector('#togglePlayers').textContent='\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a';needsRerender=true}
         if(playerFilter.size&&!playerFilter.has(targetUnitId)){playerFilter.clear();needsRerender=true}
-        if(nextTurnJumpTarget==='summary'&&!playerSummaryExpanded){playerSummaryExpanded=true;document.querySelector('#playerSummary').hidden=false;document.querySelector('#togglePlayerSummary').textContent='\u6536\u5408\u6458\u8981';needsRerender=true}
       }else{
         setActiveTab('monster',{scroll:false});
         if(!monstersExpanded){monstersExpanded=true;document.querySelector('#monsterContent').hidden=false;document.querySelector('#toggleMonsters').textContent='\u6536\u5408\u602a\u7269\u8cc7\u8a0a';needsRerender=true}
         if(monsterFilter.size&&!monsterFilter.has(targetUnitId)){monsterFilter.clear();needsRerender=true}
-        if(nextTurnJumpTarget==='summary'&&!monsterSummaryExpanded){monsterSummaryExpanded=true;document.querySelector('#monsterSummary').hidden=false;document.querySelector('#toggleMonsterSummary').textContent='\u6536\u5408\u6458\u8981';needsRerender=true}
       }
       if(needsRerender){scheduleAutosave();render()}
       // 原本用原生 scrollIntoView(block:'center') 置中卡片，但這個做法不知道
@@ -2078,8 +2080,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       // 用即時量測置頂列目前實際高度的精準捲動方式。
       const stickySelector=unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster';
       requestAnimationFrame(()=>{
-        const targetSelector=nextTurnJumpTarget==='summary'?`.summary-row[data-summary-jump="${targetUnitId}"]`:`.card[data-card-id="${targetUnitId}"]`;
-        const target=document.querySelector(targetSelector);
+        const target=document.querySelector(`.card[data-card-id="${targetUnitId}"]`);
         if(target)scrollToBelowStickyHeader(target,stickySelector);
       });
     }
@@ -2213,8 +2214,6 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     let absentListExpanded=false;
     let lastMonsterFilterSig=null;
     let lastInfoFilterSig=null;
-    let lastPlayerSummarySig=null;
-    let lastMonsterSummarySig=null;
     const cardSigCache=new Map();
     let cachedMiniPaletteHtml=null;
     let cachedMiniPaletteSig=null;
@@ -2304,16 +2303,6 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const infoFilterSection=document.querySelector('#infoFilterSection');
         if(infoFilterSection)infoFilterSection.innerHTML=infoFilterSectionHtml();
         lastInfoFilterSig=infoFilterSig;
-      }
-      const playerSummarySig=unitsSig(visiblePlayers)+'|'+currentTurnId;
-      if(playerSummarySig!==lastPlayerSummarySig){
-        document.querySelector('#playerSummary').innerHTML=summaryTableHtml(visiblePlayers);
-        lastPlayerSummarySig=playerSummarySig;
-      }
-      const monsterSummarySig=unitsSig(visibleMonsters)+'|'+currentTurnId;
-      if(monsterSummarySig!==lastMonsterSummarySig){
-        document.querySelector('#monsterSummary').innerHTML=summaryTableHtml(visibleMonsters);
-        lastMonsterSummarySig=monsterSummarySig;
       }
       const actionTagsSig=JSON.stringify(actionTags);
       if(actionTagsSig!==lastActionTagsSig){
@@ -3550,9 +3539,15 @@ function adjustUnitHp(unit,action,amount){
       const btn=document.querySelector('#toggleAutoScroll');
       btn.textContent=autoScrollOnNextTurn?'📍 自動捲動：開':'📍 自動捲動：關';
       btn.classList.toggle('good',autoScrollOnNextTurn);
-      btn.title=autoScrollOnNextTurn?'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u6642\u6703\u81ea\u52d5\u6372\u52d5\u5230\u5c0d\u61c9\u5361\u7247\u3002\u9ede\u64ca\u5207\u63db\u70ba\u4e0d\u81ea\u52d5\u6372\u52d5\u3002':'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u4e0d\u6703\u81ea\u52d5\u6372\u52d5\u756b\u9762\u3002\u9ede\u64ca\u5207\u63db\u70ba\u81ea\u52d5\u6372\u52d5\u5230\u5c0d\u61c9\u5361\u7247\u3002';
+      // 這個開關是全域設定，不是只影響先攻分頁本身——按下一位時的自動捲動，
+      // 在先攻分頁（含浮動按鈕）是切去對應的玩家/怪物卡片，但如果人是待在
+      // 資訊分頁按（浮動按鈕），則是留在原地捲動到狀態摘要列，不會切分頁。
+      // 這顆按鈕固定顯示在先攻分頁裡，使用者不會同時在資訊分頁看到它，所以
+      // 提示文字乾脆把兩種情況都講清楚，而不是只依「目前分頁」動態顯示其中一種。
+      btn.title=autoScrollOnNextTurn?'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u6642\u6703\u81ea\u52d5\u6372\u52d5\u2014\u2014\u5728\u5148\u653b\u5206\u9801\u6703\u5207\u63db\u5230\u5c0d\u61c9\u7684\u73a9\u5bb6\uff0f\u602a\u7269\u5361\u7247\uff0c\u5728\u8cc7\u8a0a\u5206\u9801\u5247\u6703\u7559\u5728\u539f\u5730\u6372\u52d5\u5230\u5c0d\u61c9\u7684\u72c0\u614b\u6458\u8981\u5217\u3002\u9ede\u64ca\u5207\u63db\u70ba\u4e0d\u81ea\u52d5\u6372\u52d5\u3002':'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u4e0d\u6703\u81ea\u52d5\u6372\u52d5\u756b\u9762\u3002\u9ede\u64ca\u5207\u63db\u70ba\u81ea\u52d5\u6372\u52d5\uff08\u5148\u653b\u5206\u9801\u6372\u5230\u5361\u7247\uff0c\u8cc7\u8a0a\u5206\u9801\u6372\u5230\u72c0\u614b\u6458\u8981\u5217\uff09\u3002';
       document.querySelector('#floatingNextTurn').dataset.autoScrollOn=autoScrollOnNextTurn?'1':'0';
       updateFloatingNextTurnVisibility();
+      updateFloatingNextTurnLabel();
     }
     function updateFloatingNextTurnVisibility(){
       const btn=document.querySelector('#floatingNextTurn');
@@ -3563,14 +3558,6 @@ function adjustUnitHp(unit,action,amount){
     }
     document.querySelector('#toggleAutoScroll').addEventListener('click',()=>{autoScrollOnNextTurn=!autoScrollOnNextTurn;updateAutoScrollButton();scheduleAutosave()});
     updateAutoScrollButton();
-    function updateJumpTargetButton(){
-      const btn=document.querySelector('#toggleJumpTarget');
-      if(!btn)return;
-      btn.textContent=nextTurnJumpTarget==='summary'?'🎯 跳轉至：摘要':'🎯 跳轉至：卡片';
-      btn.title=nextTurnJumpTarget==='summary'?'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u6642\u6703\u8df3\u5230\u72c0\u614b\u6458\u8981\u90a3\u4e00\u5217\u3002\u9ede\u64ca\u5207\u63db\u70ba\u8df3\u5230\u5361\u7247\u3002':'\u76ee\u524d\uff1a\u6309\u4e0b\u4e00\u4f4d\u6642\u6703\u8df3\u5230\u89d2\u8272\u7684\u5361\u7247\u3002\u9ede\u64ca\u5207\u63db\u70ba\u8df3\u5230\u72c0\u614b\u6458\u8981\u90a3\u4e00\u5217\u3002';
-    }
-    document.querySelector('#toggleJumpTarget').addEventListener('click',()=>{nextTurnJumpTarget=nextTurnJumpTarget==='summary'?'card':'summary';updateJumpTargetButton();scheduleAutosave()});
-    updateJumpTargetButton();
     document.querySelector('#toggleInitiative').addEventListener('click',()=>{initiativeExpanded=!initiativeExpanded;document.querySelector('#initiativeContent').hidden=!initiativeExpanded;document.querySelector('#toggleInitiative').textContent=initiativeExpanded?'收合先攻區':'展開先攻區';scheduleAutosave()});
     let storageCleanupExpanded=false;
     document.querySelector('#toggleStorageCleanup').addEventListener('click',()=>{
@@ -3706,18 +3693,12 @@ function adjustUnitHp(unit,action,amount){
     document.querySelector('#togglePlayerToolbar').addEventListener('click',()=>{playerToolbarCollapsed=!playerToolbarCollapsed;applyToolbarCollapsed();scheduleAutosave()});
     document.querySelector('#toggleMonsterToolbar').addEventListener('click',()=>{monsterToolbarCollapsed=!monsterToolbarCollapsed;applyToolbarCollapsed();scheduleAutosave()});
     applyToolbarCollapsed();
-    document.querySelector('#togglePlayerSummary').addEventListener('click',()=>{playerSummaryExpanded=!playerSummaryExpanded;document.querySelector('#playerSummary').hidden=!playerSummaryExpanded;document.querySelector('#togglePlayerSummary').textContent=playerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
-    document.querySelector('#toggleMonsterSummary').addEventListener('click',()=>{monsterSummaryExpanded=!monsterSummaryExpanded;document.querySelector('#monsterSummary').hidden=!monsterSummaryExpanded;document.querySelector('#toggleMonsterSummary').textContent=monsterSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
     document.querySelector('#toggleInfoPlayerSummary').addEventListener('click',()=>{infoPlayerSummaryExpanded=!infoPlayerSummaryExpanded;document.querySelector('#infoPlayerSummary').hidden=!infoPlayerSummaryExpanded;document.querySelector('#toggleInfoPlayerSummary').textContent=infoPlayerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
     document.querySelector('#toggleInfoMonsterSummary').addEventListener('click',()=>{infoMonsterSummaryExpanded=!infoMonsterSummaryExpanded;document.querySelector('#infoMonsterSummary').hidden=!infoMonsterSummaryExpanded;document.querySelector('#toggleInfoMonsterSummary').textContent=infoMonsterSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';scheduleAutosave()});
     document.querySelector('#playerContent').hidden=!playersExpanded;
     document.querySelector('#togglePlayers').textContent=playersExpanded?'\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a':'\u5c55\u958b\u73a9\u5bb6\u8cc7\u8a0a';
     document.querySelector('#monsterContent').hidden=!monstersExpanded;
     document.querySelector('#toggleMonsters').textContent=monstersExpanded?'\u6536\u5408\u602a\u7269\u8cc7\u8a0a':'\u5c55\u958b\u602a\u7269\u8cc7\u8a0a';
-    document.querySelector('#playerSummary').hidden=!playerSummaryExpanded;
-    document.querySelector('#togglePlayerSummary').textContent=playerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
-    document.querySelector('#monsterSummary').hidden=!monsterSummaryExpanded;
-    document.querySelector('#toggleMonsterSummary').textContent=monsterSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
     document.querySelector('#infoPlayerSummary').hidden=!infoPlayerSummaryExpanded;
     document.querySelector('#toggleInfoPlayerSummary').textContent=infoPlayerSummaryExpanded?'\u6536\u5408\u6458\u8981':'\u5c55\u958b\u6458\u8981';
     document.querySelector('#infoMonsterSummary').hidden=!infoMonsterSummaryExpanded;
