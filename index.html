@@ -93,7 +93,7 @@
     .shop-picker-list{display:flex;flex-wrap:wrap;gap:8px}
     .shop-picker-btn{background:var(--btn-bg);border:1px solid var(--line);color:var(--text);font-size:.85rem;padding:12px 16px;border-radius:10px}
     .shop-hint{font-size:.82rem;color:var(--muted);line-height:1.5}
-    .sticky-wrap{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:4px;max-height:42dvh;overflow-y:auto}
+    .sticky-wrap{position:sticky;top:0;z-index:36;background:var(--bg);padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:4px}.sticky-wrap-scroll{max-height:42dvh;overflow-y:auto}
     .toolbar-collapsed .section-head-actions,.toolbar-collapsed #actionPanelAnchorPlayer,.toolbar-collapsed #actionPanelAnchorMonster,.toolbar-collapsed .filter-bar{display:none}
     .toolbar-collapse-btn{padding:8px 10px;font-size:.85rem}
     #batchDeleteRow{display:flex}
@@ -101,7 +101,7 @@
     #btnOpenMonsterTagLibrary{position:sticky;top:0;z-index:40}
     .shop-sticky-top{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15)}
     @media(max-width:599px),(max-height:480px){body{padding:16px calc(8px + env(safe-area-inset-right)) 16px calc(8px + env(safe-area-inset-left));padding-bottom:calc(76px + env(safe-area-inset-bottom))}.sticky-wrap{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(6px + env(safe-area-inset-top)) 0 6px}.section-head{margin:12px 0 8px;gap:8px}.section-title{font-size:1rem}.section-head-actions{gap:4px;flex-wrap:wrap}.section-head-actions button{padding:6px 8px;font-size:.75rem;white-space:nowrap}.round-counter{gap:4px;padding:3px 4px}.round-counter-label{font-size:.7rem;padding-left:2px}.round-counter button{width:32px;height:32px;font-size:.9rem}.round-counter-value{width:2.4em;font-size:.85rem;padding:4px 1px}.round-counter button#roundReset{padding:0 6px;font-size:.7rem;height:32px}.initiative-tag{padding:4px 6px 4px 9px;font-size:.8rem;gap:4px}.initiative-order{font-size:.75rem}.initiative-move{padding:4px 8px;font-size:.75rem}.initiative-rename{padding:4px 8px;font-size:.75rem}.initiative-turn-toggle{padding:4px 8px;font-size:.75rem}.summary-head{gap:6px;margin:0 0 6px}.summary-head-title{font-size:.75rem}.summary-head button{padding:4px 6px;font-size:.7rem}.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}.card{padding:12px}.head h2{font-size:.95rem;gap:6px}.unit-color-picker{width:28px;height:28px}.title-attributes .attribute{font-size:.7rem;padding:2px 4px}.title-attributes .attribute input{width:46px;padding:1px;font-weight:700;font-size:.85rem}.title-passives{gap:4px}.passive{font-size:.7rem;padding:2px 6px;max-width:200px}.passives-section{margin-top:10px;padding-top:10px}.passive-form{gap:5px;margin-top:6px}.passive-form input[name=passiveName]{min-width:120px}.title-status .condition{font-size:.7rem;padding:2px 4px}.hp{font-size:.8rem}.hp-inline input{width:48px;padding:3px 2px;font-size:.8rem}.unit-name-input{min-width:60px;max-width:200px;font-size:.9rem}.bar{height:16px;margin:12px 0 6px}.bar-drag-badge{font-size:.85rem;padding:4px 10px}.status{font-size:.8rem;min-height:20px}.attributes{margin-top:10px;padding-top:10px}.attribute-list{gap:5px;margin-bottom:6px}.attribute{font-size:.7rem;padding:3px 5px}.attribute .attr-color-picker{width:12px;height:12px}.passive .passive-color-picker{width:12px;height:12px}.attribute input{width:56px;padding:2px;font-weight:700;font-size:.85rem}.attribute-form{gap:5px}.attribute-form input{min-width:90px;font-size:.75rem}.manage-toggle{margin-top:10px;font-size:.75rem;padding:6px 8px}.summary-table{margin-bottom:12px;gap:6px}.summary-row{padding:8px;gap:6px}.summary-line-1{gap:6px}.summary-name{font-size:.9rem;gap:5px}.summary-dot{width:10px;height:10px}.summary-line-2{width:100%}.summary-hp-cell{gap:6px}.summary-bar{height:10px}.summary-hp-text{font-size:.75rem}.summary-line-3,.summary-line-4{gap:4px}.summary-status .condition{padding:2px 6px;font-size:.75rem}.summary-status .passive{font-size:.75rem;padding:2px 6px}.summary-status .attribute{font-size:.75rem;padding:2px 6px}.summary-turn-toggle{padding:4px 8px;font-size:.75rem;margin-left:2px}.toolbar{gap:6px;margin-bottom:16px}.toolbar button{padding:6px 8px;font-size:.75rem}.add-form{margin:16px auto 14px;gap:6px}.add-form input{min-width:120px;font-size:.8rem;padding:6px 8px}.add-form input[type=number]{flex:0 1 90px;font-size:.8rem}.tag-list{gap:6px;margin-bottom:8px}.tag{padding:4px 8px;font-size:.75rem}.tag-delete{padding:4px 6px;font-size:.75rem}.action-panel,.save-panel{margin:0 0 12px;padding:10px;font-size:.8rem}.save-list{gap:5px;margin-top:8px}.save-item{gap:3px;padding:3px 3px 3px 6px}.save-item-load{padding:6px 2px;max-width:140px;font-size:.75rem}.save-item-meta{font-size:.65rem}.save-item-export{padding:4px 6px;font-size:.9rem}.theme-switch{gap:4px;margin:0 0 12px}.theme-switch button{padding:4px 10px;font-size:.75rem}.filter-bar{gap:6px;margin:8px 0;font-size:.75rem}.filter-label{font-size:.7rem}.initiative-bar-item{padding:3px 7px;font-size:.72rem;gap:3px}.batch-actions{gap:4px;padding-left:6px;margin-left:2px}.batch-amount{width:48px;padding:3px 2px;font-size:.75rem}.tag-form,.quick-monster,.save-form{gap:6px}.tag-form input,.save-form input{min-width:120px;font-size:.75rem;padding:6px 8px}.quick-monster select{min-width:160px;font-size:.75rem;padding:6px 8px}.initiative-panel{margin:0 0 16px;padding:10px}.initiative-list{gap:6px}.initiative-rename{padding:4px 8px;font-size:.75rem}.palette-controls{gap:6px}.color-palette{gap:4px}.swatch{width:28px;height:28px}.swatch-delete{padding:4px 6px;font-size:.75rem}.threshold-block{margin-top:10px;padding-top:10px}.threshold-title{font-size:.8rem;margin-bottom:5px}.threshold-list{gap:5px;margin-bottom:6px}.summary-custom-bar{gap:4px;padding:2px 6px;font-size:.75rem}.summary-custom-bar-label{font-size:.7rem}.summary-custom-bar-value{font-size:.7rem}.summary-custom-bar-track{height:8px}.summary-custom-bar-fill{height:100%}}
-    @media(max-height:500px) and (orientation:landscape){.toolbar{gap:4px;margin-bottom:6px}.toolbar button{padding:4px 6px;font-size:.7rem}#combatSharedPanel .action-panel{margin:0 0 6px}.section-head{margin:4px 0 4px;gap:4px}.section-title{font-size:.85rem}.section-head-actions{gap:3px}.section-head-actions button{padding:3px 6px;font-size:.7rem}.round-counter{gap:2px;padding:2px 3px}.round-counter-label{font-size:.6rem;padding-left:1px}.round-counter button{width:24px;height:24px;font-size:.75rem}.round-counter-value{width:2em;font-size:.7rem;padding:2px 1px}.round-counter button#roundReset{padding:0 4px;font-size:.6rem;height:24px}.sticky-wrap{padding-top:calc(3px + env(safe-area-inset-top));padding-bottom:2px;max-height:42dvh;overflow-y:auto}.action-panel,.save-panel{margin:0 0 6px;padding:6px;font-size:.7rem}.tag{padding:2px 6px;font-size:.65rem}.tag-delete{padding:2px 4px;font-size:.65rem}.tag-form input{min-width:80px;font-size:.65rem;padding:4px 6px}.summary-head{gap:6px;margin:0 0 4px}.summary-head-title{font-size:.7rem}.summary-head button{padding:3px 6px;font-size:.65rem}}
+    @media(max-height:500px) and (orientation:landscape){.toolbar{gap:4px;margin-bottom:6px}.toolbar button{padding:4px 6px;font-size:.7rem}#combatSharedPanel .action-panel{margin:0 0 6px}.section-head{margin:4px 0 4px;gap:4px}.section-title{font-size:.85rem}.section-head-actions{gap:3px}.section-head-actions button{padding:3px 6px;font-size:.7rem}.round-counter{gap:2px;padding:2px 3px}.round-counter-label{font-size:.6rem;padding-left:1px}.round-counter button{width:24px;height:24px;font-size:.75rem}.round-counter-value{width:2em;font-size:.7rem;padding:2px 1px}.round-counter button#roundReset{padding:0 4px;font-size:.6rem;height:24px}.sticky-wrap{padding-top:calc(3px + env(safe-area-inset-top));padding-bottom:2px}.sticky-wrap-scroll{max-height:42dvh;overflow-y:auto}.action-panel,.save-panel{margin:0 0 6px;padding:6px;font-size:.7rem}.tag{padding:2px 6px;font-size:.65rem}.tag-delete{padding:2px 4px;font-size:.65rem}.tag-form input{min-width:80px;font-size:.65rem;padding:4px 6px}.summary-head{gap:6px;margin:0 0 4px}.summary-head-title{font-size:.7rem}.summary-head button{padding:3px 6px;font-size:.65rem}}
   </style>
 </head>
 <body>
@@ -120,7 +120,9 @@
     </div>
     <div class="tab-panel" id="tabPanelInitiative" data-tab-panel="initiative">
     <div class="sticky-wrap" id="stickyWrapInitiative">
+    <div class="sticky-wrap-pinned" id="stickyPinnedInitiative">
     <div class="section-head" id="tabSectionInitiative"><h2 class="section-title">🎲 先攻區</h2><div class="section-head-actions"><div class="round-counter"><span class="round-counter-label">回合數</span><button type="button" id="roundMinus" aria-label="減少回合數">−</button><input id="roundValue" class="round-counter-value" type="number" inputmode="numeric" min="0" max="9999" step="1" value="1" aria-label="回合數"><button type="button" id="roundPlus" aria-label="增加回合數">+</button><button type="button" id="roundReset" aria-label="重置回合數為0" title="重置回合數為0">↺0</button></div><button type="button" id="nextTurn" class="primary">▶ 下一位</button><button type="button" id="shuffleInitiative">🔀 隨機排序</button><button type="button" id="toggleShuffleMode">🔒 固定順序</button><button type="button" id="toggleAutoScroll">📍 自動捲動：開</button><button type="button" id="resetAllTurns">↺ 重置全部回合</button><button type="button" id="toggleInitiative">收合先攻區</button></div></div>
+    </div>
     </div>
     <section class="initiative-panel" id="initiativeContent"><div class="initiative-list" id="initiativeList"></div></section>
     <div id="initiativeValuePanel" hidden style="margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)">
@@ -134,11 +136,15 @@
     </div>
     <div class="tab-panel" id="tabPanelPlayer" data-tab-panel="player">
     <div class="sticky-wrap" id="stickyWrapPlayer">
+    <div class="sticky-wrap-pinned" id="stickyPinnedPlayer">
     <div class="section-head" id="tabSectionPlayer"><h2 class="section-title">&#128737;&#65039; &#29609;&#23478;&#36039;&#35338;</h2><div class="section-head-actions"><button type="button" class="danger" id="resetPlayerHpStatus">&#8635; &#37325;&#32622;&#34880;&#37327;&#33287;&#29376;&#24907;</button><button type="button" id="resetPlayerTurns">&#37325;&#32622;&#29609;&#23478;&#22238;&#21512;</button><button type="button" id="togglePlayers">&#25910;&#21512;&#29609;&#23478;&#36039;&#35338;</button></div><button type="button" class="toolbar-collapse-btn" id="togglePlayerToolbar">&#25910;&#21512;&#21151;&#33021;&#21015;</button></div>
+    </div>
+    <div class="sticky-wrap-scroll">
     <div id="actionPanelAnchorPlayer"></div>
     <div id="playerInitiativeBar" class="filter-bar initiative-bar"></div>
     <div id="playerFilterBar" class="filter-bar"></div>
     <div id="absentPlayerBar" class="filter-bar"></div>
+    </div>
     </div>
     <div id="playerContent">
     <section class="grid" id="playerCards"></section>
@@ -146,19 +152,27 @@
     </div>
     <div class="tab-panel" id="tabPanelMonster" data-tab-panel="monster">
     <div class="sticky-wrap" id="stickyWrapMonster">
+    <div class="sticky-wrap-pinned" id="stickyPinnedMonster">
     <div class="section-head" id="tabSectionMonster"><h2 class="section-title">&#128126; &#24618;&#29289;&#36039;&#35338;</h2><div class="section-head-actions"><button type="button" id="resetMonsterTurns">&#37325;&#32622;&#24618;&#29289;&#22238;&#21512;</button><button type="button" class="danger" id="clearAllMonsters">&#128465;&#65039; &#28165;&#31354;&#25152;&#26377;&#24618;&#29289;</button><button type="button" id="toggleMonsters">&#25910;&#21512;&#24618;&#29289;&#36039;&#35338;</button></div><button type="button" class="toolbar-collapse-btn" id="toggleMonsterToolbar">&#25910;&#21512;&#21151;&#33021;&#21015;</button></div>
+    </div>
+    <div class="sticky-wrap-scroll">
     <div id="actionPanelAnchorMonster"></div>
     <div id="monsterInitiativeBar" class="filter-bar initiative-bar"></div>
     <div id="monsterFilterBar" class="filter-bar"></div>
+    </div>
     </div>
     <div id="monsterContent"><section class="grid" id="monsterCards"></section></div>
     </div>
     <div class="tab-panel" id="tabPanelInfo" data-tab-panel="info" hidden>
     <div class="sticky-wrap" id="stickyWrapInfo">
+    <div class="sticky-wrap-pinned" id="stickyPinnedInfo">
     <div class="section-head" id="tabSectionInfo"><h2 class="section-title">📋 資訊總覽</h2><button type="button" id="floatingNextTurn" class="primary" style="margin-left:auto" title="下一位">▶️ 下一位</button></div>
+    </div>
+    <div class="sticky-wrap-scroll">
     <div id="actionPanelAnchorInfo"></div>
     <div id="infoInitiativeBar" class="filter-bar initiative-bar"></div>
     <div id="infoFilterSection"></div>
+    </div>
     </div>
     <div id="infoContent">
       <div class="summary-head"><span class="summary-head-title">🛡️ 玩家狀態摘要</span><button type="button" id="toggleInfoPlayerSummary">收合摘要</button></div>
@@ -315,7 +329,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-105';
+    const APP_VERSION='2026.08.07-106';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1904,13 +1918,17 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(anchor&&block&&anchor.nextElementSibling!==block)anchor.after(block);
     }
     const STICKY_WRAPS={initiative:'#stickyWrapInitiative',player:'#stickyWrapPlayer',monster:'#stickyWrapMonster',info:'#stickyWrapInfo'};
+    const STICKY_PINNED={initiative:'#stickyPinnedInitiative',player:'#stickyPinnedPlayer',monster:'#stickyPinnedMonster',info:'#stickyPinnedInfo'};
     function positionCombatSharedPanel(tab){
-      const wrapSelector=STICKY_WRAPS[tab];
+      const pinnedSelector=STICKY_PINNED[tab];
       const panel=document.querySelector('#combatSharedPanel');
       if(!panel)return;
-      if(!wrapSelector)return; // 商店/GM/系統分頁：面板本身會被設成hidden，留在原位置即可
-      const wrap=document.querySelector(wrapSelector);
-      if(wrap&&wrap.firstElementChild!==panel)wrap.prepend(panel);
+      if(!pinnedSelector)return; // 商店/GM/系統分頁：面板本身會被設成hidden，留在原位置即可
+      const pinned=document.querySelector(pinnedSelector);
+      // 固定放進「置頂區塊裡不會被內部捲動吃掉」的那個子容器，而不是整個
+      // .sticky-wrap——這樣裡面的「回目前角色」按鈕、返回上一步/下一步等，
+      // 才不會在使用者往下捲動查看篩選清單時被一起捲出畫面。
+      if(pinned&&pinned.firstElementChild!==panel)pinned.prepend(panel);
     }
     // 「收合功能列」按鈕，原本固定寫在各分頁自己的標題區塊裡，跟「返回上一步/
     // 下一步/標籤庫/行動標籤」那排（屬於會在分頁間搬動的共用面板）是分開的
