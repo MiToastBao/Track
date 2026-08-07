@@ -317,7 +317,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.01-70';
+    const APP_VERSION='2026.08.06-73';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -501,11 +501,19 @@
       try{
         if('serviceWorker' in navigator){
           const regs=await navigator.serviceWorker.getRegistrations();
-          for(const r of regs)await r.unregister();
+          // 只解除註冊「屬於這個App自己」的Service Worker，不要因為同一個網域
+          // 底下可能還有其他PWA或子路徑應用，就把它們的註冊也一起解除掉。
+          const myScope=new URL('.',location.href).href;
+          for(const r of regs){
+            if(r.scope===myScope||r.scope.startsWith(myScope))await r.unregister();
+          }
         }
         if(window.caches){
           const names=await caches.keys();
-          await Promise.all(names.map(n=>caches.delete(n)));
+          // 同樣只刪除這個App自己的快取（固定用battle-tracker-開頭命名），
+          // 避免波及同一個origin底下其他應用可能存在的快取資料。
+          const myNames=names.filter(n=>n.startsWith('battle-tracker-'));
+          await Promise.all(myNames.map(n=>caches.delete(n)));
         }
       }catch(e){}
       location.replace(url);
@@ -532,10 +540,24 @@
       try{
         let data;
         try{ data=await fetchVersionJson(); }
-        catch(e){ data=await fetchVersionJson(); } // Safari 有時第一次仍拿到快取，重試一次
+        catch(e){
+          // Safari 有時第一次仍拿到快取，重試一次；加上短暫延遲退避，
+          // 避免離線或訊號差時，兩次請求幾乎同時失敗、白白浪費一次
+          // 請求還讓使用者多等一下。
+          await new Promise(r=>setTimeout(r,300));
+          data=await fetchVersionJson();
+        }
         latestKnownVersion=data.version;
         updateAppVersionLabel();
         if(data.version!==APP_VERSION){
+          // 這個不一致，正是先前實際發生過的問題根源：發布新版本時，
+          // index.html裡的APP_VERSION、version.json、Service Worker註冊網址
+          // 的?v=參數，理論上要三個一起同步改掉，只要漏改其中一個，就會出現
+          // 「一直跳出更新提示、但重新整理也沒有用」這種讓人摸不著頭緒的
+          // 症狀。加上這行Console警告，下次再發生版本沒同步好的情況，
+          // 打開開發者工具就能第一時間看到清楚的數字對照，不用像上次一樣
+          // 要繞一大圈才追出真正原因。
+          console.warn(`[版本不一致] index.html 記錄的版本是 "${APP_VERSION}"，但 version.json 記錄的是 "${data.version}"——發布新版本時，這兩個地方（以及 Service Worker 註冊網址的 ?v= 參數）需要同步更新，只改其中一個會導致更新提示一直出現、卻怎麼重新整理都沒用。`);
           showUpdateBanner();
           return true;
         }else if(showResultAlert){
@@ -579,10 +601,10 @@
     const defaultPlayers=()=>[{id:uuid(),name:'\u73a9\u5bb6 1',hp:100,maxHp:100,type:'player',color:'#36a9ff',statuses:[],attributes:[],bars:[],passives:[],turnEnded:false}];
     const defaultMonsters=()=>[{id:uuid(),name:'\u706b\u7130\u53f2\u840a\u59c6',hp:80,maxHp:100,type:'monster',color:'#ff5b6d',statuses:[],attributes:[],bars:[],passives:[],turnEnded:false},{id:uuid(),name:'\u68ee\u6797\u72fc',hp:55,maxHp:80,type:'monster',color:'#b178ff',statuses:[],attributes:[],bars:[],passives:[],turnEnded:false}];
     const defaultActionTags=()=>[{id:uuid(),name:'\u653b\u64ca',active:true},{id:uuid(),name:'\u79fb\u52d5',active:true},{id:uuid(),name:'\u4f7f\u7528\u7269\u54c1',active:true}];
-    let players=savedCurrentState?.players||defaultPlayers();
-    let monsters=savedCurrentState?.monsters||defaultMonsters();
-    let actionTags=savedCurrentState?.actionTags||defaultActionTags();
-    let initiativeOrder=savedCurrentState?.initiativeOrder||[...players,...monsters].map(u=>u.id);
+    let players=Array.isArray(savedCurrentState?.players)?savedCurrentState.players:defaultPlayers();
+    let monsters=Array.isArray(savedCurrentState?.monsters)?savedCurrentState.monsters:defaultMonsters();
+    let actionTags=Array.isArray(savedCurrentState?.actionTags)?savedCurrentState.actionTags:defaultActionTags();
+    let initiativeOrder=Array.isArray(savedCurrentState?.initiativeOrder)?savedCurrentState.initiativeOrder:[...players,...monsters].map(u=>u.id);
     let initiativeExpanded=savedCurrentState?.initiativeExpanded??true;
     let roundCounter=savedCurrentState?.roundCounter??1;
     let currentTurnId=typeof savedCurrentState?.currentTurnId==='string'?savedCurrentState.currentTurnId:null;
@@ -1270,7 +1292,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function loadSaveState(state){players=state.players||[];monsters=state.monsters||[];actionTags=state.actionTags||[];statusTemplates=state.statusTemplates||[];monsterTemplates=state.monsterTemplates||[];attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors||[...defaultPalette];initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];cardTiers=state.cardTiers||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:1;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;initiativeMode=['fixed','random','value'].includes(state.initiativeMode)?state.initiativeMode:'fixed';shuffleEachRound=state.shuffleEachRound===true;initiativeValues=(state.initiativeValues&&typeof state.initiativeValues==='object')?state.initiativeValues:{};initiativeValueDesc=state.initiativeValueDesc!==false;combatLog=Array.isArray(state.combatLog)?state.combatLog:[];teamGold=Number.isFinite(state.teamGold)?Math.max(0,Math.floor(state.teamGold)):0;shopCatalog=Array.isArray(state.shopCatalog)?state.shopCatalog:[];shopUnlockedLevels=Array.isArray(state.shopUnlockedLevels)?state.shopUnlockedLevels:[];shopUnlockedLevelCats=Array.isArray(state.shopUnlockedLevelCats)?state.shopUnlockedLevelCats:[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveMemory('battleTrackerCombatLog',combatLog);saveShopData();document.querySelector('#roundValue').value=roundCounter;const descBtn=document.querySelector('#initiativeValueDescToggle');if(descBtn)descBtn.textContent=initiativeValueDesc?'⬇️ 先攻值大的先行動':'⬆️ 先攻值小的先行動';scheduleAutosave()}
     function memoryHtml(unit){const bars=unitTemplateListHtml(unit.id,barTemplates,{addAttr:'bar-template-add',idAttr:'bar-template-id',deleteAttr:'bar-template-delete',emptyText:'&#28961;&#35352;&#25014;&#25976;&#20540;條'});return `<div class="memory-tags"><div class="condition-title">&#24050;&#35352;&#25014;&#25976;&#20540;條</div><div class="saved-status-tags">${bars}</div></div>`}
     let appIsResetting=false;
-    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,playerSummaryExpanded,monsterSummaryExpanded,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,nextTurnJumpTarget,squads,activeTab})}
+    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,infoInitiativeBarExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,playerSummaryExpanded,monsterSummaryExpanded,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,nextTurnJumpTarget,squads,activeTab})}
     let autosaveTimer=null;
     function scheduleAutosave(){
       if(autosaveTimer)clearTimeout(autosaveTimer);
@@ -1535,8 +1557,18 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       monsters.forEach(m=>{if(m.squadId&&!squadIds.has(m.squadId))delete m.squadId});
       const validIds=new Set([...players,...monsters].map(u=>u.id));
       squadIds.forEach(id=>validIds.add('squad:'+id));
+      // 頭目/召喚物如果有設定多張先攻卡，先攻順序清單裡存的是每一張卡自己的
+      // id（格式是「card:單位id:卡片id」），不是單位本身的id——如果沒有把
+      // 這些也加進合法id集合，匯入備份時，initiativeOrder過濾合法性的那一步
+      // 就會把這些card:開頭的項目全部判定成不合法濾掉，原本手動調整過的
+      // 先攻卡順序、跟目前回合是卡在哪一張卡，就這樣憑空消失了。
+      [...players,...monsters].forEach(u=>{
+        if((u.isBoss||u.isSummon)&&Array.isArray(u.actionCards)){
+          u.actionCards.forEach(c=>validIds.add(`card:${u.id}:${c.id}`));
+        }
+      });
       let initiativeOrder=Array.isArray(raw?.initiativeOrder)?raw.initiativeOrder.filter(id=>typeof id==='string'&&validIds.has(id)):[];
-      [...players,...monsters].forEach(u=>{if(!u.squadId&&!initiativeOrder.includes(u.id))initiativeOrder.push(u.id)});
+      [...players,...monsters].forEach(u=>{if(!u.squadId&&!initiativeOrder.includes(u.id)&&!((u.isBoss||u.isSummon)&&Array.isArray(u.actionCards)&&u.actionCards.length))initiativeOrder.push(u.id)});
       const squadsWithMembers=new Set(monsters.filter(m=>m.squadId).map(m=>m.squadId));
       squadsWithMembers.forEach(sid=>{const key='squad:'+sid;if(!initiativeOrder.includes(key))initiativeOrder.push(key)});
       return {players,monsters,initiativeOrder};
@@ -1547,7 +1579,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const squadIds=new Set(squads.map(s=>s.id));
       const {players,monsters,initiativeOrder}=sanitizePlayersAndMonsters(raw,squadIds);
       const validTurnIds=new Set(initiativeOrder);
-      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,nextTurnJumpTarget:raw.nextTurnJumpTarget==='summary'?'summary':'card',squads};
+      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,infoInitiativeBarExpanded:raw.infoInitiativeBarExpanded!==false,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,nextTurnJumpTarget:raw.nextTurnJumpTarget==='summary'?'summary':'card',activeTab:VALID_TABS.includes(raw.activeTab)?raw.activeTab:'initiative',squads};
     }
     function sanitizeSaveFiles(list){
       if(!Array.isArray(list))return[];
@@ -1858,6 +1890,14 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       requestAnimationFrame(tick);
     }
     function withScrollAnchor(cardId,fn){
+      // cardId 這個參數目前刻意沒有被用來當作追蹤錨點，不是寫漏了——這是
+      // 經過多輪實際裝置測試後的決定：曾經試過把cardId對應到DOM卡片、
+      // 追蹤卡片本身在畫面上的相對位置，實測結果反而讓「橫屏扣血跳動」
+      // 這個問題從「跳一半」惡化回「整張跳走」，猜測是卡片座標追蹤機制
+      // 本身跟捲動鎖定互相干擾。目前這個只鎖定window.scrollY數字、不追蹤
+      // 卡片座標的版本，是實測後confirm有實際改善效果的版本。如果之後
+      // 想再嘗試把cardId接上去，麻煩先跟使用者確認清楚要拿什麼情境重新
+      // 測試，避免又繞回同一個已經踩過的坑。
       startScrollLock();
       fn();
     }
@@ -2103,7 +2143,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       rebuildUnitMap();
       rebuildSquadMemberMap();
       syncInitiativeOrder();
-      const initiativeSig=JSON.stringify(initiativeOrder)+'|'+currentTurnId+'|'+JSON.stringify(players.map(u=>[u.id,u.name,u.color,u.turnEnded]))+'|'+JSON.stringify(monsters.map(u=>[u.id,u.name,u.color,u.turnEnded,Array.isArray(u.actionCards)?u.actionCards.map(c=>[c.id,c.name,c.turnEnded]):null]));
+      const initiativeSig=JSON.stringify(initiativeOrder)+'|'+currentTurnId+'|'+JSON.stringify(players.map(u=>[u.id,u.name,u.color,u.turnEnded]))+'|'+JSON.stringify(monsters.map(u=>[u.id,u.name,u.color,u.turnEnded,Array.isArray(u.actionCards)?u.actionCards.map(c=>[c.id,c.name,c.turnEnded]):null]))+'|'+JSON.stringify(squads.map(s=>[s.id,s.name,s.color]));
       if(initiativeSig!==lastInitiativeSig){
         document.querySelector('#initiativeList').innerHTML=initiativeTagsHtml();
         lastInitiativeSig=initiativeSig;
@@ -2192,7 +2232,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }
       const actionTagsSig=JSON.stringify(actionTags);
       if(actionTagsSig!==lastActionTagsSig){
-        actionTagsElement.innerHTML=actionTags.map(tag=>`<span><button class="tag ${tag.active?'':'off'}" data-tag-id="${tag.id}">${escapeHtml(tag.name)}</button><button class="tag-delete" title="\u522a\u9664\u6a19\u7c64" data-tag-delete="${tag.id}">&#215;</button></span>`).join('')||'<span class="empty">\u76ee\u524d\u6c92\u6709\u884c\u52d5\u6a19\u7c64\u3002</span>';
+        actionTagsElement.innerHTML=actionTags.map(tag=>`<span><button class="tag ${tag.active?'':'off'}" data-tag-id="${escapeAttr(tag.id)}">${escapeHtml(tag.name)}</button><button class="tag-delete" title="\u522a\u9664\u6a19\u7c64" data-tag-delete="${escapeAttr(tag.id)}">&#215;</button></span>`).join('')||'<span class="empty">\u76ee\u524d\u6c92\u6709\u884c\u52d5\u6a19\u7c64\u3002</span>';
         lastActionTagsSig=actionTagsSig;
       }
       const monsterTemplatesSig=JSON.stringify(monsterTemplates);

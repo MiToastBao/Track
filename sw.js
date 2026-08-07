@@ -13,6 +13,18 @@ async function precache(cache) {
   // report "already latest" while the visible app stays on the old version.
   await Promise.all(APP_SHELL.map(async url => {
     const response = await fetch(url, { cache: 'reload' });
+    // 驗證回應是不是真的成功、內容類型看起來是HTML——部署設定錯誤、伺服器
+    // 暫時性錯誤、或反向代理回傳的404頁/登入頁，都可能被誤當成app shell
+    // 存進快取，之後離線時使用者拿到的就會是這個錯誤內容，而不是真正的App。
+    // 驗證失敗就直接丟出錯誤，讓install事件失敗——這樣舊版本的Service Worker
+    // 跟快取會繼續留著正常運作，不會被這個不完整、內容錯誤的新快取取代掉。
+    if (!response.ok) {
+      throw new Error(`precache failed: ${url} responded with status ${response.status}`);
+    }
+    const contentType = response.headers.get('content-type') || '';
+    if (url.endsWith('.html') && contentType && !contentType.includes('html')) {
+      throw new Error(`precache failed: ${url} unexpected content-type "${contentType}"`);
+    }
     await cache.put(url, response);
   }));
 }
@@ -66,6 +78,7 @@ self.addEventListener('fetch', event => {
       // pure cache-first. If it's already cached, serve it immediately with no
       // network round-trip at all. Only hit the network on a genuine cache miss,
       // and cache the result for next time.
+      const isVersionCheck = new URL(event.request.url).pathname.endsWith('/version.json');
       if (!isAppShell) {
         if (cached) return cached;
         try {
@@ -76,7 +89,7 @@ self.addEventListener('fetch', event => {
           // 就能快取 opaque 回應，只是沒辦法檢視它實際的內容或狀態碼——
           // 但快取起來，離線時還是能正常拿出來用，不需要依賴對方伺服器
           // 有沒有穩定送出 CORS 標頭。
-          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+          if (!isVersionCheck && networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
           }
@@ -89,6 +102,14 @@ self.addEventListener('fetch', event => {
       // App-shell / navigation: keep the existing stale-while-revalidate
       // behaviour, since we deliberately want a background network hit every
       // time so version updates get detected promptly.
+      // 導航請求如果帶有查詢參數（例如 index.html?_r=xyz 這種為了避開快取
+      // 而加上去的參數），前面用「完整請求網址」去比對快取，會完全找不到
+      // 東西——因為預先快取起來的只有沒有帶參數的 './' 和 './index.html'
+      // 這兩個固定網址。離線時如果只依賴這個對不上的查詢結果，會導致
+      // 完全沒有東西可以回應、直接開啟失敗。改成導航請求離線時，一律
+      // 固定去比對 './index.html' 這個 app shell 的網址，不管原本的
+      // 請求帶了什麼查詢參數，都能正確拿到離線可用的版本。
+      const appShellFallback = isNavigation ? await caches.match('./index.html') : cached;
       const networkFetch = (async () => {
         try {
           // Reuse the preloaded navigation response when available so we don't
@@ -101,10 +122,10 @@ self.addEventListener('fetch', event => {
           }
           return networkResponse;
         } catch {
-          return cached;
+          return appShellFallback;
         }
       })();
-      return cached || networkFetch;
+      return cached || appShellFallback || networkFetch;
     })()
   );
 });
