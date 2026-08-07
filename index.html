@@ -161,6 +161,7 @@
     <div class="section-head" id="tabSectionInfo"><h2 class="section-title">📋 資訊總覽</h2></div>
     <div id="actionPanelAnchorInfo"></div>
     <div id="infoInitiativeBar" class="filter-bar initiative-bar"></div>
+    <div id="infoFilterSection"></div>
     </div>
     <div id="infoContent">
       <div class="summary-head"><span class="summary-head-title">🛡️ 玩家狀態摘要</span><button type="button" id="toggleInfoPlayerSummary">收合摘要</button></div>
@@ -317,7 +318,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.06-73';
+    const APP_VERSION='2026.08.06-75';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -887,6 +888,9 @@
     let playerFilterExpanded=savedCurrentState?.playerFilterExpanded??true,monsterFilterExpanded=savedCurrentState?.monsterFilterExpanded??true;
     let playerInitiativeBarExpanded=savedCurrentState?.playerInitiativeBarExpanded??false,monsterInitiativeBarExpanded=savedCurrentState?.monsterInitiativeBarExpanded??false;
     let infoInitiativeBarExpanded=savedCurrentState?.infoInitiativeBarExpanded??true;
+    let infoFilterExpanded=savedCurrentState?.infoFilterExpanded??false;
+    let infoPlayerFilterExpanded=savedCurrentState?.infoPlayerFilterExpanded??true;
+    let infoMonsterFilterExpanded=savedCurrentState?.infoMonsterFilterExpanded??true;
     let playerToolbarCollapsed=savedCurrentState?.playerToolbarCollapsed??false,monsterToolbarCollapsed=savedCurrentState?.monsterToolbarCollapsed??false;
     let playerSummaryExpanded=savedCurrentState?.playerSummaryExpanded??true,monsterSummaryExpanded=savedCurrentState?.monsterSummaryExpanded??true;
     let infoPlayerSummaryExpanded=savedCurrentState?.infoPlayerSummaryExpanded??true,infoMonsterSummaryExpanded=savedCurrentState?.infoMonsterSummaryExpanded??true;
@@ -1244,9 +1248,18 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       existing.forEach(node=>{cardSigCache.delete(node.dataset.cardId);node.remove()});
     }
     function attributeHtml(unit){const attributes=unit.attributes||[];const current=attributes.map(item=>`<span class="attribute" style="--attr-color:${sanitizeColor(item.color,'#4c78a4')}">${colorTriggerHtml(sanitizeColor(item.color,'#4c78a4'),`data-attribute-color="${unit.id}" data-attribute-id="${item.id}"`)}${escapeHtml(item.name)} <input data-attribute-value="${unit.id}" data-attribute-id="${item.id}" value="${escapeAttr(String(item.value??''))}" placeholder="&#25976;&#20540;"><button data-attribute-delete="${unit.id}" data-attribute-id="${item.id}">&#215;</button></span>`).join('')||'<span class="status">&#28961;&#33258;&#35330;&#23660;&#24615;</span>';const templates=unitTemplateListHtml(unit.id,attributeTemplates,{addAttr:'attribute-template-add',idAttr:'attribute-template-id',deleteAttr:'attribute-template-delete',emptyText:'&#28961;&#35352;&#25014;&#23660;&#24615;'});return `<div class="attributes"><div class="condition-title">&#33258;&#35330;&#23660;&#24615;</div><div class="attribute-list">${current}</div><div class="saved-status-tags">${templates}</div><form class="attribute-form" data-attribute-form="${unit.id}"><input name="attributeName" maxlength="500" required placeholder="&#23660;&#24615;&#21517;&#31281;"><button class="primary">&#26032;&#22686;&#23660;&#24615;</button></form></div>`}
-    function filterTagsHtml(units,filterSet,type,expanded){
+    function infoFilterSectionHtml(){
+      const hasAnyFilter=playerFilter.size||monsterFilter.size;
+      const outerToggle=`<button type="button" data-info-filter-section-toggle title="${infoFilterExpanded?'收合篩選/批次操作':'展開篩選/批次操作'}">🔍 篩選／批次操作${hasAnyFilter&&!infoFilterExpanded?`（篩選中：${playerFilter.size+monsterFilter.size}位）`:''} ${infoFilterExpanded?'▲':'▼'}</button>`;
+      if(!infoFilterExpanded)return `<div class="filter-bar">${outerToggle}</div>`;
+      const playerPart=players.length?`<div class="filter-bar"><span class="filter-label">🛡️ 玩家</span>${filterTagsHtml(players,playerFilter,'player',infoPlayerFilterExpanded,'info-player-filter-expand-toggle')}</div>`:'';
+      const monsterPart=monsters.length?`<div class="filter-bar"><span class="filter-label">👾 怪物</span>${filterTagsHtml(sortMonstersForDisplay(monsters),monsterFilter,'monster',infoMonsterFilterExpanded,'info-monster-filter-expand-toggle')}</div>`:'';
+      return `<div class="filter-bar">${outerToggle}</div>${playerPart}${monsterPart}`;
+    }
+    function filterTagsHtml(units,filterSet,type,expanded,toggleAttr){
       if(!units.length)return'';
-      const toggleBtn=`<button type="button" data-filter-expand-toggle="${type}" title="${expanded?'收合篩選列':'展開篩選列'}">${expanded?'▲':'▼'}</button>`;
+      toggleAttr=toggleAttr||'filter-expand-toggle';
+      const toggleBtn=`<button type="button" data-${toggleAttr}="${type}" title="${expanded?'收合篩選列':'展開篩選列'}">${expanded?'▲':'▼'}</button>`;
       if(!expanded){
         const activeNote=filterSet.size?`（篩選中：${filterSet.size}位）`:'';
         return `${toggleBtn}<span class="filter-label">篩選顯示${activeNote}</span>`;
@@ -1292,7 +1305,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function loadSaveState(state){players=state.players||[];monsters=state.monsters||[];actionTags=state.actionTags||[];statusTemplates=state.statusTemplates||[];monsterTemplates=state.monsterTemplates||[];attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors||[...defaultPalette];initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];cardTiers=state.cardTiers||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:1;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;initiativeMode=['fixed','random','value'].includes(state.initiativeMode)?state.initiativeMode:'fixed';shuffleEachRound=state.shuffleEachRound===true;initiativeValues=(state.initiativeValues&&typeof state.initiativeValues==='object')?state.initiativeValues:{};initiativeValueDesc=state.initiativeValueDesc!==false;combatLog=Array.isArray(state.combatLog)?state.combatLog:[];teamGold=Number.isFinite(state.teamGold)?Math.max(0,Math.floor(state.teamGold)):0;shopCatalog=Array.isArray(state.shopCatalog)?state.shopCatalog:[];shopUnlockedLevels=Array.isArray(state.shopUnlockedLevels)?state.shopUnlockedLevels:[];shopUnlockedLevelCats=Array.isArray(state.shopUnlockedLevelCats)?state.shopUnlockedLevelCats:[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveMemory('battleTrackerCombatLog',combatLog);saveShopData();document.querySelector('#roundValue').value=roundCounter;const descBtn=document.querySelector('#initiativeValueDescToggle');if(descBtn)descBtn.textContent=initiativeValueDesc?'⬇️ 先攻值大的先行動':'⬆️ 先攻值小的先行動';scheduleAutosave()}
     function memoryHtml(unit){const bars=unitTemplateListHtml(unit.id,barTemplates,{addAttr:'bar-template-add',idAttr:'bar-template-id',deleteAttr:'bar-template-delete',emptyText:'&#28961;&#35352;&#25014;&#25976;&#20540;條'});return `<div class="memory-tags"><div class="condition-title">&#24050;&#35352;&#25014;&#25976;&#20540;條</div><div class="saved-status-tags">${bars}</div></div>`}
     let appIsResetting=false;
-    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,infoInitiativeBarExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,playerSummaryExpanded,monsterSummaryExpanded,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,nextTurnJumpTarget,squads,activeTab})}
+    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,infoInitiativeBarExpanded,infoFilterExpanded,infoPlayerFilterExpanded,infoMonsterFilterExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,playerSummaryExpanded,monsterSummaryExpanded,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,nextTurnJumpTarget,squads,activeTab})}
     let autosaveTimer=null;
     function scheduleAutosave(){
       if(autosaveTimer)clearTimeout(autosaveTimer);
@@ -1579,7 +1592,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const squadIds=new Set(squads.map(s=>s.id));
       const {players,monsters,initiativeOrder}=sanitizePlayersAndMonsters(raw,squadIds);
       const validTurnIds=new Set(initiativeOrder);
-      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,infoInitiativeBarExpanded:raw.infoInitiativeBarExpanded!==false,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,nextTurnJumpTarget:raw.nextTurnJumpTarget==='summary'?'summary':'card',activeTab:VALID_TABS.includes(raw.activeTab)?raw.activeTab:'initiative',squads};
+      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,infoInitiativeBarExpanded:raw.infoInitiativeBarExpanded!==false,infoFilterExpanded:raw.infoFilterExpanded===true,infoPlayerFilterExpanded:raw.infoPlayerFilterExpanded!==false,infoMonsterFilterExpanded:raw.infoMonsterFilterExpanded!==false,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,playerSummaryExpanded:raw.playerSummaryExpanded!==false,monsterSummaryExpanded:raw.monsterSummaryExpanded!==false,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,nextTurnJumpTarget:raw.nextTurnJumpTarget==='summary'?'summary':'card',activeTab:VALID_TABS.includes(raw.activeTab)?raw.activeTab:'initiative',squads};
     }
     function sanitizeSaveFiles(list){
       if(!Array.isArray(list))return[];
@@ -1976,6 +1989,19 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         // 不切分頁、也不去動玩家/怪物分頁各自的篩選/展開狀態（那些跟資訊
         // 分頁無關）。用 #infoContent 限定範圍，避免不小心抓到玩家/怪物分頁
         // 裡（目前隱藏著）也有同一個id的摘要列。
+        let infoNeedsRerender=false;
+        if(unit.type==='player'&&!infoPlayerSummaryExpanded){
+          infoPlayerSummaryExpanded=true;
+          document.querySelector('#infoPlayerSummary').hidden=false;
+          document.querySelector('#toggleInfoPlayerSummary').textContent='\u6536\u5408\u6458\u8981';
+          infoNeedsRerender=true;
+        }else if(unit.type!=='player'&&!infoMonsterSummaryExpanded){
+          infoMonsterSummaryExpanded=true;
+          document.querySelector('#infoMonsterSummary').hidden=false;
+          document.querySelector('#toggleInfoMonsterSummary').textContent='\u6536\u5408\u6458\u8981';
+          infoNeedsRerender=true;
+        }
+        if(infoNeedsRerender){scheduleAutosave();render()}
         requestAnimationFrame(()=>{
           const row=document.querySelector(`#infoContent [data-summary-jump="${targetUnitId}"]`);
           if(row)scrollToBelowStickyHeader(row,'#stickyWrapInfo');
@@ -1987,10 +2013,12 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         setActiveTab('player',{scroll:false});
         if(!playersExpanded){playersExpanded=true;document.querySelector('#playerContent').hidden=false;document.querySelector('#togglePlayers').textContent='\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a';needsRerender=true}
         if(playerFilter.size&&!playerFilter.has(targetUnitId)){playerFilter.clear();needsRerender=true}
+        if(nextTurnJumpTarget==='summary'&&!playerSummaryExpanded){playerSummaryExpanded=true;document.querySelector('#playerSummary').hidden=false;document.querySelector('#togglePlayerSummary').textContent='\u6536\u5408\u6458\u8981';needsRerender=true}
       }else{
         setActiveTab('monster',{scroll:false});
         if(!monstersExpanded){monstersExpanded=true;document.querySelector('#monsterContent').hidden=false;document.querySelector('#toggleMonsters').textContent='\u6536\u5408\u602a\u7269\u8cc7\u8a0a';needsRerender=true}
         if(monsterFilter.size&&!monsterFilter.has(targetUnitId)){monsterFilter.clear();needsRerender=true}
+        if(nextTurnJumpTarget==='summary'&&!monsterSummaryExpanded){monsterSummaryExpanded=true;document.querySelector('#monsterSummary').hidden=false;document.querySelector('#toggleMonsterSummary').textContent='\u6536\u5408\u6458\u8981';needsRerender=true}
       }
       if(needsRerender){scheduleAutosave();render()}
       // 原本用原生 scrollIntoView(block:'center') 置中卡片，但這個做法不知道
@@ -2134,6 +2162,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     let lastAbsentPlayerSig=null;
     let absentListExpanded=false;
     let lastMonsterFilterSig=null;
+    let lastInfoFilterSig=null;
     let lastPlayerSummarySig=null;
     let lastMonsterSummarySig=null;
     const cardSigCache=new Map();
@@ -2219,6 +2248,12 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const monsterFilterBar=document.querySelector('#monsterFilterBar');
         if(monsterFilterBar)monsterFilterBar.innerHTML=filterTagsHtml(sortMonstersForDisplay(monsters),monsterFilter,'monster',monsterFilterExpanded);
         lastMonsterFilterSig=monsterFilterSig;
+      }
+      const infoFilterSig=JSON.stringify(players.map(p=>[p.id,p.name,p.color,p.isBoss]))+'|'+JSON.stringify(monsters.map(m=>[m.id,m.name,m.color,m.isBoss]))+'|'+JSON.stringify([...playerFilter])+'|'+JSON.stringify([...monsterFilter])+'|'+infoFilterExpanded+'|'+infoPlayerFilterExpanded+'|'+infoMonsterFilterExpanded;
+      if(infoFilterSig!==lastInfoFilterSig){
+        const infoFilterSection=document.querySelector('#infoFilterSection');
+        if(infoFilterSection)infoFilterSection.innerHTML=infoFilterSectionHtml();
+        lastInfoFilterSig=infoFilterSig;
       }
       const playerSummarySig=unitsSig(visiblePlayers)+'|'+currentTurnId;
       if(playerSummarySig!==lastPlayerSummarySig){
@@ -2421,6 +2456,27 @@ function adjustUnitHp(unit,action,amount){
       if(filterExpandToggle){
         if(filterExpandToggle.dataset.filterExpandToggle==='player')playerFilterExpanded=!playerFilterExpanded;
         else monsterFilterExpanded=!monsterFilterExpanded;
+        scheduleAutosave();
+        render();
+        return;
+      }
+      const infoFilterSectionToggle=event.target.closest('[data-info-filter-section-toggle]');
+      if(infoFilterSectionToggle){
+        infoFilterExpanded=!infoFilterExpanded;
+        scheduleAutosave();
+        render();
+        return;
+      }
+      const infoPlayerFilterExpandToggle=event.target.closest('[data-info-player-filter-expand-toggle]');
+      if(infoPlayerFilterExpandToggle){
+        infoPlayerFilterExpanded=!infoPlayerFilterExpanded;
+        scheduleAutosave();
+        render();
+        return;
+      }
+      const infoMonsterFilterExpandToggle=event.target.closest('[data-info-monster-filter-expand-toggle]');
+      if(infoMonsterFilterExpandToggle){
+        infoMonsterFilterExpanded=!infoMonsterFilterExpanded;
         scheduleAutosave();
         render();
         return;
