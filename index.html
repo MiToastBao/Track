@@ -328,7 +328,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-110';
+    const APP_VERSION='2026.08.07-112';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2062,6 +2062,13 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(navFab)navFab.style.display=(tab==='shop'||tab==='gm')?'flex':'none';
       updateJumpButtonsVisibility();
       updateFloatingNextTurnLabel();
+      if(tab==='player'||tab==='monster'||tab==='info'){
+        // 切到這幾個分頁時（不只是按下一位觸發），如果先攻順序列表剛好是
+        // 展開狀態，也要順便捲一下，確保進來就看得到目前輪到誰，不用自己
+        // 再往下找。用rAF等分頁真的切換完成（.hidden狀態、版面都穩定）
+        // 才量測，避免抓到切換前的舊版面尺寸。
+        requestAnimationFrame(()=>scrollInitiativeBarIntoView(tab));
+      }
       if(scroll){
         const panel=document.querySelector(TAB_PANELS[tab]);
         if(panel)panel.scrollIntoView({behavior:isRotating?'auto':'smooth',block:'start'});
@@ -2082,6 +2089,34 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const unit=findUnit(targetUnitId);
       if(!unit)return null;
       return{targetUnitId,unit};
+    }
+    function scrollInitiativeBarIntoView(tab){
+      // 先攻順序展開時，如果同時展開的區塊夠多（例如行動標籤也展開），這排
+      // 標籤本身可能要跨兩三行才放得下，輪到的那個標籤不一定剛好在看得到
+      // 的那一行。這裡只捲動「置頂區塊裡面那個內部的捲動容器」本身，不要
+      // 動到整個頁面的捲動位置——用座標相減手動算，不用 scrollIntoView()，
+      // 因為 scrollIntoView() 會牽動所有外層可捲動的祖先元素，包括整個
+      // 頁面本身，不是我們要的效果。
+      const barSelectors={player:'#playerInitiativeBar',monster:'#monsterInitiativeBar',info:'#infoInitiativeBar'};
+      const barSelector=barSelectors[tab];
+      if(!barSelector)return;
+      const bar=document.querySelector(barSelector);
+      if(!bar)return;
+      const currentItem=bar.querySelector('.initiative-bar-item.current');
+      if(!currentItem)return;
+      const scrollContainer=bar.closest('.sticky-wrap-scroll');
+      if(!scrollContainer)return;
+      const containerRect=scrollContainer.getBoundingClientRect();
+      const itemRect=currentItem.getBoundingClientRect();
+      const itemTop=itemRect.top-containerRect.top+scrollContainer.scrollTop;
+      const itemBottom=itemTop+itemRect.height;
+      const viewTop=scrollContainer.scrollTop;
+      const viewBottom=viewTop+scrollContainer.clientHeight;
+      if(itemTop<viewTop){
+        scrollContainer.scrollTo({top:itemTop,behavior:isRotating?'auto':'smooth'});
+      }else if(itemBottom>viewBottom){
+        scrollContainer.scrollTo({top:itemBottom-scrollContainer.clientHeight,behavior:isRotating?'auto':'smooth'});
+      }
     }
     function scrollToInfoSummaryRow(targetUnitId,unit){
       // 使用者刻意待在資訊分頁操作，不想被跳去卡片畫面——但還是想直觀看到
@@ -2106,6 +2141,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       requestAnimationFrame(()=>{
         const row=document.querySelector(`#infoContent [data-summary-jump="${targetUnitId}"]`);
         if(row)scrollToBelowStickyHeader(row,'#stickyWrapInfo');
+        scrollInitiativeBarIntoView('info');
       });
     }
     function scrollToCurrentCard(){
