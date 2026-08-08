@@ -329,7 +329,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-121';
+    const APP_VERSION='2026.08.07-125';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1176,10 +1176,29 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     function barUndoToken(){
       return pendingBarUndo?pendingBarUndo.unitId+':'+(pendingBarUndo.barId||'hp')+':'+pendingBarUndo.text:'';
     }
-    function showBarUndo(unitId,barId,text){
+    function historyBaseValue(unitId,barId){
+      // 取出「按下復原會回到的那個狀態」裡，這條 bar 當時的數值。
+      // saveHistory() 有 500ms 的合併機制：連續快速操作會被併成同一筆
+      // 歷史紀錄，所以按一次復原會把整串連續操作一起退回，而不是只退最後
+      // 一下。提示上的數字必須跟「復原實際會做的事」一致，所以不能用單次
+      // 操作的差值，要拿現在的值跟這筆歷史紀錄裡的舊值相減，才會是累計量。
+      if(!history.length)return null;
+      const snap=history[history.length-1];
+      if(!snap)return null;
+      const found=[...(snap.players||[]),...(snap.monsters||[])].find(x=>x&&x.id===unitId);
+      if(!found)return null;
+      if(!barId)return typeof found.hp==='number'?found.hp:null;
+      const bar=(found.bars||[]).find(b=>b&&b.id===barId);
+      return bar&&typeof bar.value==='number'?bar.value:null;
+    }
+    function showBarUndo(unitId,barId,currentValue,unitLabel,fallbackDelta){
+      const base=historyBaseValue(unitId,barId);
+      const delta=base===null?fallbackDelta:currentValue-base;
+      if(!delta)return;
+      const text=`${delta>0?'+':''}${delta} ${unitLabel}`;
       pendingBarUndo={unitId,barId,text};
       if(pendingBarUndoTimer)clearTimeout(pendingBarUndoTimer);
-      pendingBarUndoTimer=setTimeout(()=>{pendingBarUndoTimer=null;clearBarUndo(true)},6000);
+      pendingBarUndoTimer=setTimeout(()=>{pendingBarUndoTimer=null;clearBarUndo(true)},3000);
     }
     function clearBarUndo(rerender){
       if(pendingBarUndoTimer){clearTimeout(pendingBarUndoTimer);pendingBarUndoTimer=null}
@@ -2907,6 +2926,9 @@ function adjustUnitHp(unit,action,amount){
         saveMemory('battleTrackerStatusTemplates',statusTemplates);
         if(nameInput)nameInput.value='';
         render();
+        // 跟批次傷害/治療一樣，批次上狀態也提供一鍵反悔的入口。
+        const appliedCount=dupMode==='skip'?targets.length-dupTargets.length:targets.length;
+        if(appliedCount>0)showUndoToast(`批次上狀態「${name}」${appliedCount} 位（${turns}回合${autoTick?'':'，手動'}）`);
         return;
       }
       const batchAction=event.target.closest('[data-batch-action]');
@@ -2922,18 +2944,33 @@ function adjustUnitHp(unit,action,amount){
         const willChange=targets.some(unit=>action==='damage'?unit.hp>0:unit.hp<unit.maxHp);
         if(!willChange)return;
         saveHistory();
+        let affected=0;
         targets.forEach(unit=>{
           const oldHp=unit.hp;
           if(action==='damage')unit.hp=Math.max(0,unit.hp-amount);
           else if(action==='heal')unit.hp=Math.min(unit.maxHp,unit.hp+amount);
           if(unit.isBoss)checkHpThresholds(unit);
           if(unit.hp!==oldHp){
+            affected++;
             const delta=unit.hp-oldHp;
             logCombatEvent(unit,`批次${action==='damage'?'受到傷害':'恢復血量'} ${oldHp} → ${unit.hp}（${delta>=0?'+':''}${delta}）`,'hp');
           }
         });
-        if(type==='monster'){monsters=monsters.filter(m=>m.hp>0);cleanupOrphanedSquads()}
+        let removed=0;
+        if(type==='monster'){
+          const before=monsters.length;
+          monsters=monsters.filter(m=>m.hp>0);
+          removed=before-monsters.length;
+          cleanupOrphanedSquads();
+        }
         render();
+        // 批次操作一次動到多位角色，沒辦法像單一角色那樣把提示掛在某一條
+        // 血量條旁邊，所以改用畫面下方的浮動提示做總結。這裡原本完全沒有
+        // 任何復原提示，批次誤觸的代價又比單筆高（一次改掉好幾位），
+        // 更需要一個一鍵反悔的入口。
+        if(affected){
+          showUndoToast(`批次${action==='damage'?'傷害':'治療'} ${affected} 位 ${action==='damage'?'-':'+'}${amount} HP${removed?`（${removed} 隻已移除）`:''}`);
+        }
         return;
       }
       const colorTrigger=event.target.closest('[data-color-trigger]');
@@ -3234,7 +3271,7 @@ function adjustUnitHp(unit,action,amount){
             bar.value=newValue;
             logCombatEvent(unit,`${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');
             if(hadTypedAmount&&document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
-            showBarUndo(unit.id,bar.id,`${bar.value-oldValue>0?'+':''}${bar.value-oldValue} ${bar.name}`);
+            showBarUndo(unit.id,bar.id,bar.value,bar.name,bar.value-oldValue);
             render();
             if(hadTypedAmount){
               requestAnimationFrame(()=>{
@@ -3497,7 +3534,7 @@ function adjustUnitHp(unit,action,amount){
           // 怪物被打死移除時卡片已經不在了，提示沒有地方可以掛，退回用畫面
           // 下方的浮動提示；其他情況一律顯示在血量條旁邊。
           if(monsterDied)showUndoToast(`${unitName} ${hpDelta} HP（已移除）`);
-          else{showBarUndo(unit.id,null,`${hpDelta>0?'+':''}${hpDelta} HP`);render()}
+          else{showBarUndo(unit.id,null,unit.hp,'HP',hpDelta);render()}
         }else if(monsterDied){
           showUndoToast(`${unitName}（已移除）`);
         }
@@ -3601,7 +3638,7 @@ function adjustUnitHp(unit,action,amount){
             const delta=unit.hp-oldHp;
             logCombatEvent(unit,`\u62d6\u66f3\u8abf\u6574\u8840\u91cf ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');
             if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads();showUndoToast(`${unit.name} ${delta} HP\uff08\u5df2\u79fb\u9664\uff09`)}
-            else showBarUndo(unit.id,null,`${delta>=0?'+':''}${delta} HP`);
+            else showBarUndo(unit.id,null,unit.hp,'HP',delta);
           }else{
             const newValue=Math.max(0,Math.min(bar.maxValue,previewValue));
             if(newValue===bar.value){render();return}
@@ -3610,7 +3647,7 @@ function adjustUnitHp(unit,action,amount){
             bar.value=newValue;
             const delta=bar.value-oldValue;
             logCombatEvent(unit,`\u62d6\u66f3\u8abf\u6574${bar.name} ${oldValue} \u2192 ${bar.value}\uff08${delta>=0?'+':''}${delta}\uff09`,'bar');
-            showBarUndo(unit.id,bar.id,`${delta>=0?'+':''}${delta} ${bar.name}`);
+            showBarUndo(unit.id,bar.id,bar.value,bar.name,delta);
           }
           render();
         });
