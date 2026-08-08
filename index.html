@@ -93,7 +93,14 @@
     .shop-picker-list{display:flex;flex-wrap:wrap;gap:8px}
     .shop-picker-btn{background:var(--btn-bg);border:1px solid var(--line);color:var(--text);font-size:.85rem;padding:12px 16px;border-radius:10px}
     .shop-hint{font-size:.82rem;color:var(--muted);line-height:1.5}
-    .sticky-wrap{position:sticky;top:env(safe-area-inset-top);z-index:36;background:var(--bg);padding-top:6px;padding-bottom:4px;display:flex;flex-direction:column}/* 這裡原本把 env(safe-area-inset-top) 加在置頂區的上內距裡，本意是避免它
+    .sticky-wrap{position:sticky;top:env(safe-area-inset-top);z-index:36;background:var(--bg);padding-top:6px;padding-bottom:4px;display:flex;flex-direction:column}/* 置頂列停在安全區下方（避開瀏海／動態島）之後，螢幕最上緣到置頂列之間
+   會空出一條等高的帶狀區域。那條區域沒有任何東西遮擋，往上捲的內容就會
+   從那裡透出來，看起來像是文字穿過了狀態列。這裡用一個固定在畫面最上緣、
+   高度剛好等於安全區的遮板把它蓋住，視覺上就像置頂列一路延伸到螢幕頂端。
+   z-index 介於一般內容與置頂列之間：蓋得住捲上來的內容，又不會擋到置頂列
+   自己。pointer-events:none 確保它純粹是視覺遮板，不會攔截點擊。
+   桌機與手機橫放的安全區是 0，這塊高度就是 0，等於完全不存在，不受影響。*/
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--bg);z-index:35;pointer-events:none}/* 這裡原本把 env(safe-area-inset-top) 加在置頂區的上內距裡，本意是避免它
    捲到最上面時被 iPhone 的瀏海／動態島擋住。但那個內距是「永遠存在」的，
    在頁面還沒捲動、置頂區還在畫面中段時，就變成一大塊固定留白（瀏海機型
    大約 47～59px）。橫放時系統回報的上方安全區是 0，所以只有直放看得到，
@@ -380,7 +387,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-132';
+    const APP_VERSION='2026.08.07-133';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
