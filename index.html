@@ -329,7 +329,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-120';
+    const APP_VERSION='2026.08.07-121';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2651,6 +2651,30 @@ function adjustUnitHp(unit,action,amount){
           // 要先切過去，等畫面真的顯示出來、版面穩定後，才能量到正確的卡片位置。
           // 如果本來就已經在正確的分頁，就不用多這一步，直接照原本的方式捲動。
           if(activeTab!==targetTab)setActiveTab(targetTab,{scroll:false});
+          // 目標分頁的資訊區如果是收合的、或目前的篩選剛好把這個角色濾掉了，
+          // 那張卡片根本不在畫面上，捲過去只會停在一片空白處。這裡先把擋路的
+          // 狀態解開再捲——跟按「下一位」自動跳轉時的處理方式一致。
+          let needsRerender=false;
+          if(targetTab==='player'){
+            if(!playersExpanded){
+              playersExpanded=true;
+              document.querySelector('#playerContent').hidden=false;
+              document.querySelector('#togglePlayers').textContent='\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a';
+              needsRerender=true;
+            }
+            if(playerFilter.size&&!playerFilter.has(unitId)){playerFilter.clear();needsRerender=true}
+          }else{
+            if(!monstersExpanded){
+              monstersExpanded=true;
+              document.querySelector('#monsterContent').hidden=false;
+              document.querySelector('#toggleMonsters').textContent='\u6536\u5408\u602a\u7269\u8cc7\u8a0a';
+              needsRerender=true;
+            }
+            if(monsterFilter.size&&!monsterFilter.has(unitId)){monsterFilter.clear();needsRerender=true}
+          }
+          // 展開／清篩選之後一定要先重繪，卡片才會真的出現在DOM裡，
+          // 下面的 querySelector 才找得到它。
+          if(needsRerender){scheduleAutosave();render()}
           requestAnimationFrame(()=>{
             const target=document.querySelector(`.card[data-card-id="${unitId}"]`);
             if(target){
