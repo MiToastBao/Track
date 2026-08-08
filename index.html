@@ -19,8 +19,8 @@
     *{box-sizing:border-box} html{height:100%} body{margin:0;min-height:100dvh;height:auto;overscroll-behavior-y:auto;padding:32px calc(16px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));color:var(--text);font-family:"Microsoft JhengHei",system-ui,sans-serif;background:radial-gradient(circle at top,var(--grad1),var(--grad2) 60%);transition:background .2s ease,color .2s ease}
     h1{text-align:center;margin:0 0 8px}.subtitle{text-align:center;color:var(--muted);margin:0 0 24px}.toolbar,.add-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.toolbar{margin-bottom:22px}.theme-switch{display:flex;gap:6px;justify-content:center;margin:0 0 18px}.theme-switch button{padding:6px 14px;font-size:.85rem;background:var(--btn-bg);border:1px solid var(--line);color:var(--text)}.theme-switch button.active{background:var(--primary);border-color:var(--primary);color:var(--primary-text);font-weight:600}
     button,input,select{font:inherit;border-radius:9px;border:1px solid var(--line);color:var(--text);padding:9px 12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button{background:var(--btn-bg);cursor:pointer}button:hover{filter:brightness(.96)}button.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}button.danger{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}button.good{background:var(--good);border-color:var(--good);color:var(--good-text)}input,select{background:var(--card)}.add-form{margin:24px auto 20px;max-width:720px}.add-form input{flex:1;min-width:175px}.add-form input[type=number]{flex:0 1 125px}
-    .section-head{display:flex;align-items:center;justify-content:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}.section-head-actions{display:flex;gap:8px;flex-wrap:wrap}.section-title{margin:0;font-size:1.25rem}.action-panel,.save-panel{margin:0 0 18px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-bg)}.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.tag{border-color:var(--primary);background:var(--primary);color:var(--primary-text);padding:5px 10px;font-size:.8rem;border-radius:999px}.tag.off{background:var(--tag-off-bg);border-color:var(--tag-off-border);color:var(--tag-off-text);text-decoration:line-through}.tag-delete{padding:6px 10px;background:var(--danger);color:var(--danger-text)}.initiative-panel{margin:0 0 22px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-bg)}.initiative-list{display:flex;flex-wrap:wrap;gap:9px}.initiative-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 6px 5px 11px;border-radius:999px;border:1px solid var(--tag-color,var(--primary));background:color-mix(in srgb,var(--tag-color,var(--primary)) 20%,var(--card));font-weight:600;font-size:.9rem}.initiative-tag.ended{opacity:.5;filter:grayscale(1)}.initiative-tag.current{border-width:2px;border-color:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 30%,transparent)}.initiative-tag.current.ended{opacity:.75;filter:none}.initiative-name{background:none;border:none;font:inherit;font-weight:inherit;color:inherit;padding:0;cursor:pointer;border-radius:4px}.initiative-name:hover{text-decoration:underline}.initiative-turn-toggle{padding:6px 10px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap;line-height:1.4;background:var(--tag-off-bg);border:1px solid var(--tag-off-border);color:var(--tag-off-text);cursor:pointer}.initiative-turn-toggle:hover{filter:brightness(.95)}.initiative-turn-toggle.active{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}.initiative-order{opacity:.65;font-weight:700;font-variant-numeric:tabular-nums}.initiative-move{padding:6px 11px;border-radius:999px;font-size:.85rem;line-height:1.4}.initiative-move:disabled{opacity:.3;cursor:not-allowed}.initiative-rename{padding:6px 10px;border-radius:999px;font-size:.86rem;line-height:1.4}.squad-option{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--muted);cursor:pointer;padding:6px 4px}.squad-option input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.squad-option input[type=number]{width:56px;padding:4px}.squad-badge{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:10px 0;padding:6px 9px;border-radius:10px;background:var(--manage-bg);border:1px solid var(--manage-border);font-size:.86rem;color:var(--muted)}.squad-badge-text{font-weight:600;margin-right:auto;color:var(--text)}.squad-badge button{padding:6px 10px;font-size:.85rem;border-radius:7px}.squad-disband{background:var(--danger);color:var(--danger-text)}.tag-form,.quick-monster,.save-form{display:flex;flex-wrap:wrap;gap:8px}.filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0}.filter-bar:empty{display:none;margin:0}.filter-bar .tag{padding:4px 9px;font-size:.82rem}[data-initiative-bar-toggle],[data-filter-expand-toggle],[data-filter-reset],[data-batch-action],[data-batch-status]{padding:4px 9px;font-size:.82rem}#tagForm button{padding:4px 9px;font-size:.82rem}.initiative-bar-item{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel-bg);font-size:.82rem;font-weight:600;white-space:nowrap}.initiative-bar-item.ended{opacity:.5;filter:grayscale(1)}.initiative-bar-item.current{border-width:2px;border-color:var(--good);box-shadow:0 0 0 2px color-mix(in srgb,var(--good) 30%,transparent);background:color-mix(in srgb,var(--good) 15%,var(--card))}.initiative-bar-item.current.ended{opacity:.8;filter:none}.filter-label{color:var(--muted);font-size:.85rem}.batch-actions{display:inline-flex;align-items:center;gap:6px;padding-left:8px;margin-left:4px;border-left:1px solid var(--line)}.batch-amount{width:56px;padding:5px 4px;text-align:center}.tag-form input,.save-form input{flex:1;min-width:150px}.save-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.save-list-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}.save-item{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 8px;border-radius:999px;background:var(--manage-bg);border:1px solid var(--manage-border);max-width:100%}.save-item input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.save-item-load{background:none;border:none;color:var(--text);font:inherit;font-weight:600;padding:8px 3px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}.save-item-load:hover{text-decoration:underline}.save-item-meta{font-size:.78rem;color:var(--muted);white-space:nowrap;padding:0 2px}.save-item-export{padding:6px 8px;background:none;border:none;color:var(--muted);border-radius:6px;font-size:1rem;line-height:1}.save-item-export:hover{color:var(--text);background:var(--card)}.storage-breakdown{margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden}.storage-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line)}.storage-row:last-child{border-bottom:none}.storage-row-label{font-weight:600;flex:1;min-width:140px}.storage-row-meta{color:var(--muted);font-size:.85rem;white-space:nowrap}.storage-row button{padding:6px 10px;font-size:.82rem;flex:none}.storage-total-row{font-weight:700;background:var(--summary-th-bg)}.storage-row input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.storage-row-spacer{display:inline-block;width:26px;flex:none}.storage-toolbar-row{background:var(--manage-bg);flex-wrap:wrap}.storage-toolbar-row .squad-option{padding:4px 0}.tag-form input{flex:1;min-width:150px}.quick-monster{justify-content:center;margin-top:10px}.quick-monster select{min-width:220px}.palette-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.color-palette{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.swatch{width:34px;height:34px;padding:0;border:2px solid transparent;border-radius:8px}.swatch:hover,.swatch.selected{border-color:var(--swatch-hover-border);transform:scale(1.12)}.swatch-wrap{display:flex;align-items:center;gap:1px}.swatch-delete{padding:5px 8px;background:var(--danger);color:var(--danger-text);border-radius:5px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:18px}.card{min-width:0;padding:18px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--unit-color);border-radius:16px;box-shadow:var(--shadow);position:relative;touch-action:pan-y}.card{transition:transform .22s cubic-bezier(.22,.8,.32,1),box-shadow .15s ease}.card.player,.card.monster{cursor:pointer}.card.boss{border-top-color:#ffb703;box-shadow:0 0 0 2px rgba(255,183,3,.35),var(--shadow)}.card.hp-warning{box-shadow:0 0 0 2px rgba(255,173,66,.6),var(--shadow)}.card.hp-danger{box-shadow:0 0 0 3px rgba(255,74,88,.75),var(--shadow)}
-    .current-turn-badge{position:absolute;top:-11px;left:14px;padding:3px 10px;border-radius:999px;background:var(--good);color:var(--good-text);font-size:.78rem;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:2}.threshold-block{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.threshold-title{font-size:.9rem;color:var(--muted);margin-bottom:7px}.threshold-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.card.turn-ended{opacity:.5;filter:grayscale(1);box-shadow:none}.head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.head h2{flex-basis:100%;font-size:1.15rem;margin:0;display:flex;align-items:center;gap:8px}.unit-color-picker{width:36px;height:36px;padding:0;border:2px solid var(--line);border-radius:8px;cursor:pointer;flex:none}.unit-color-picker::-webkit-color-swatch-wrapper{padding:2px}.unit-color-picker::-webkit-color-swatch{border:none;border-radius:4px}.title-attributes{display:flex;flex-basis:100%;flex-wrap:wrap;gap:5px}.title-attributes .attribute{font-size:.8rem;padding:3px 6px}.title-attributes .attribute input{width:58px;padding:2px;font-weight:700;font-size:.95rem}.title-passives{display:flex;flex-basis:100%;flex-wrap:wrap;gap:5px}.passive{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:.8rem;font-weight:600;color:var(--passive-color,#8a5cd6);border:1px solid var(--passive-color,#8a5cd6);background:color-mix(in srgb,var(--passive-color,#8a5cd6) 16%,var(--card));max-width:260px}.passive span.passive-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.passive button{padding:4px 6px;border:none;background:none;color:inherit;font-weight:700;line-height:1}.passives-section{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.passive-form{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.passive-form input[name=passiveName]{flex:1;min-width:180px}.title-status{display:flex;flex:1;flex-wrap:wrap;gap:5px}.title-status .condition{font-size:.8rem;padding:3px 6px}.hp{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}.hp-inline{display:flex;align-items:center;gap:4px}.hp-inline input{width:58px;padding:4px 3px;text-align:center;border-color:transparent;background:transparent}.hp-inline input:focus{border-color:var(--player);background:var(--focus-bg)}.unit-name-input{border-color:transparent;background:transparent;font:inherit;font-weight:700;padding:3px 5px;width:auto;min-width:70px;max-width:260px}.unit-name-input:focus{border-color:var(--player);background:var(--focus-bg)}.bar{height:20px;margin:16px 0 8px;border:1px solid var(--track-border);border-radius:999px;overflow:hidden;background:var(--track-bg)}.fill{height:100%;border-radius:inherit;transition:width .25s ease,background .25s ease;background:linear-gradient(90deg,#8a1c2b,#ff5b6d)}.bar{cursor:ew-resize;user-select:none;-webkit-user-select:none;touch-action:none}.bar.bar-dragging{cursor:grabbing}.bar.bar-dragging .fill{transition:none}.bar-drag-badge{position:fixed;left:0;top:0;transform:translate(-50%,-100%);padding:6px 13px;border-radius:999px;font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.35);background:var(--primary);color:var(--primary-text);opacity:0;transition:opacity .1s ease}.bar-drag-badge.show{opacity:1}.bar-drag-badge.negative{background:var(--danger);color:var(--danger-text)}.bar-drag-badge.positive{background:var(--good);color:var(--good-text)}.status{min-height:24px;color:var(--muted);font-size:.9rem}.attributes{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.attributes>.attribute-list{display:none}.attribute-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.attribute{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:8px;background:color-mix(in srgb,var(--attr-color,var(--attr-default)) 20%,var(--card));border:1px solid var(--attr-color,var(--attr-default))}.attribute .attr-color-picker{width:14px;height:14px;padding:0;border:1px solid rgba(255,255,255,.4);border-radius:4px;cursor:pointer;flex:none}.passive .passive-color-picker{width:14px;height:14px;padding:0;border:1px solid rgba(255,255,255,.4);border-radius:4px;cursor:pointer;flex:none}.attribute .mini-palette{max-width:130px}.attribute input{width:72px;padding:4px;font-weight:700;font-size:1.05rem}.attribute-form{display:flex;gap:7px;flex-wrap:wrap}.attribute-form input{flex:1;min-width:110px}.manage-toggle{display:block;width:100%;margin-top:12px;background:var(--manage-bg);border-color:var(--manage-border);color:var(--muted);text-align:center;font-size:.85rem}.manage-toggle:hover{color:var(--text)}.manage-panel[hidden]{display:none}.tab-panel[hidden]{display:none}.summary-table{width:100%;margin-bottom:18px;display:flex;flex-direction:column;gap:8px}.summary-table:empty{display:none;margin:0}.summary-row{background:var(--panel-bg);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:background .2s ease}.summary-row:focus-visible{outline:3px solid var(--primary);outline-offset:2px}.summary-row:hover{background:var(--summary-hover-bg)}.summary-row.turn-ended-row{opacity:.55;filter:grayscale(1)}.summary-row.current-turn-row{border-color:var(--good);box-shadow:0 0 0 1px var(--good)}.summary-current-turn-badge{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--good);color:var(--good-text);font-size:.75rem;font-weight:700;white-space:nowrap}.summary-row.hp-warning-row{background:rgba(255,173,66,.12)}.summary-row.hp-danger-row{background:rgba(255,74,88,.16)}.summary-line-1{display:flex;align-items:center;justify-content:space-between;gap:10px}.summary-name{font-weight:700;display:flex;align-items:center;gap:7px;font-size:1rem}.summary-dot{width:12px;height:12px;border-radius:50%;flex:none}.summary-line-2{width:100%}.summary-hp-cell{display:flex;align-items:center;gap:10px;width:100%}.summary-bar{flex:1;height:12px;border-radius:999px;overflow:hidden;background:var(--track-bg);border:1px solid var(--track-border)}.summary-fill{height:100%;background:linear-gradient(90deg,#8a1c2b,#ff5b6d)}.summary-hp-text{white-space:nowrap;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600}.summary-line-3,.summary-line-4{display:flex;flex-wrap:wrap;gap:6px}.summary-status .condition{padding:3px 8px;font-size:.85rem;border-radius:6px}.summary-status .passive{font-size:.85rem;padding:3px 8px;border-radius:999px;max-width:none}.summary-status .attribute{padding:3px 8px;font-size:.85rem;border-radius:6px}.summary-attribute-value{font-weight:700;font-size:1.15em}.summary-none{display:none}.summary-turn-toggle{margin-left:4px;padding:6px 11px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap;line-height:1.4;background:var(--tag-off-bg);border:1px solid var(--tag-off-border);color:var(--tag-off-text);cursor:pointer}.summary-turn-toggle:hover{filter:brightness(.95)}.summary-turn-toggle.active{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}.round-counter{display:flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid var(--line);border-radius:999px;background:var(--panel-bg)}.round-counter-label{font-size:.82rem;color:var(--muted);padding-left:4px}.round-counter button{width:40px;height:40px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;font-size:1.1rem}.round-counter-value{width:3.2em;min-width:1.6em;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;padding:6px 2px;border:1px solid transparent;background:transparent}.round-counter-value:focus{border-color:var(--primary);background:var(--focus-bg)}.round-counter-value::-webkit-inner-spin-button,.round-counter-value::-webkit-outer-spin-button{margin:0}.round-counter button#roundReset{width:auto;height:40px;border-radius:999px;padding:0 10px;font-size:.85rem}.summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}.summary-head-title{font-size:.85rem;font-weight:600;color:var(--muted)}.summary-head button{padding:5px 10px;font-size:.8rem}.summary-custom-bar{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:999px;border:1px solid var(--bar-color,#7c8db5);background:color-mix(in srgb,var(--bar-color,#7c8db5) 16%,var(--card));font-size:.85rem;max-width:180px}.summary-custom-bar-label{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}.summary-custom-bar-track{width:34px;height:6px;border-radius:999px;overflow:hidden;background:var(--track-bg);border:1px solid var(--track-border);flex:none}.summary-custom-bar-fill{height:100%;background:var(--bar-color,#7c8db5)}.summary-custom-bar-value{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}@media(max-width:700px){.summary-table{font-size:.85rem}.summary-hp-cell{min-width:100px}}.conditions{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.conditions>.condition-title,.conditions>.condition-list{display:none}.condition-title{font-size:.9rem;color:var(--muted);margin-bottom:7px}.condition-list,.saved-status-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.condition{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;border:1px solid var(--condition-color,var(--buff-border));color:var(--condition-color,var(--buff-text));background:color-mix(in srgb,var(--condition-color,var(--buff-border)) 16%,var(--card))}.condition .turns{opacity:.72;font-size:.85em;font-weight:400;padding-left:5px;margin-left:2px;border-left:1px solid currentColor}.condition button{padding:5px 8px;border-radius:6px}.template-tag{padding:5px 8px;background:var(--template-bg);border-color:var(--template-border);color:var(--template-text)}.template-delete{padding:6px 10px;background:var(--danger);color:var(--danger-text)}.condition-form{display:grid;grid-template-columns:1fr 90px 74px auto;gap:7px}.condition-form .saved-status-tags{grid-column:1/-1}.condition-form .kind-toggle-group{grid-column:1/-1}.condition-form>*{min-width:0}
+    .section-head{display:flex;align-items:center;justify-content:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}.section-head-actions{display:flex;gap:8px;flex-wrap:wrap}.section-title{margin:0;font-size:1.25rem}.action-panel,.save-panel{margin:0 0 18px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-bg)}.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.tag{border-color:var(--primary);background:var(--primary);color:var(--primary-text);padding:5px 10px;font-size:.8rem;border-radius:999px}.tag.off{background:var(--tag-off-bg);border-color:var(--tag-off-border);color:var(--tag-off-text);text-decoration:line-through}.tag-delete{padding:6px 10px;background:var(--danger);color:var(--danger-text)}.initiative-panel{margin:0 0 22px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-bg)}.initiative-list{display:flex;flex-wrap:wrap;gap:9px}.initiative-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 6px 5px 11px;border-radius:999px;border:1px solid var(--tag-color,var(--primary));background:color-mix(in srgb,var(--tag-color,var(--primary)) 20%,var(--card));font-weight:600;font-size:.9rem}.initiative-tag.ended{opacity:.5;filter:grayscale(1)}.initiative-tag.current{border-width:2px;border-color:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 30%,transparent)}.initiative-tag.current.ended{opacity:.75;filter:none}.initiative-name{background:none;border:none;font:inherit;font-weight:inherit;color:inherit;padding:0;cursor:pointer;border-radius:4px}.initiative-name:hover{text-decoration:underline}.initiative-turn-toggle{padding:6px 10px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap;line-height:1.4;background:var(--tag-off-bg);border:1px solid var(--tag-off-border);color:var(--tag-off-text);cursor:pointer}.initiative-turn-toggle:hover{filter:brightness(.95)}.initiative-turn-toggle.active{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}.initiative-order{opacity:.65;font-weight:700;font-variant-numeric:tabular-nums}.initiative-move{padding:6px 11px;border-radius:999px;font-size:.85rem;line-height:1.4}.initiative-move:disabled{opacity:.3;cursor:not-allowed}.initiative-rename{padding:6px 10px;border-radius:999px;font-size:.86rem;line-height:1.4}.squad-option{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--muted);cursor:pointer;padding:6px 4px}.squad-option input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.squad-option input[type=number]{width:56px;padding:4px}.squad-badge{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:10px 0;padding:6px 9px;border-radius:10px;background:var(--manage-bg);border:1px solid var(--manage-border);font-size:.86rem;color:var(--muted)}.squad-badge-text{font-weight:600;margin-right:auto;color:var(--text)}.squad-badge button{padding:6px 10px;font-size:.85rem;border-radius:7px}.squad-disband{background:var(--danger);color:var(--danger-text)}.tag-form,.quick-monster,.save-form{display:flex;flex-wrap:wrap;gap:8px}.filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0}.filter-bar:empty{display:none;margin:0}.filter-bar .tag{padding:4px 9px;font-size:.82rem}[data-initiative-bar-toggle],[data-filter-expand-toggle],[data-filter-reset],[data-batch-action],[data-batch-status]{padding:4px 9px;font-size:.82rem}#tagForm button{padding:4px 9px;font-size:.82rem}#tabSectionInfo .section-head-actions{gap:6px;flex-wrap:nowrap}.tick-statuses-btn,.tick-mode-btn,#tabSectionInfo .next-turn-btn{padding:4px 9px;font-size:.82rem;border-radius:999px;white-space:nowrap}.initiative-bar-item{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel-bg);font-size:.82rem;font-weight:600;white-space:nowrap}.initiative-bar-item.ended{opacity:.5;filter:grayscale(1)}.initiative-bar-item.current{border-width:2px;border-color:var(--good);box-shadow:0 0 0 2px color-mix(in srgb,var(--good) 30%,transparent);background:color-mix(in srgb,var(--good) 15%,var(--card))}.initiative-bar-item.current.ended{opacity:.8;filter:none}.filter-label{color:var(--muted);font-size:.85rem}.batch-actions{display:inline-flex;align-items:center;gap:6px;padding-left:8px;margin-left:4px;border-left:1px solid var(--line)}.batch-amount{width:56px;padding:5px 4px;text-align:center}.tag-form input,.save-form input{flex:1;min-width:150px}.save-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.save-list-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}.save-item{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 8px;border-radius:999px;background:var(--manage-bg);border:1px solid var(--manage-border);max-width:100%}.save-item input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.save-item-load{background:none;border:none;color:var(--text);font:inherit;font-weight:600;padding:8px 3px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}.save-item-load:hover{text-decoration:underline}.save-item-meta{font-size:.78rem;color:var(--muted);white-space:nowrap;padding:0 2px}.save-item-export{padding:6px 8px;background:none;border:none;color:var(--muted);border-radius:6px;font-size:1rem;line-height:1}.save-item-export:hover{color:var(--text);background:var(--card)}.storage-breakdown{margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden}.storage-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line)}.storage-row:last-child{border-bottom:none}.storage-row-label{font-weight:600;flex:1;min-width:140px}.storage-row-meta{color:var(--muted);font-size:.85rem;white-space:nowrap}.storage-row button{padding:6px 10px;font-size:.82rem;flex:none}.storage-total-row{font-weight:700;background:var(--summary-th-bg)}.storage-row input[type=checkbox]{width:26px;height:26px;cursor:pointer;flex:none;accent-color:var(--primary)}.storage-row-spacer{display:inline-block;width:26px;flex:none}.storage-toolbar-row{background:var(--manage-bg);flex-wrap:wrap}.storage-toolbar-row .squad-option{padding:4px 0}.tag-form input{flex:1;min-width:150px}.quick-monster{justify-content:center;margin-top:10px}.quick-monster select{min-width:220px}.palette-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.color-palette{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.swatch{width:34px;height:34px;padding:0;border:2px solid transparent;border-radius:8px}.swatch:hover,.swatch.selected{border-color:var(--swatch-hover-border);transform:scale(1.12)}.swatch-wrap{display:flex;align-items:center;gap:1px}.swatch-delete{padding:5px 8px;background:var(--danger);color:var(--danger-text);border-radius:5px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:18px}.card{min-width:0;padding:18px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--unit-color);border-radius:16px;box-shadow:var(--shadow);position:relative;touch-action:pan-y}.card{transition:transform .22s cubic-bezier(.22,.8,.32,1),box-shadow .15s ease}.card.player,.card.monster{cursor:pointer}.card.boss{border-top-color:#ffb703;box-shadow:0 0 0 2px rgba(255,183,3,.35),var(--shadow)}.card.hp-warning{box-shadow:0 0 0 2px rgba(255,173,66,.6),var(--shadow)}.card.hp-danger{box-shadow:0 0 0 3px rgba(255,74,88,.75),var(--shadow)}
+    .current-turn-badge{position:absolute;top:-11px;left:14px;padding:3px 10px;border-radius:999px;background:var(--good);color:var(--good-text);font-size:.78rem;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:2}.threshold-block{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.threshold-title{font-size:.9rem;color:var(--muted);margin-bottom:7px}.threshold-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.card.turn-ended{opacity:.5;filter:grayscale(1);box-shadow:none}.head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.head h2{flex-basis:100%;font-size:1.15rem;margin:0;display:flex;align-items:center;gap:8px}.unit-color-picker{width:36px;height:36px;padding:0;border:2px solid var(--line);border-radius:8px;cursor:pointer;flex:none}.unit-color-picker::-webkit-color-swatch-wrapper{padding:2px}.unit-color-picker::-webkit-color-swatch{border:none;border-radius:4px}.title-attributes{display:flex;flex-basis:100%;flex-wrap:wrap;gap:5px}.title-attributes .attribute{font-size:.8rem;padding:3px 6px}.title-attributes .attribute input{width:58px;padding:2px;font-weight:700;font-size:.95rem}.title-passives{display:flex;flex-basis:100%;flex-wrap:wrap;gap:5px}.passive{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:.8rem;font-weight:600;color:var(--passive-color,#8a5cd6);border:1px solid var(--passive-color,#8a5cd6);background:color-mix(in srgb,var(--passive-color,#8a5cd6) 16%,var(--card));max-width:260px}.passive span.passive-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.passive button{padding:4px 6px;border:none;background:none;color:inherit;font-weight:700;line-height:1}.passives-section{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.passive-form{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.passive-form input[name=passiveName]{flex:1;min-width:180px}.title-status{display:flex;flex:1;flex-wrap:wrap;gap:5px}.title-status .condition{font-size:.8rem;padding:3px 6px}.hp{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}.hp-inline{display:flex;align-items:center;gap:4px}.hp-inline input{width:58px;padding:4px 3px;text-align:center;border-color:transparent;background:transparent}.hp-inline input:focus{border-color:var(--player);background:var(--focus-bg)}.unit-name-input{border-color:transparent;background:transparent;font:inherit;font-weight:700;padding:3px 5px;width:auto;min-width:70px;max-width:260px}.unit-name-input:focus{border-color:var(--player);background:var(--focus-bg)}.bar{height:20px;margin:16px 0 8px;border:1px solid var(--track-border);border-radius:999px;overflow:hidden;background:var(--track-bg)}.fill{height:100%;border-radius:inherit;transition:width .25s ease,background .25s ease;background:linear-gradient(90deg,#8a1c2b,#ff5b6d)}.bar{cursor:ew-resize;user-select:none;-webkit-user-select:none;touch-action:none}.bar.bar-dragging{cursor:grabbing}.bar.bar-dragging .fill{transition:none}.bar-drag-badge{position:fixed;left:0;top:0;transform:translate(-50%,-100%);padding:6px 13px;border-radius:999px;font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;z-index:60;box-shadow:0 4px 12px rgba(0,0,0,.35);background:var(--primary);color:var(--primary-text);opacity:0;transition:opacity .1s ease}.bar-drag-badge.show{opacity:1}.undo-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabbar-h,72px) + 16px + env(safe-area-inset-bottom));z-index:70;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 24px);padding:9px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.35);font-size:.85rem;font-weight:600}.undo-toast[hidden]{display:none}.undo-toast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.undo-toast button{padding:5px 10px;font-size:.8rem;flex:none}#undoToastBtn{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}#undoToastClose{padding:5px 8px;background:none;border:none;color:var(--muted);font-size:1rem;line-height:1}.bar-drag-badge.negative{background:var(--danger);color:var(--danger-text)}.bar-drag-badge.positive{background:var(--good);color:var(--good-text)}.status{min-height:24px;color:var(--muted);font-size:.9rem}.attributes{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.attributes>.attribute-list{display:none}.attribute-list{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.attribute{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:8px;background:color-mix(in srgb,var(--attr-color,var(--attr-default)) 20%,var(--card));border:1px solid var(--attr-color,var(--attr-default))}.attribute .attr-color-picker{width:14px;height:14px;padding:0;border:1px solid rgba(255,255,255,.4);border-radius:4px;cursor:pointer;flex:none}.passive .passive-color-picker{width:14px;height:14px;padding:0;border:1px solid rgba(255,255,255,.4);border-radius:4px;cursor:pointer;flex:none}.attribute .mini-palette{max-width:130px}.attribute input{width:72px;padding:4px;font-weight:700;font-size:1.05rem}.attribute-form{display:flex;gap:7px;flex-wrap:wrap}.attribute-form input{flex:1;min-width:110px}.manage-toggle{display:block;width:100%;margin-top:12px;background:var(--manage-bg);border-color:var(--manage-border);color:var(--muted);text-align:center;font-size:.85rem}.manage-toggle:hover{color:var(--text)}.manage-panel[hidden]{display:none}.tab-panel[hidden]{display:none}.summary-table{width:100%;margin-bottom:18px;display:flex;flex-direction:column;gap:8px}.summary-table:empty{display:none;margin:0}.summary-row{background:var(--panel-bg);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:background .2s ease}.summary-row:focus-visible{outline:3px solid var(--primary);outline-offset:2px}.summary-row:hover{background:var(--summary-hover-bg)}.summary-row.turn-ended-row{opacity:.55;filter:grayscale(1)}.summary-row.current-turn-row{border-color:var(--good);box-shadow:0 0 0 1px var(--good)}.summary-current-turn-badge{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--good);color:var(--good-text);font-size:.75rem;font-weight:700;white-space:nowrap}.summary-row.hp-warning-row{background:rgba(255,173,66,.12)}.summary-row.hp-danger-row{background:rgba(255,74,88,.16)}.summary-line-1{display:flex;align-items:center;justify-content:space-between;gap:10px}.summary-name{font-weight:700;display:flex;align-items:center;gap:7px;font-size:1rem}.summary-dot{width:12px;height:12px;border-radius:50%;flex:none}.summary-line-2{width:100%}.summary-hp-cell{display:flex;align-items:center;gap:10px;width:100%}.summary-bar{flex:1;height:12px;border-radius:999px;overflow:hidden;background:var(--track-bg);border:1px solid var(--track-border)}.summary-fill{height:100%;background:linear-gradient(90deg,#8a1c2b,#ff5b6d)}.summary-hp-text{white-space:nowrap;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600}.summary-line-3,.summary-line-4{display:flex;flex-wrap:wrap;gap:6px}.summary-status .condition{padding:3px 8px;font-size:.85rem;border-radius:6px}.summary-status .passive{font-size:.85rem;padding:3px 8px;border-radius:999px;max-width:none}.summary-status .attribute{padding:3px 8px;font-size:.85rem;border-radius:6px}.summary-attribute-value{font-weight:700;font-size:1.15em}.summary-none{display:none}.summary-turn-toggle{margin-left:4px;padding:6px 11px;border-radius:999px;font-size:.85rem;font-weight:600;white-space:nowrap;line-height:1.4;background:var(--tag-off-bg);border:1px solid var(--tag-off-border);color:var(--tag-off-text);cursor:pointer}.summary-turn-toggle:hover{filter:brightness(.95)}.summary-turn-toggle.active{background:var(--danger);border-color:var(--danger);color:var(--danger-text)}.round-counter{display:flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid var(--line);border-radius:999px;background:var(--panel-bg)}.round-counter-label{font-size:.82rem;color:var(--muted);padding-left:4px}.round-counter button{width:40px;height:40px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;font-size:1.1rem}.round-counter-value{width:3.2em;min-width:1.6em;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;padding:6px 2px;border:1px solid transparent;background:transparent}.round-counter-value:focus{border-color:var(--primary);background:var(--focus-bg)}.round-counter-value::-webkit-inner-spin-button,.round-counter-value::-webkit-outer-spin-button{margin:0}.round-counter button#roundReset{width:auto;height:40px;border-radius:999px;padding:0 10px;font-size:.85rem}.summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}.summary-head-title{font-size:.85rem;font-weight:600;color:var(--muted)}.summary-head button{padding:5px 10px;font-size:.8rem}.summary-custom-bar{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:999px;border:1px solid var(--bar-color,#7c8db5);background:color-mix(in srgb,var(--bar-color,#7c8db5) 16%,var(--card));font-size:.85rem;max-width:180px}.summary-custom-bar-label{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}.summary-custom-bar-track{width:34px;height:6px;border-radius:999px;overflow:hidden;background:var(--track-bg);border:1px solid var(--track-border);flex:none}.summary-custom-bar-fill{height:100%;background:var(--bar-color,#7c8db5)}.summary-custom-bar-value{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}@media(max-width:700px){.summary-table{font-size:.85rem}.summary-hp-cell{min-width:100px}}.conditions{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.conditions>.condition-title,.conditions>.condition-list{display:none}.condition-title{font-size:.9rem;color:var(--muted);margin-bottom:7px}.condition-list,.saved-status-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}.condition{display:flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;border:1px solid var(--condition-color,var(--buff-border));color:var(--condition-color,var(--buff-text));background:color-mix(in srgb,var(--condition-color,var(--buff-border)) 16%,var(--card))}.condition .turns{opacity:.72;font-size:.85em;font-weight:400;padding-left:5px;margin-left:2px;border-left:1px solid currentColor}.condition .turns.expiring{opacity:1;font-weight:700;animation:turns-expiring 1.4s ease-in-out infinite}@keyframes turns-expiring{0%,100%{text-shadow:none}50%{text-shadow:0 0 6px currentColor}}.status-autotick{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;color:var(--muted);cursor:pointer;white-space:nowrap;padding:0 2px}.status-autotick input[type=checkbox]{width:22px;height:22px;cursor:pointer;flex:none;accent-color:var(--primary)}.condition button{padding:5px 8px;border-radius:6px}.template-tag{padding:5px 8px;background:var(--template-bg);border-color:var(--template-border);color:var(--template-text)}.template-delete{padding:6px 10px;background:var(--danger);color:var(--danger-text)}.condition-form{display:grid;grid-template-columns:1fr 90px 74px auto;gap:7px}.condition-form .saved-status-tags{grid-column:1/-1}.condition-form .kind-toggle-group{grid-column:1/-1}.condition-form>*{min-width:0}
     .kind-toggle-group{display:flex;gap:6px}
     .kind-toggle{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 6px;border-radius:8px;border:1px solid var(--line);cursor:pointer;font-size:.9rem;font-weight:600;color:var(--muted);background:var(--panel-bg);position:relative}
     .kind-toggle input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
@@ -100,8 +100,8 @@
     #batchDeleteRow[hidden]{display:none}
     #btnOpenMonsterTagLibrary{position:sticky;top:0;z-index:40}
     .shop-sticky-top{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15)}
-    @media(max-width:599px),(max-height:480px){body{padding:16px calc(8px + env(safe-area-inset-right)) 16px calc(8px + env(safe-area-inset-left));padding-bottom:calc(76px + env(safe-area-inset-bottom))}.sticky-wrap{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(6px + env(safe-area-inset-top)) 0 6px}.section-head{margin:12px 0 8px;gap:8px}.section-title{font-size:1rem}.section-head-actions{gap:4px;flex-wrap:wrap}.section-head-actions button{padding:6px 8px;font-size:.75rem;white-space:nowrap}.round-counter{gap:4px;padding:3px 4px}.round-counter-label{font-size:.7rem;padding-left:2px}.round-counter button{width:32px;height:32px;font-size:.9rem}.round-counter-value{width:2.4em;font-size:.85rem;padding:4px 1px}.round-counter button#roundReset{padding:0 6px;font-size:.7rem;height:32px}.initiative-tag{padding:4px 6px 4px 9px;font-size:.8rem;gap:4px}.initiative-order{font-size:.75rem}.initiative-move{padding:4px 8px;font-size:.75rem}.initiative-rename{padding:4px 8px;font-size:.75rem}.initiative-turn-toggle{padding:4px 8px;font-size:.75rem}.summary-head{gap:6px;margin:0 0 6px}.summary-head-title{font-size:.75rem}.summary-head button{padding:4px 6px;font-size:.7rem}.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}.card{padding:12px}.head h2{font-size:.95rem;gap:6px}.unit-color-picker{width:28px;height:28px}.title-attributes .attribute{font-size:.7rem;padding:2px 4px}.title-attributes .attribute input{width:46px;padding:1px;font-weight:700;font-size:.85rem}.title-passives{gap:4px}.passive{font-size:.7rem;padding:2px 6px;max-width:200px}.passives-section{margin-top:10px;padding-top:10px}.passive-form{gap:5px;margin-top:6px}.passive-form input[name=passiveName]{min-width:120px}.title-status .condition{font-size:.7rem;padding:2px 4px}.hp{font-size:.8rem}.hp-inline input{width:48px;padding:3px 2px;font-size:.8rem}.unit-name-input{min-width:60px;max-width:200px;font-size:.9rem}.bar{height:16px;margin:12px 0 6px}.bar-drag-badge{font-size:.85rem;padding:4px 10px}.status{font-size:.8rem;min-height:20px}.attributes{margin-top:10px;padding-top:10px}.attribute-list{gap:5px;margin-bottom:6px}.attribute{font-size:.7rem;padding:3px 5px}.attribute .attr-color-picker{width:12px;height:12px}.passive .passive-color-picker{width:12px;height:12px}.attribute input{width:56px;padding:2px;font-weight:700;font-size:.85rem}.attribute-form{gap:5px}.attribute-form input{min-width:90px;font-size:.75rem}.manage-toggle{margin-top:10px;font-size:.75rem;padding:6px 8px}.summary-table{margin-bottom:12px;gap:6px}.summary-row{padding:8px;gap:6px}.summary-line-1{gap:6px}.summary-name{font-size:.9rem;gap:5px}.summary-dot{width:10px;height:10px}.summary-line-2{width:100%}.summary-hp-cell{gap:6px}.summary-bar{height:10px}.summary-hp-text{font-size:.75rem}.summary-line-3,.summary-line-4{gap:4px}.summary-status .condition{padding:2px 6px;font-size:.75rem}.summary-status .passive{font-size:.75rem;padding:2px 6px}.summary-status .attribute{font-size:.75rem;padding:2px 6px}.summary-turn-toggle{padding:4px 8px;font-size:.75rem;margin-left:2px}.toolbar{gap:6px;margin-bottom:16px}.toolbar button{padding:6px 8px;font-size:.75rem}.add-form{margin:16px auto 14px;gap:6px}.add-form input{min-width:120px;font-size:.8rem;padding:6px 8px}.add-form input[type=number]{flex:0 1 90px;font-size:.8rem}.tag-list{gap:6px;margin-bottom:8px}.tag{padding:4px 8px;font-size:.75rem}.tag-delete{padding:4px 6px;font-size:.75rem}.action-panel,.save-panel{margin:0 0 12px;padding:10px;font-size:.8rem}.save-list{gap:5px;margin-top:8px}.save-item{gap:3px;padding:3px 3px 3px 6px}.save-item-load{padding:6px 2px;max-width:140px;font-size:.75rem}.save-item-meta{font-size:.65rem}.save-item-export{padding:4px 6px;font-size:.9rem}.theme-switch{gap:4px;margin:0 0 12px}.theme-switch button{padding:4px 10px;font-size:.75rem}.filter-bar{gap:6px;margin:8px 0;font-size:.75rem}.filter-label{font-size:.7rem}.filter-bar .tag{padding:3px 7px;font-size:.72rem}.initiative-bar-item{padding:3px 7px;font-size:.72rem;gap:3px}[data-initiative-bar-toggle],[data-filter-expand-toggle],[data-filter-reset],[data-batch-action],[data-batch-status]{padding:3px 7px;font-size:.72rem}#tagForm button{padding:3px 7px;font-size:.72rem}.batch-actions{gap:4px;padding-left:6px;margin-left:2px}.batch-amount{width:48px;padding:3px 2px;font-size:.75rem}.tag-form,.quick-monster,.save-form{gap:6px}.tag-form input,.save-form input{min-width:120px;font-size:.75rem;padding:6px 8px}.quick-monster select{min-width:160px;font-size:.75rem;padding:6px 8px}.initiative-panel{margin:0 0 16px;padding:10px}.initiative-list{gap:6px}.initiative-rename{padding:4px 8px;font-size:.75rem}.palette-controls{gap:6px}.color-palette{gap:4px}.swatch{width:28px;height:28px}.swatch-delete{padding:4px 6px;font-size:.75rem}.threshold-block{margin-top:10px;padding-top:10px}.threshold-title{font-size:.8rem;margin-bottom:5px}.threshold-list{gap:5px;margin-bottom:6px}.summary-custom-bar{gap:4px;padding:2px 6px;font-size:.75rem}.summary-custom-bar-label{font-size:.7rem}.summary-custom-bar-value{font-size:.7rem}.summary-custom-bar-track{height:8px}.summary-custom-bar-fill{height:100%}}
-    @media(max-height:500px) and (orientation:landscape){.toolbar{gap:4px;margin-bottom:6px}.toolbar button{padding:4px 6px;font-size:.7rem}#combatSharedPanel .action-panel{margin:0 0 6px}.section-head{margin:4px 0 4px;gap:4px}.section-title{font-size:.85rem}.section-head-actions{gap:3px}.section-head-actions button{padding:3px 6px;font-size:.7rem}.round-counter{gap:2px;padding:2px 3px}.round-counter-label{font-size:.6rem;padding-left:1px}.round-counter button{width:24px;height:24px;font-size:.75rem}.round-counter-value{width:2em;font-size:.7rem;padding:2px 1px}.round-counter button#roundReset{padding:0 4px;font-size:.6rem;height:24px}.sticky-wrap{padding-top:calc(3px + env(safe-area-inset-top));padding-bottom:2px}.action-panel,.save-panel{margin:0 0 6px;padding:6px;font-size:.7rem}.tag{padding:2px 6px;font-size:.65rem}.tag-delete{padding:2px 4px;font-size:.65rem}.filter-bar .tag{padding:2px 6px;font-size:.65rem}.initiative-bar-item{padding:2px 6px;font-size:.65rem;gap:2px}[data-initiative-bar-toggle],[data-filter-expand-toggle],[data-filter-reset],[data-batch-action],[data-batch-status]{padding:2px 6px;font-size:.65rem}#tagForm button{padding:2px 6px;font-size:.65rem}.tag-form input{min-width:80px;font-size:.65rem;padding:4px 6px}.summary-head{gap:6px;margin:0 0 4px}.summary-head-title{font-size:.7rem}.summary-head button{padding:3px 6px;font-size:.65rem}}
+    @media(max-width:599px),(max-height:480px){body{padding:16px calc(8px + env(safe-area-inset-right)) 16px calc(8px + env(safe-area-inset-left));padding-bottom:calc(76px + env(safe-area-inset-bottom))}.sticky-wrap{position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(6px + env(safe-area-inset-top)) 0 6px}.section-head{margin:12px 0 8px;gap:8px}.section-title{font-size:1rem}.section-head-actions{gap:4px;flex-wrap:wrap}.section-head-actions button{padding:6px 8px;font-size:.75rem;white-space:nowrap}.round-counter{gap:4px;padding:3px 4px}.round-counter-label{font-size:.7rem;padding-left:2px}.round-counter button{width:32px;height:32px;font-size:.9rem}.round-counter-value{width:2.4em;font-size:.85rem;padding:4px 1px}.round-counter button#roundReset{padding:0 6px;font-size:.7rem;height:32px}.initiative-tag{padding:4px 6px 4px 9px;font-size:.8rem;gap:4px}.initiative-order{font-size:.75rem}.initiative-move{padding:4px 8px;font-size:.75rem}.initiative-rename{padding:4px 8px;font-size:.75rem}.initiative-turn-toggle{padding:4px 8px;font-size:.75rem}.summary-head{gap:6px;margin:0 0 6px}.summary-head-title{font-size:.75rem}.summary-head button{padding:4px 6px;font-size:.7rem}.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}.card{padding:12px}.head h2{font-size:.95rem;gap:6px}.unit-color-picker{width:28px;height:28px}.title-attributes .attribute{font-size:.7rem;padding:2px 4px}.title-attributes .attribute input{width:46px;padding:1px;font-weight:700;font-size:.85rem}.title-passives{gap:4px}.passive{font-size:.7rem;padding:2px 6px;max-width:200px}.passives-section{margin-top:10px;padding-top:10px}.passive-form{gap:5px;margin-top:6px}.passive-form input[name=passiveName]{min-width:120px}.title-status .condition{font-size:.7rem;padding:2px 4px}.hp{font-size:.8rem}.hp-inline input{width:48px;padding:3px 2px;font-size:.8rem}.unit-name-input{min-width:60px;max-width:200px;font-size:.9rem}.bar{height:16px;margin:12px 0 6px}.bar-drag-badge{font-size:.85rem;padding:4px 10px}.status{font-size:.8rem;min-height:20px}.attributes{margin-top:10px;padding-top:10px}.attribute-list{gap:5px;margin-bottom:6px}.attribute{font-size:.7rem;padding:3px 5px}.attribute .attr-color-picker{width:12px;height:12px}.passive .passive-color-picker{width:12px;height:12px}.attribute input{width:56px;padding:2px;font-weight:700;font-size:.85rem}.attribute-form{gap:5px}.attribute-form input{min-width:90px;font-size:.75rem}.manage-toggle{margin-top:10px;font-size:.75rem;padding:6px 8px}.summary-table{margin-bottom:12px;gap:6px}.summary-row{padding:8px;gap:6px}.summary-line-1{gap:6px}.summary-name{font-size:.9rem;gap:5px}.summary-dot{width:10px;height:10px}.summary-line-2{width:100%}.summary-hp-cell{gap:6px}.summary-bar{height:10px}.summary-hp-text{font-size:.75rem}.summary-line-3,.summary-line-4{gap:4px}.summary-status .condition{padding:2px 6px;font-size:.75rem}.summary-status .passive{font-size:.75rem;padding:2px 6px}.summary-status .attribute{font-size:.75rem;padding:2px 6px}.summary-turn-toggle{padding:4px 8px;font-size:.75rem;margin-left:2px}.toolbar{gap:6px;margin-bottom:16px}.toolbar button{padding:6px 8px;font-size:.75rem}.add-form{margin:16px auto 14px;gap:6px}.add-form input{min-width:120px;font-size:.8rem;padding:6px 8px}.add-form input[type=number]{flex:0 1 90px;font-size:.8rem}.tag-list{gap:6px;margin-bottom:8px}.tag{padding:4px 8px;font-size:.75rem}.tag-delete{padding:4px 6px;font-size:.75rem}.action-panel,.save-panel{margin:0 0 12px;padding:10px;font-size:.8rem}.save-list{gap:5px;margin-top:8px}.save-item{gap:3px;padding:3px 3px 3px 6px}.save-item-load{padding:6px 2px;max-width:140px;font-size:.75rem}.save-item-meta{font-size:.65rem}.save-item-export{padding:4px 6px;font-size:.9rem}.theme-switch{gap:4px;margin:0 0 12px}.theme-switch button{padding:4px 10px;font-size:.75rem}.filter-bar{gap:6px;margin:8px 0;font-size:.75rem}.filter-label{font-size:.7rem}.filter-bar .tag{padding:3px 7px;font-size:.72rem}.initiative-bar-item{padding:3px 7px;font-size:.72rem;gap:3px}[data-initiative-bar-toggle],[data-filter-expand-toggle],[data-filter-reset],[data-batch-action],[data-batch-status]{padding:3px 7px;font-size:.72rem}#tagForm button{padding:3px 7px;font-size:.72rem}.tick-statuses-btn,.tick-mode-btn,#tabSectionInfo .next-turn-btn{padding:3px 7px;font-size:.72rem}#tabSectionInfo .section-head-actions{gap:4px}.batch-actions{gap:4px;padding-left:6px;margin-left:2px}.batch-amount{width:48px;padding:3px 2px;font-size:.75rem}.tag-form,.quick-monster,.save-form{gap:6px}.tag-form input,.save-form input{min-width:120px;font-size:.75rem;padding:6px 8px}.quick-monster select{min-width:160px;font-size:.75rem;padding:6px 8px}.initiative-panel{margin:0 0 16px;padding:10px}.initiative-list{gap:6px}.initiative-rename{padding:4px 8px;font-size:.75rem}.palette-controls{gap:6px}.color-palette{gap:4px}.swatch{width:28px;height:28px}.swatch-delete{padding:4px 6px;font-size:.75rem}.threshold-block{margin-top:10px;padding-top:10px}.threshold-title{font-size:.8rem;margin-bottom:5px}.threshold-list{gap:5px;margin-bottom:6px}.summary-custom-bar{gap:4px;padding:2px 6px;font-size:.75rem}.summary-custom-bar-label{font-size:.7rem}.summary-custom-bar-value{font-size:.7rem}.summary-custom-bar-track{height:8px}.summary-custom-bar-fill{height:100%}}
+    @media(max-height:500px) and (orientation:landscape){.toolbar{gap:4px;margin-bottom:6px}.toolbar button{padding:4px 6px;font-size:.7rem}#combatSharedPanel .action-panel{margin:0 0 6px}.section-head{margin:4px 0 4px;gap:4px}.section-title{font-size:.85rem}.section-head-actions{gap:3px}.section-head-actions button{padding:3px 6px;font-size:.7rem}.round-counter{gap:2px;padding:2px 3px}.round-counter-label{font-size:.6rem;padding-left:1px}.round-counter button{width:24px;height:24px;font-size:.75rem}.round-counter-value{width:2em;font-size:.7rem;padding:2px 1px}.round-counter button#roundReset{padding:0 4px;font-size:.6rem;height:24px}.sticky-wrap{padding-top:calc(3px + env(safe-area-inset-top));padding-bottom:2px}.action-panel,.save-panel{margin:0 0 6px;padding:6px;font-size:.7rem}.tag{padding:2px 6px;font-size:.65rem}.tag-delete{padding:2px 4px;font-size:.65rem}.filter-bar .tag{padding:2px 6px;font-size:.65rem}.initiative-bar-item{padding:2px 6px;font-size:.65rem;gap:2px}[data-initiative-bar-toggle],[data-filter-expand-toggle],[data-filter-reset],[data-batch-action],[data-batch-status]{padding:2px 6px;font-size:.65rem}#tagForm button{padding:2px 6px;font-size:.65rem}.tick-statuses-btn,.tick-mode-btn,#tabSectionInfo .next-turn-btn{padding:2px 6px;font-size:.65rem}#tabSectionInfo .section-head-actions{gap:3px}.tag-form input{min-width:80px;font-size:.65rem;padding:4px 6px}.summary-head{gap:6px;margin:0 0 4px}.summary-head-title{font-size:.7rem}.summary-head button{padding:3px 6px;font-size:.65rem}}
   </style>
 </head>
 <body>
@@ -121,7 +121,7 @@
     <div class="tab-panel" id="tabPanelInitiative" data-tab-panel="initiative">
     <div class="sticky-wrap" id="stickyWrapInitiative">
     <div class="sticky-wrap-pinned" id="stickyPinnedInitiative">
-    <div class="section-head" id="tabSectionInitiative"><h2 class="section-title">🎲 先攻區</h2><div class="section-head-actions"><div class="round-counter"><span class="round-counter-label">回合數</span><button type="button" id="roundMinus" aria-label="減少回合數">−</button><input id="roundValue" class="round-counter-value" type="number" inputmode="numeric" min="0" max="9999" step="1" value="1" aria-label="回合數"><button type="button" id="roundPlus" aria-label="增加回合數">+</button><button type="button" id="roundReset" aria-label="重置回合數為0" title="重置回合數為0">↺0</button></div><button type="button" id="nextTurn" class="primary">▶ 下一位</button><button type="button" id="shuffleInitiative">🔀 隨機排序</button><button type="button" id="toggleShuffleMode">🔒 固定順序</button><button type="button" id="toggleAutoScroll">📍 自動捲動：開</button><button type="button" id="resetAllTurns">↺ 重置全部回合</button><button type="button" id="toggleInitiative">收合先攻區</button></div></div>
+    <div class="section-head" id="tabSectionInitiative"><h2 class="section-title">🎲 先攻區</h2><div class="section-head-actions"><div class="round-counter"><span class="round-counter-label">回合數</span><button type="button" id="roundMinus" aria-label="減少回合數">−</button><input id="roundValue" class="round-counter-value" type="number" inputmode="numeric" min="0" max="9999" step="1" value="1" aria-label="回合數"><button type="button" id="roundPlus" aria-label="增加回合數">+</button><button type="button" id="roundReset" aria-label="重置回合數為0" title="重置回合數為0">↺0</button></div><button type="button" id="nextTurn" class="primary">▶ 下一位</button><button type="button" id="shuffleInitiative">🔀 隨機排序</button><button type="button" id="toggleShuffleMode">🔒 固定順序</button><button type="button" id="tickStatuses" class="tick-statuses-btn" title="把全場「自動遞減」的狀態同時 -1，歸零自動移除。在你自己的結算時機按一次即可。">⏳ 狀態 -1</button><button type="button" id="toggleTickMode" class="tick-mode-btn" title="切換狀態遞減的結算方式">🖐 手動遞減</button><button type="button" id="toggleAutoScroll">📍 自動捲動：開</button><button type="button" id="resetAllTurns">↺ 重置全部回合</button><button type="button" id="toggleInitiative">收合先攻區</button></div></div>
     </div>
     </div>
     <section class="initiative-panel" id="initiativeContent"><div class="initiative-list" id="initiativeList"></div></section>
@@ -166,7 +166,7 @@
     <div class="tab-panel" id="tabPanelInfo" data-tab-panel="info" hidden>
     <div class="sticky-wrap" id="stickyWrapInfo">
     <div class="sticky-wrap-pinned" id="stickyPinnedInfo">
-    <div class="section-head" id="tabSectionInfo"><h2 class="section-title">📋 資訊總覽</h2><button type="button" id="floatingNextTurn" class="primary" style="margin-left:auto" title="下一位">▶️ 下一位</button></div>
+    <div class="section-head" id="tabSectionInfo"><h2 class="section-title">📋 資訊總覽</h2><div class="section-head-actions" style="margin-left:auto"><button type="button" id="tickStatusesInfo" class="tick-statuses-btn" title="把全場「自動遞減」的狀態同時 -1，歸零自動移除。在你自己的結算時機按一次即可。">⏳ 狀態 -1</button><button type="button" id="floatingNextTurn" class="primary next-turn-btn" title="下一位">▶️ 下一位</button></div></div>
     </div>
     <div class="sticky-wrap-scroll">
     <div id="actionPanelAnchorInfo"></div>
@@ -277,6 +277,7 @@
     </div>
   </main>
   <!-- floatingNextTurn / floatingBackToInfo moved inline into their tab headers below -->
+  <div id="undoToast" class="undo-toast" hidden><span id="undoToastText"></span><button type="button" id="undoToastBtn">↶ 復原</button><button type="button" id="undoToastClose" aria-label="關閉提示">&#215;</button></div>
   <button type="button" id="shopGmFab" title="新增商品卡">＋ 新增商品卡</button>
   <button type="button" id="shopNavFab" title="篩選／跳轉">🧭</button>
   <div class="shop-overlay" id="shopNavOverlay">
@@ -328,7 +329,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-112';
+    const APP_VERSION='2026.08.07-118';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -627,7 +628,16 @@
     document.addEventListener('visibilitychange',()=>{
       if(document.visibilityState==='visible')checkForUpdateSimple(false);
     });
-    const saveMemory=(key,value)=>setStorageItem(key,JSON.stringify(value));
+    // 範本類資料（狀態/被動/屬性/數值條範本、常用色）很少變動，但卡片的
+    // 渲染簽章需要知道它們有沒有變。原本每次render()都把這五個陣列各
+    // JSON.stringify()一次，角色一多、操作一頻繁就是明顯的浪費。改成在
+    // 「真的存檔時」把版本號+1，render()只要比對一個數字即可。
+    // 這些集合的所有異動路徑最後都會呼叫 saveMemory() 落地（表單新增、
+    // 範本刪除、undo/redo的applyHistoryState、讀取存檔的loadSaveState），
+    // 所以在這裡統一攔截是完整的。
+    const TEMPLATE_STORAGE_KEYS=new Set(['battleTrackerStatusTemplates','battleTrackerPassiveTemplates','battleTrackerAttributeTemplates','battleTrackerBarTemplates','battleTrackerPalette']);
+    let templatesRev=0;
+    const saveMemory=(key,value)=>{if(TEMPLATE_STORAGE_KEYS.has(key))templatesRev++;return setStorageItem(key,JSON.stringify(value))};
     const loadCurrentState=()=>{try{const raw=localStorage.getItem('battleTrackerCurrentState');return raw?JSON.parse(raw):null}catch{return null}};
     const savedCurrentState=loadCurrentState();
     const defaultPlayers=()=>[{id:uuid(),name:'\u73a9\u5bb6 1',hp:100,maxHp:100,type:'player',color:'#36a9ff',statuses:[],attributes:[],bars:[],passives:[],turnEnded:false}];
@@ -641,6 +651,15 @@
     let roundCounter=savedCurrentState?.roundCounter??1;
     let currentTurnId=typeof savedCurrentState?.currentTurnId==='string'?savedCurrentState.currentTurnId:null;
     let currentTurnActed=false;
+    // 本輪「狀態遞減」按鈕已經按過幾次。純粹是給使用者核對用的提示，不影響
+    // 任何結算邏輯；進入新一輪時歸零。這個值會跟著回合數一起存檔——因為
+    // 回合數本身就是存起來的，如果重開App後回合數還停在第5輪、這個次數卻
+    // 被歸零，使用者就會誤以為這輪還沒按過而重複按，反而更危險。
+    let statusTickUsedThisRound=savedCurrentState?.statusTickUsedThisRound??0;
+    // 'manual'：一輪結束時由使用者按一次「狀態 -1」，全體同時遞減。
+    // 'autoTurnEnd'：每名角色被標記回合結束的當下，自己身上的狀態各自遞減。
+    // 兩種結算時機在不同遊戲規則下都有人用，所以做成可切換而不是二選一寫死。
+    let statusTickMode=savedCurrentState?.statusTickMode==='autoTurnEnd'?'autoTurnEnd':'manual';
     function markCurrentTurnActed(unit){
       // 只有「這個動作影響的剛好是目前回合這位（或他所屬的小隊）」時，
       // 才算數——標記過後，重新排序先攻順序就不會再自動同步目前回合，
@@ -1145,7 +1164,24 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     }
     function closeHistoryBurst(){if(historyBurstTimer){clearTimeout(historyBurstTimer);historyBurstTimer=null}historyBurstOpen=false}
     function applyHistoryState(state){closeHistoryBurst();players=state.players;monsters=state.monsters;actionTags=state.actionTags;statusTemplates=state.statusTemplates;monsterTemplates=state.monsterTemplates;attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors;initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:roundCounter;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;cardTiers=state.cardTiers||[];teamGold=typeof state.teamGold==='number'?state.teamGold:teamGold;shopCatalog=state.shopCatalog||shopCatalog;shopUnlockedLevels=state.shopUnlockedLevels||shopUnlockedLevels;shopUnlockedLevelCats=state.shopUnlockedLevelCats||shopUnlockedLevelCats;saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveShopData();document.querySelector('#roundValue').value=roundCounter;render();updateUndo()}
-    function restoreHistory(){if(!history.length)return;future.push(cloneState(historySnapshot()));if(future.length>50)future.shift();applyHistoryState(history.pop())}
+    let undoToastTimer=null;
+    function showUndoToast(text){
+      const toast=document.querySelector('#undoToast');
+      const label=document.querySelector('#undoToastText');
+      if(!toast||!label)return;
+      label.textContent=text;
+      toast.hidden=false;
+      if(undoToastTimer)clearTimeout(undoToastTimer);
+      // 5秒後自動消失。使用者不理它就當作確認這次操作沒問題，不用特地去關；
+      // 想反悔就在這段時間內點「復原」，等同按一次「返回上一步」。
+      undoToastTimer=setTimeout(()=>{undoToastTimer=null;hideUndoToast()},5000);
+    }
+    function hideUndoToast(){
+      const toast=document.querySelector('#undoToast');
+      if(toast)toast.hidden=true;
+      if(undoToastTimer){clearTimeout(undoToastTimer);undoToastTimer=null}
+    }
+    function restoreHistory(){if(!history.length)return;hideUndoToast();future.push(cloneState(historySnapshot()));if(future.length>50)future.shift();applyHistoryState(history.pop())}
     function redoHistory(){if(!future.length)return;history.push(cloneState(historySnapshot()));if(history.length>50)history.shift();applyHistoryState(future.pop())}
     function renderPalette(){const selected=document.querySelector('#unitColor').value.toLowerCase();colorPaletteElement.innerHTML=paletteColors.map(color=>`<span class="swatch-wrap"><button type="button" class="swatch ${color.toLowerCase()===selected?'selected':''}" data-color="${escapeAttr(color)}" style="background:${escapeAttr(color)}"></button><button type="button" class="swatch-delete" data-color-delete="${escapeAttr(color)}">&#215;</button></span>`).join('')||'<span class="status">&#23578;&#28961;&#24120;&#29992;&#33394;</span>'}
     function summaryTableHtml(units){
@@ -1157,7 +1193,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const crossedCount=u.isBoss&&Array.isArray(u.hpThresholds)?u.hpThresholds.filter(t=>u.hp<t.value).length:0;
         const rowSeverity=crossedCount>=2?'hp-danger-row':crossedCount===1?'hp-warning-row':'';
         const percent=u.maxHp>0?Math.max(0,Math.min(100,Math.round(u.hp/u.maxHp*100))):0;
-        const statuses=(u.statuses||[]).map(s=>`<span class="condition ${s.kind}" style="--condition-color:${sanitizeColor(s.color,s.kind==='buff'?'#2f9968':s.kind==='debuff'?'#d9505f':'#c9962e')}">${s.kind==='buff'?'▲':s.kind==='debuff'?'▼':'●'} ${escapeHtml(s.name)}<span class="turns">${s.turns}回合</span></span>`).join('');
+        const statuses=(u.statuses||[]).map(s=>`<span class="condition ${s.kind}" style="--condition-color:${sanitizeColor(s.color,s.kind==='buff'?'#2f9968':s.kind==='debuff'?'#d9505f':'#c9962e')}">${s.kind==='buff'?'▲':s.kind==='debuff'?'▼':'●'} ${escapeHtml(s.name)}${statusTurnsHtml(s)}</span>`).join('');
         const passives=(u.passives||[]).map(p=>`<span class="passive" style="--passive-color:${sanitizeColor(passiveDisplayColor(u,p),'#8a5cd6')}" title="${escapeAttr(p.name)}">✦ <span class="passive-text">${escapeHtml(p.name)}</span></span>`).join('');
         const attrs=(u.attributes||[]).map(a=>`<span class="attribute summary-attribute" style="--attr-color:${sanitizeColor(a.color,'#4c78a4')}">${escapeHtml(a.name)}: <span class="summary-attribute-value">${escapeHtml(String(a.value??''))}</span></span>`).join('');
         const bars=(u.bars||[]).map(b=>{
@@ -1211,9 +1247,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const thresholdWarning=crossedThresholds.length?` &#8226; ${crossedThresholds.length>=2?'&#128128;':'&#9888;&#65039;'} &#24050;&#20302;&#26044; ${crossedThresholds[0].value}${crossedThresholds.length>=2?`&#65288;&#20849;&#36386;&#30772; ${crossedThresholds.length} 條&#8203;&#35686;&#25106;&#32218;&#65289;`:''}`:'';
         const thresholdSection=unit.isBoss?`<div class="threshold-block"><div class="threshold-title">血量警戒線（低於指定數值時明顯提示，可選自動附加被動能力，最多可設定5條）</div><div class="threshold-list">${(unit.hpThresholds||[]).map(t=>`<span class="condition ${unit.hp<t.value?'debuff':'buff'}">${t.triggered?'&#9889;':'&#9888;&#65039;'} &#20302;&#26044; ${t.value}${t.passiveName?` &#8594; ${escapeHtml(t.passiveName)} ${t.autoRemove?'&#128260;':'&#128274;'}`:''}<button data-boss-threshold-delete="${unit.id}" data-threshold-id="${t.id}">&#215;</button></span>`).join('')||'<span class="status">&#23578;&#26410;&#35373;&#23450;</span>'}</div><form class="add-bar-form" data-boss-threshold-form="${unit.id}"><input name="thresholdValue" type="number" min="1" max="999999" placeholder="&#20302;&#26044;&#27492;&#25976;&#20540;&#26178;&#38663;&#25552;&#31034;" style="width:130px" required><input name="thresholdPassive" type="text" maxlength="30" placeholder="&#65288;&#36984;&#22294;&#65289;&#33258;&#21205;&#38468;&#21152;&#30340;&#34987;&#21205;&#33021;&#21147;&#21517;&#31281;" style="width:170px"><label style="display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--muted)"><input type="checkbox" name="thresholdAutoRemove">回復到門檻以上時自動移除被動（否則永久生效）</label><button class="primary">&#65291; &#26032;&#22686;&#35686;&#25106;&#32218;</button></form></div>`:'';
         const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';
-        const conditions=unit.statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}<span class="turns">${item.turns}&#22238;&#21512;</span> <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')||'<span class="status">&#28961;&#29376;&#24907;</span>';
+        const conditions=unit.statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}${statusTurnsHtml(item)} <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')||'<span class="status">&#28961;&#29376;&#24907;</span>';
         const savedStatuses=unitTemplateListHtml(unit.id,statusTemplates,{addAttr:'template-add',idAttr:'template-id',deleteAttr:'template-delete',emptyText:'&#27794;&#26377;&#35352;&#25014;&#30340;&#29376;&#24907;&#27161;&#31844;'});
-        return `<article class="card ${unit.type} ${unit.isBoss?'boss':''} ${turnEnded?'turn-ended':''} ${severityClass}" data-card-id="${unit.id}" data-turn-toggle="${unit.id}" style="--unit-color:${sanitizeColor(unit.color,'#4c78a4')}">${isCurrentTurn?`<div class="current-turn-badge">▶ 目前回合${activeCardLabel?`：${escapeHtml(activeCardLabel)}`:''}</div>`:''}<div class="head"><h2>${icon} <input type="text" class="unit-name-input" data-unit-name="${unit.id}" value="${escapeAttr(unit.name)}" maxlength="500" title="&#25353;&#20035;&#21487;&#20462;&#25913;&#21517;&#31281;&#25110;&#32232;&#34399;" onclick="event.stopPropagation()"><input type="color" class="unit-color-picker" data-unit-color="${unit.id}" value="${sanitizeColor(unit.color,'#4c78a4')}" title="&#26356;&#25913;&#38991;&#33394;" onclick="event.stopPropagation()"></h2>${titlePassiveHtml(unit)}${titleAttributeHtml(unit)}${titleStatusHtml(unit)}${hpInlineHtml(unit)}</div>${squadBadge}${bossBadge}<div class="bar-row"><button data-id="${unit.id}" data-action="damage" class="hp-btn minus" title="&#38477;&#20302;&#34880;&#37327;">&#8722;</button><div class="bar"><div class="fill" style="width:${percent}%;${low}"></div></div><button data-id="${unit.id}" data-action="heal" class="hp-btn plus" title="&#24674;&#24489;&#34880;&#37327;">+</button><input class="hp-amount" data-amount type="number" min="1" step="1" value="1" aria-label="&#34880;&#37327;&#38911;&#21205;&#25976;&#20540;"></div>${barsListHtml(unit)}<div class="status">${turnEnded?'&#22238;&#21512;&#32080;&#26463;':state} (${percent}%)${thresholdWarning}</div><button type="button" class="manage-toggle" data-manage-toggle="${unit.id}">${expandedManageIds.has(unit.id)?'\u25b2 \u6536\u5408\u7ba1\u7406':'\u25bc \u7ba1\u7406\u72c0\u614b\u30fb\u5c6c\u6027\u30fb\u6578\u503c\u689d'}</button><div class="manage-panel" data-manage-panel="${unit.id}" ${expandedManageIds.has(unit.id)?'':'hidden'}><div class="conditions"><div class="condition-title">&#29376;&#24907; / &#21097;&#39192;&#22238;&#21512;</div><div class="condition-list">${conditions}</div><form class="condition-form" data-status-form="${unit.id}"><div class="saved-status-tags">${savedStatuses}</div><input name="statusName" maxlength="500" required placeholder="&#29376;&#24907;&#21517;&#31281;"><div class="kind-toggle-group"><label class="kind-toggle buff"><input type="radio" name="statusKind" value="buff" checked><span>增益</span></label><label class="kind-toggle debuff"><input type="radio" name="statusKind" value="debuff"><span>負面</span></label><label class="kind-toggle neutral"><input type="radio" name="statusKind" value="neutral"><span>中立</span></label></div><input name="statusTurns" type="number" min="1" max="999" value="1" required><button class="primary">&#26032;&#22686;</button></form></div>${thresholdSection}${attributeHtml(unit)}${passiveFormHtml(unit)}${addBarFormHtml(unit)}${memoryHtml(unit)}</div><div class="manage">${(unit.type==='monster'||unit.isSummon)?`<button type="button" data-monster-remember="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條存成範本">💾 記住目前設定</button><button type="button" data-monster-duplicate="${unit.id}" title="複製出一隻設定完全相同的新角色(含當下狀態)">📋 複製</button>${unit.isBoss?`<button type="button" data-boss-reset="${unit.id}" title="血量補滿、警戒線觸發狀態重設、自動附加的被動一併移除">&#8635; 重置頭目狀態</button>`:''}`:''}${(unit.type==='player'&&!unit.isSummon)?`<button type="button" data-mark-absent="${unit.id}" title="暫時隱藏這位玩家的先攻卡與血量面板，資料不會被刪除，之後隨時可以再標記回出席">🙈 標記缺席</button>`:''}<button class="danger" data-id="${unit.id}" data-action="delete">&#21034;&#38500;</button></div></article>`;
+        return `<article class="card ${unit.type} ${unit.isBoss?'boss':''} ${turnEnded?'turn-ended':''} ${severityClass}" data-card-id="${unit.id}" data-turn-toggle="${unit.id}" style="--unit-color:${sanitizeColor(unit.color,'#4c78a4')}">${isCurrentTurn?`<div class="current-turn-badge">▶ 目前回合${activeCardLabel?`：${escapeHtml(activeCardLabel)}`:''}</div>`:''}<div class="head"><h2>${icon} <input type="text" class="unit-name-input" data-unit-name="${unit.id}" value="${escapeAttr(unit.name)}" maxlength="500" title="&#25353;&#20035;&#21487;&#20462;&#25913;&#21517;&#31281;&#25110;&#32232;&#34399;" onclick="event.stopPropagation()"><input type="color" class="unit-color-picker" data-unit-color="${unit.id}" value="${sanitizeColor(unit.color,'#4c78a4')}" title="&#26356;&#25913;&#38991;&#33394;" onclick="event.stopPropagation()"></h2>${titlePassiveHtml(unit)}${titleAttributeHtml(unit)}${titleStatusHtml(unit)}${hpInlineHtml(unit)}</div>${squadBadge}${bossBadge}<div class="bar-row"><button data-id="${unit.id}" data-action="damage" class="hp-btn minus" title="&#38477;&#20302;&#34880;&#37327;">&#8722;</button><div class="bar"><div class="fill" style="width:${percent}%;${low}"></div></div><button data-id="${unit.id}" data-action="heal" class="hp-btn plus" title="&#24674;&#24489;&#34880;&#37327;">+</button><input class="hp-amount" data-amount type="number" min="1" step="1" value="1" aria-label="&#34880;&#37327;&#38911;&#21205;&#25976;&#20540;"></div>${barsListHtml(unit)}<div class="status">${turnEnded?'&#22238;&#21512;&#32080;&#26463;':state} (${percent}%)${thresholdWarning}</div><button type="button" class="manage-toggle" data-manage-toggle="${unit.id}">${expandedManageIds.has(unit.id)?'\u25b2 \u6536\u5408\u7ba1\u7406':'\u25bc \u7ba1\u7406\u72c0\u614b\u30fb\u5c6c\u6027\u30fb\u6578\u503c\u689d'}</button><div class="manage-panel" data-manage-panel="${unit.id}" ${expandedManageIds.has(unit.id)?'':'hidden'}><div class="conditions"><div class="condition-title">&#29376;&#24907; / &#21097;&#39192;&#22238;&#21512;</div><div class="condition-list">${conditions}</div><form class="condition-form" data-status-form="${unit.id}"><div class="saved-status-tags">${savedStatuses}</div><input name="statusName" maxlength="500" required placeholder="&#29376;&#24907;&#21517;&#31281;"><div class="kind-toggle-group"><label class="kind-toggle buff"><input type="radio" name="statusKind" value="buff" checked><span>增益</span></label><label class="kind-toggle debuff"><input type="radio" name="statusKind" value="debuff"><span>負面</span></label><label class="kind-toggle neutral"><input type="radio" name="statusKind" value="neutral"><span>中立</span></label></div><input name="statusTurns" type="number" min="1" max="999" value="1" required><label class="status-autotick" title="\u52fe\u9078\uff1a\u8f2a\u5230\u9019\u500b\u89d2\u8272\u6642\u81ea\u52d5\u6e1b1\u56de\u5408\uff0c\u6b78\u96f6\u81ea\u52d5\u79fb\u9664\u3002\u4e0d\u52fe\uff1a\u5b8c\u5168\u624b\u52d5\u63a7\u5236\uff0c\u4e0d\u6703\u81ea\u5df1\u6e1b\u5c11\u3002"><input type="checkbox" name="statusAutoTick" checked><span>\u81ea\u52d5\u905e\u6e1b</span></label><button class="primary">&#26032;&#22686;</button></form></div>${thresholdSection}${attributeHtml(unit)}${passiveFormHtml(unit)}${addBarFormHtml(unit)}${memoryHtml(unit)}</div><div class="manage">${(unit.type==='monster'||unit.isSummon)?`<button type="button" data-monster-remember="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條存成範本">💾 記住目前設定</button><button type="button" data-monster-duplicate="${unit.id}" title="複製出一隻設定完全相同的新角色(含當下狀態)">📋 複製</button>${unit.isBoss?`<button type="button" data-boss-reset="${unit.id}" title="血量補滿、警戒線觸發狀態重設、自動附加的被動一併移除">&#8635; 重置頭目狀態</button>`:''}`:''}${(unit.type==='player'&&!unit.isSummon)?`<button type="button" data-mark-absent="${unit.id}" title="暫時隱藏這位玩家的先攻卡與血量面板，資料不會被刪除，之後隨時可以再標記回出席">🙈 標記缺席</button>`:''}<button class="danger" data-id="${unit.id}" data-action="delete">&#21034;&#38500;</button></div></article>`;
     }
     function unitSig(unit){
       let s=unit.id+'|'+unit.name+'|'+unit.hp+'|'+unit.maxHp+'|'+unit.color+'|'+(unit.turnEnded?1:0)+'|'+(unit.isBoss?1:0)+'|'+(unit.squadId||'');
@@ -1291,7 +1327,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         return `${toggleBtn}<span class="filter-label">篩選顯示${activeNote}</span>`;
       }
       const tags=units.map(u=>`<button type="button" class="tag ${filterSet.size&&!filterSet.has(u.id)?'off':''}" data-filter-toggle="${type}" data-filter-id="${u.id}">${u.isBoss?'&#128081; ':''}${escapeHtml(u.name)}</button>`).join('');
-      const batchActions=filterSet.size?`<span class="batch-actions"><input type="number" class="batch-amount" data-batch-amount="${type}" min="1" step="1" value="1" aria-label="\u6279\u6b21\u8858\u52d5\u6578\u503c"><button type="button" class="danger" data-batch-action="damage" data-batch-type="${type}" title="\u5c0d\u76ee\u524d\u7be9\u9078\u7684 ${filterSet.size} \u4f4d\u4e00\u6b21\u9020\u6210\u50b7\u5bb3">&#8722; \u6279\u6b21\u50b7\u5bb3</button><button type="button" class="good" data-batch-action="heal" data-batch-type="${type}" title="\u5c0d\u76ee\u524d\u7be9\u9078\u7684 ${filterSet.size} \u4f4d\u4e00\u6b21\u6cbb\u7642">&#65291; \u6279\u6b21\u6cbb\u7642</button></span><span class="batch-actions"><input type="text" class="batch-status-name" data-batch-status-name="${type}" maxlength="20" placeholder="\u72c0\u614b\u540d\u7a31" style="width:90px"><span class="kind-toggle-group compact" data-batch-status-kind="${type}"><label class="kind-toggle buff"><input type="radio" name="batchStatusKind${type}" value="buff" checked><span>增益</span></label><label class="kind-toggle debuff"><input type="radio" name="batchStatusKind${type}" value="debuff"><span>負面</span></label><label class="kind-toggle neutral"><input type="radio" name="batchStatusKind${type}" value="neutral"><span>中立</span></label></span><input type="number" class="batch-status-turns" data-batch-status-turns="${type}" min="1" max="999" value="1" style="width:52px" aria-label="\u6301\u7e8c\u56de\u5408\u6578"><button type="button" data-batch-status="${type}" title="\u5c0d\u76ee\u524d\u7be9\u9078\u7684 ${filterSet.size} \u4f4d\u4e00\u6b21\u5957\u7528\u9019\u500b\u72c0\u614b">\u{1FA79} \u6279\u6b21\u4e0a\u72c0\u614b</button></span>`:'';
+      const batchActions=filterSet.size?`<span class="batch-actions"><input type="number" class="batch-amount" data-batch-amount="${type}" min="1" step="1" value="1" aria-label="\u6279\u6b21\u8858\u52d5\u6578\u503c"><button type="button" class="danger" data-batch-action="damage" data-batch-type="${type}" title="\u5c0d\u76ee\u524d\u7be9\u9078\u7684 ${filterSet.size} \u4f4d\u4e00\u6b21\u9020\u6210\u50b7\u5bb3">&#8722; \u6279\u6b21\u50b7\u5bb3</button><button type="button" class="good" data-batch-action="heal" data-batch-type="${type}" title="\u5c0d\u76ee\u524d\u7be9\u9078\u7684 ${filterSet.size} \u4f4d\u4e00\u6b21\u6cbb\u7642">&#65291; \u6279\u6b21\u6cbb\u7642</button></span><span class="batch-actions"><input type="text" class="batch-status-name" data-batch-status-name="${type}" maxlength="20" placeholder="\u72c0\u614b\u540d\u7a31" style="width:90px"><span class="kind-toggle-group compact" data-batch-status-kind="${type}"><label class="kind-toggle buff"><input type="radio" name="batchStatusKind${type}" value="buff" checked><span>增益</span></label><label class="kind-toggle debuff"><input type="radio" name="batchStatusKind${type}" value="debuff"><span>負面</span></label><label class="kind-toggle neutral"><input type="radio" name="batchStatusKind${type}" value="neutral"><span>中立</span></label></span><input type="number" class="batch-status-turns" data-batch-status-turns="${type}" min="1" max="999" value="1" style="width:52px" aria-label="\u6301\u7e8c\u56de\u5408\u6578"><label class="status-autotick" title="\u52fe\u9078\uff1a\u6309\u300c\u72c0\u614b -1\u300d\u6642\u6703\u8ddf\u8457\u905e\u6e1b\u3002\u4e0d\u52fe\uff1a\u5b8c\u5168\u624b\u52d5\u63a7\u5236\u3002"><input type="checkbox" data-batch-status-autotick="${type}" checked><span>\u81ea\u52d5\u905e\u6e1b</span></label><button type="button" data-batch-status="${type}" title="\u5c0d\u76ee\u524d\u7be9\u9078\u7684 ${filterSet.size} \u4f4d\u4e00\u6b21\u5957\u7528\u9019\u500b\u72c0\u614b">\u{1FA79} \u6279\u6b21\u4e0a\u72c0\u614b</button></span>`:'';
       return `${toggleBtn}<span class="filter-label">\u7be9\u9078\u986f\u793a\uff1a</span>${tags}<button type="button" data-filter-reset="${type}" ${filterSet.size?'':'disabled'}>\u986f\u793a\u5168\u90e8</button>${batchActions}`;
     }
     function miniPaletteHtml(){
@@ -1324,14 +1360,22 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return `<div class="passives-section"><div class="condition-title">&#34987;&#21205;&#33021;&#21147;</div><div class="saved-status-tags">${remembered}</div><form class="passive-form" data-passive-form="${unit.id}"><input name="passiveName" maxlength="500" required placeholder="&#36664;&#20837;&#34987;&#21205;&#33021;&#21147;&#65288;50&#23383;&#20197;&#20839;&#65289;"><button class="primary">&#26032;&#22686;&#34987;&#21205;&#33021;&#21147;</button></form></div>`;
     }
     function hpInlineHtml(unit){return `<form class="hp hp-inline" data-hp-form="${unit.id}"><input name="currentHp" type="number" min="0" max="${unit.maxHp}" value="${unit.hp}" aria-label="&#30446;&#21069; HP"><span>/</span><input name="maxHp" type="number" min="1" max="999999" value="${unit.maxHp}" aria-label="&#26368;&#22823; HP"><span>HP</span></form>`}
-    function titleStatusHtml(unit){const statuses=unit.statuses||[];const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';return `<div class="title-status">${statuses.map(item=>`<span class="condition ${item.kind}" data-status-item="${item.id}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}<span class="turns">${item.turns}&#22238;&#21512;</span> <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
+    function statusTurnsHtml(item){
+      // 不隨回合遞減的狀態加上鎖頭圖示，讓使用者一眼分辨哪些要自己手動處理。
+      // 剩最後一回合的（會自動遞減的才算）另外加 expiring 類別做提醒——用外框
+      // 動畫而不是改背景色，才不會蓋掉使用者自訂的狀態顏色。
+      const manual=item.autoTick===false;
+      const expiring=!manual&&item.turns<=1;
+      return `<span class="turns${expiring?' expiring':''}"${manual?' title="這個狀態不會隨回合自動遞減，需要手動調整或移除"':expiring?' title="下次輪到這個角色時就會結束"':''}>${manual?'&#128274; ':''}${item.turns}&#22238;&#21512;</span>`;
+    }
+    function titleStatusHtml(unit){const statuses=unit.statuses||[];const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';return `<div class="title-status">${statuses.map(item=>`<span class="condition ${item.kind}" data-status-item="${item.id}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}${statusTurnsHtml(item)} <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function titlePassiveHtml(unit){const passives=unit.passives||[];if(!passives.length)return'';return `<div class="title-passives">${passives.map(item=>`<span class="passive" data-passive-item="${item.id}" style="--passive-color:${sanitizeColor(passiveDisplayColor(unit,item),'#8a5cd6')}" title="${escapeAttr(item.name)}">${colorTriggerHtml(sanitizeColor(item.color,'#8a5cd6'),`data-passive-color="${unit.id}" data-passive-id="${item.id}"`)}&#10022; <span class="passive-text">${escapeHtml(item.name)}</span><button data-passive-delete="${unit.id}" data-passive-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function titleAttributeHtml(unit){return `<div class="title-attributes">${(unit.attributes||[]).map(item=>`<span class="attribute" data-attribute-item="${item.id}" style="--attr-color:${sanitizeColor(item.color,'#4c78a4')}">${colorTriggerHtml(sanitizeColor(item.color,'#4c78a4'),`data-attribute-color="${unit.id}" data-attribute-id="${item.id}"`)}${escapeHtml(item.name)} <input data-attribute-value="${unit.id}" data-attribute-id="${item.id}" value="${escapeAttr(String(item.value??''))}" placeholder="&#25976;&#20540;"><button data-attribute-delete="${unit.id}" data-attribute-id="${item.id}">&#215;</button></span>`).join('')}</div>`}
     function currentSaveState(){return cloneState({players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,cardTiers,roundCounter,currentTurnId,initiativeMode,shuffleEachRound,initiativeValues,initiativeValueDesc,combatLog,teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats})}
     function loadSaveState(state){players=state.players||[];monsters=state.monsters||[];actionTags=state.actionTags||[];statusTemplates=state.statusTemplates||[];monsterTemplates=state.monsterTemplates||[];attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors||[...defaultPalette];initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];cardTiers=state.cardTiers||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:1;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;initiativeMode=['fixed','random','value'].includes(state.initiativeMode)?state.initiativeMode:'fixed';shuffleEachRound=state.shuffleEachRound===true;initiativeValues=(state.initiativeValues&&typeof state.initiativeValues==='object')?state.initiativeValues:{};initiativeValueDesc=state.initiativeValueDesc!==false;combatLog=Array.isArray(state.combatLog)?state.combatLog:[];teamGold=Number.isFinite(state.teamGold)?Math.max(0,Math.floor(state.teamGold)):0;shopCatalog=Array.isArray(state.shopCatalog)?state.shopCatalog:[];shopUnlockedLevels=Array.isArray(state.shopUnlockedLevels)?state.shopUnlockedLevels:[];shopUnlockedLevelCats=Array.isArray(state.shopUnlockedLevelCats)?state.shopUnlockedLevelCats:[];saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveMemory('battleTrackerCombatLog',combatLog);saveShopData();document.querySelector('#roundValue').value=roundCounter;const descBtn=document.querySelector('#initiativeValueDescToggle');if(descBtn)descBtn.textContent=initiativeValueDesc?'⬇️ 先攻值大的先行動':'⬆️ 先攻值小的先行動';scheduleAutosave()}
     function memoryHtml(unit){const bars=unitTemplateListHtml(unit.id,barTemplates,{addAttr:'bar-template-add',idAttr:'bar-template-id',deleteAttr:'bar-template-delete',emptyText:'&#28961;&#35352;&#25014;&#25976;&#20540;條'});return `<div class="memory-tags"><div class="condition-title">&#24050;&#35352;&#25014;&#25976;&#20540;條</div><div class="saved-status-tags">${bars}</div></div>`}
     let appIsResetting=false;
-    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,infoInitiativeBarExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,squads,activeTab})}
+    function autosave(){if(appIsResetting)return;saveMemory('battleTrackerCurrentState',{players,monsters,actionTags,playersExpanded,monstersExpanded,playerFilterExpanded,monsterFilterExpanded,playerInitiativeBarExpanded,monsterInitiativeBarExpanded,infoInitiativeBarExpanded,playerToolbarCollapsed,monsterToolbarCollapsed,infoPlayerSummaryExpanded,infoMonsterSummaryExpanded,initiativeOrder,initiativeExpanded,roundCounter,currentTurnId,statusTickUsedThisRound,statusTickMode,shuffleEachRound,initiativeMode,initiativeValues,initiativeValueDesc,autoScrollOnNextTurn,squads,activeTab})}
     let autosaveTimer=null;
     function scheduleAutosave(){
       if(autosaveTimer)clearTimeout(autosaveTimer);
@@ -1477,7 +1521,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>{
         const kind=(x.kind==='debuff'||x.kind==='neutral')?x.kind:'buff';
         const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';
-        return {id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u72c0\u614b',kind,turns:Math.max(1,Math.min(999,Math.floor(Number(x.turns))||1)),color:sanitizeColor(x.color,defaultColor)};
+        return {id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u72c0\u614b',kind,turns:Math.max(1,Math.min(999,Math.floor(Number(x.turns))||1)),color:sanitizeColor(x.color,defaultColor),autoTick:x.autoTick!==false};
       }):[];
     }
     function sanitizeAttributeList(list){
@@ -1544,6 +1588,9 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const hp=Math.max(0,Math.min(maxHp,Math.floor(Number(item.hp))||0));
       const unit={id:sanitizeId(item.id),name:String(item.name??'').trim().slice(0,TEXT_SAFETY_CAP)||(type==='player'?'\u73a9\u5bb6':'\u602a\u7269'),hp,maxHp,type,color:sanitizeColor(item.color,type==='player'?'#36a9ff':'#ff5b6d'),statuses:sanitizeStatusList(item.statuses),attributes:sanitizeAttributeList(item.attributes),bars:sanitizeBarList(item.bars),passives:sanitizePassiveList(item.passives),level:typeof item.level==='string'?item.level.trim().slice(0,TEXT_SAFETY_CAP):''};
       unit.turnEnded=!!item.turnEnded;
+      // 回合結束自動遞減模式的還原快照：重開App後也要留著，不然剛標記完
+      // 回合結束就關掉App、再打開想取消時就救不回來了。
+      unit.tickSnapshot=Array.isArray(item.tickSnapshot)?sanitizeStatusList(item.tickSnapshot):null;
       if(type==='player'&&!item.isSummon)unit.isAbsent=!!item.isAbsent;
       if(type==='monster')unit.isBoss=!!item.isBoss;
       if(type==='player')unit.isSummon=!!item.isSummon;
@@ -1622,7 +1669,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const squadIds=new Set(squads.map(s=>s.id));
       const {players,monsters,initiativeOrder}=sanitizePlayersAndMonsters(raw,squadIds);
       const validTurnIds=new Set(initiativeOrder);
-      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,infoInitiativeBarExpanded:raw.infoInitiativeBarExpanded!==false,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,activeTab:VALID_TABS.includes(raw.activeTab)?raw.activeTab:'initiative',squads};
+      return {players,monsters,actionTags:sanitizeActionTags(raw.actionTags),playersExpanded:raw.playersExpanded!==false,monstersExpanded:raw.monstersExpanded!==false,playerFilterExpanded:raw.playerFilterExpanded!==false,monsterFilterExpanded:raw.monsterFilterExpanded!==false,playerInitiativeBarExpanded:raw.playerInitiativeBarExpanded===true,monsterInitiativeBarExpanded:raw.monsterInitiativeBarExpanded===true,infoInitiativeBarExpanded:raw.infoInitiativeBarExpanded!==false,playerToolbarCollapsed:raw.playerToolbarCollapsed===true,monsterToolbarCollapsed:raw.monsterToolbarCollapsed===true,infoPlayerSummaryExpanded:raw.infoPlayerSummaryExpanded!==false,infoMonsterSummaryExpanded:raw.infoMonsterSummaryExpanded!==false,initiativeOrder,initiativeExpanded:raw.initiativeExpanded!==false,roundCounter:(n=>Number.isFinite(n)?Math.max(0,Math.min(9999,n)):1)(Math.floor(Number(raw.roundCounter))),currentTurnId:typeof raw.currentTurnId==='string'&&validTurnIds.has(raw.currentTurnId)?raw.currentTurnId:null,statusTickUsedThisRound:(n=>Number.isFinite(n)?Math.max(0,Math.min(999,n)):0)(Math.floor(Number(raw.statusTickUsedThisRound))),statusTickMode:raw.statusTickMode==='autoTurnEnd'?'autoTurnEnd':'manual',shuffleEachRound:raw.shuffleEachRound===true,initiativeMode:['fixed','random','value'].includes(raw.initiativeMode)?raw.initiativeMode:'fixed',initiativeValues:(raw.initiativeValues&&typeof raw.initiativeValues==='object')?raw.initiativeValues:{},initiativeValueDesc:raw.initiativeValueDesc!==false,autoScrollOnNextTurn:raw.autoScrollOnNextTurn!==false,activeTab:VALID_TABS.includes(raw.activeTab)?raw.activeTab:'initiative',squads};
     }
     function sanitizeSaveFiles(list){
       if(!Array.isArray(list))return[];
@@ -1868,7 +1915,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         // 準備迎接新一輪」的狀態。這種情況不直接顯示某個特定名字，因為如果
         // 是隨機排序模式，洗牌要等按下一位當下才會真的發生，這時候先攻順序
         // 還是重置前的舊順序，顯示某個名字反而會誤導使用者。
-        btn.textContent='\u25b6\ufe0f \u4e0b\u4e00\u4f4d\uff08\u958b\u59cb\u65b0\u4e00\u8f2a\uff09';
+        btn.textContent='\u25b6\ufe0f \u65b0\u4e00\u8f2a';
         btn.title='\u9ede\u4e0b\u53bb\u6703\u6b63\u5f0f\u958b\u59cb\u65b0\u7684\u4e00\u8f2a\uff08\u96a8\u6a5f\u6392\u5e8f\u6a21\u5f0f\u4e0b\u6703\u5728\u9019\u6642\u624d\u6d17\u724c\uff09'+jumpHint;
         return;
       }
@@ -1882,17 +1929,16 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }else{
         nextEntry=entries[idx+1];
       }
-      const shortName=nextEntry.plainName.length>10?nextEntry.plainName.slice(0,10)+'\u2026':nextEntry.plainName;
       if(wrapping){
         // 目前這位是本輪最後一位——顯示「本輪結束」而不是直接顯示下一輪
         // 重新開始後的第一位名字，避免讓人誤以為這輪還沒輪完（尤其隨機
         // 順序模式下，下一輪第一位可能剛好抽到跟目前完全無關的名字，
         // 更容易讓人搞不清楚「這是這輪的下一位」還是「下一輪的開始」）。
-        btn.textContent='\u25b6\ufe0f \u4e0b\u4e00\u4f4d\uff08\u672c\u8f2a\u7d50\u675f\uff09';
+        btn.textContent='\u25b6\ufe0f \u672c\u8f2a\u7d50\u675f';
         btn.title=`\u9019\u662f\u672c\u8f2a\u6700\u5f8c\u4e00\u4f4d\uff0c\u9ede\u4e0b\u53bb\u6703\u958b\u59cb\u65b0\u4e00\u8f2a\uff08\u7b2c\u4e00\u4f4d\uff1a${nextEntry.plainName}\uff09`+jumpHint;
         return;
       }
-      btn.textContent=`\u25b6\ufe0f \u4e0b\u4e00\u4f4d\uff1a${shortName}`;
+      btn.textContent='\u25b6\ufe0f \u4e0b\u4e00\u4f4d';
       btn.title=`\u4e0b\u4e00\u4f4d\uff1a${nextEntry.plainName}`+jumpHint;
     }
     const TAB_PANELS={initiative:'#tabPanelInitiative',player:'#tabPanelPlayer',monster:'#tabPanelMonster',shop:'#tabPanelShop',gm:'#tabPanelGM',system:'#tabPanelSystem',info:'#tabPanelInfo'};
@@ -1905,7 +1951,6 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const block=document.querySelector('#actionPanelBlock');
       if(anchor&&block&&anchor.nextElementSibling!==block)anchor.after(block);
     }
-    const STICKY_WRAPS={initiative:'#stickyWrapInitiative',player:'#stickyWrapPlayer',monster:'#stickyWrapMonster',info:'#stickyWrapInfo'};
     const STICKY_PINNED={initiative:'#stickyPinnedInitiative',player:'#stickyPinnedPlayer',monster:'#stickyPinnedMonster',info:'#stickyPinnedInfo'};
     function positionCombatSharedPanel(tab){
       const pinnedSelector=STICKY_PINNED[tab];
@@ -2158,11 +2203,14 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       roundCounter=Math.min(9999,roundCounter+1);
       players.forEach(p=>{p.turnEnded=false;if(Array.isArray(p.actionCards))p.actionCards.forEach(c=>c.turnEnded=false)});
       monsters.forEach(m=>{m.turnEnded=false;if(Array.isArray(m.actionCards))m.actionCards.forEach(c=>c.turnEnded=false)});
+      clearTickSnapshots();
       document.querySelector('#roundValue').value=roundCounter;
       if(initiativeMode==='random'&&initiativeOrder.length>1)shuffleArray(initiativeOrder);
       const freshEntries=initiativeEntries();
       currentTurnId=freshEntries.length?freshEntries[0].id:null;
       currentTurnActed=false;
+      // 進入新一輪時，把「本輪狀態遞減」的使用次數歸零，讓提示重新從0開始計算。
+      statusTickUsedThisRound=0;
     }
     function entryIsEnded(entry){
       if(entry.members)return entry.members.every(m=>m.turnEnded);
@@ -2184,6 +2232,56 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }).join('');
       return `<button type="button" data-initiative-bar-toggle="${type}" title="\u6536\u5408\u5148\u653b\u9806\u5e8f\u5217\u8868">\u{1F3B2} \u5148\u653b\u9806\u5e8f \u25b4</button>${items}`;
     }
+    function tickUnitStatuses(unit){
+      if(!unit||!Array.isArray(unit.statuses)||!unit.statuses.length)return false;
+      let changed=false;
+      const expired=[];
+      unit.statuses=unit.statuses.filter(st=>{
+        // autoTick===false 代表使用者刻意標記成「手動控制」，這種狀態完全不動——
+        // 有些負面狀態要靠特定條件或檢定才能解除，不該隨回合自己消失。
+        if(st.autoTick===false)return true;
+        st.turns=Math.max(0,(Number(st.turns)||0)-1);
+        changed=true;
+        if(st.turns<=0){expired.push(st.name);return false}
+        return true;
+      });
+      if(expired.length)logCombatEvent(unit,`狀態結束：${expired.join('、')}`,'statusRemove');
+      return changed;
+    }
+    function setUnitTurnEnded(unit,ended){
+      // 「每名角色回合結束時自動 -1」模式下，狀態的遞減必須是可逆的：使用者
+      // 誤觸回合結束、又把他重新點亮時，剛剛扣掉的回合數要原封不動加回來，
+      // 包含「已經歸零而被移除掉」的那些狀態也要復活。所以不是用「+1 還原」
+      // 這種算術反推（那救不回被移除的狀態），而是在遞減前先把整份狀態列表
+      // 拍一張快照存起來，還原時直接把快照放回去，保證跟按下去之前一模一樣。
+      if(!unit)return;
+      const wasEnded=!!unit.turnEnded;
+      unit.turnEnded=!!ended;
+      if(statusTickMode!=='autoTurnEnd')return;
+      if(!wasEnded&&unit.turnEnded){
+        unit.tickSnapshot=cloneState(unit.statuses||[]);
+        tickUnitStatuses(unit);
+      }else if(wasEnded&&!unit.turnEnded&&Array.isArray(unit.tickSnapshot)){
+        unit.statuses=cloneState(unit.tickSnapshot);
+        unit.tickSnapshot=null;
+        logCombatEvent(unit,'\u53d6\u6d88\u56de\u5408\u7d50\u675f\uff0c\u72c0\u614b\u56de\u5408\u6578\u5df2\u9084\u539f','statusTurn');
+      }
+    }
+    function clearTickSnapshots(){
+      // 進新一輪／整批重置回合時，上一輪的還原快照就失效了（那是為了救誤觸用的，
+      // 不該讓使用者在下一輪還能把好幾輪前的狀態叫回來），統一清掉。
+      [...players,...monsters].forEach(u=>{if(u)u.tickSnapshot=null});
+    }
+    function tickAllStatusesOnce(){
+      // 不同遊戲的結算時機不一樣（有的在回合開始、有的在回合結束），所以
+      // 不由程式自作主張在某個時間點自動遞減，改成由使用者在自己認定的
+      // 結算時機主動按一次按鈕，讓全場會自動遞減的狀態同時 -1。旁邊的
+      // 「本輪已使用 X 次」就是給使用者自己核對這一輪按過沒有的依據。
+      const all=[...players,...monsters];
+      let changed=false;
+      all.forEach(u=>{if(tickUnitStatuses(u))changed=true});
+      return changed;
+    }
     function nextTurn(){
       syncInitiativeOrder();
       let entries=initiativeEntries();
@@ -2195,7 +2293,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const idx=entries.findIndex(e=>e.id===currentTurnId);
       if(idx!==-1){
         const cur=entries[idx];
-        if(cur.members)cur.members.forEach(m=>m.turnEnded=true);else if(cur.card)cur.card.turnEnded=true;else cur.unit.turnEnded=true;
+        if(cur.members)cur.members.forEach(m=>setUnitTurnEnded(m,true));else if(cur.card)cur.card.turnEnded=true;else setUnitTurnEnded(cur.unit,true);
         entries=initiativeEntries(); // 剛才標記結束會影響ended狀態，重新取得最新的
       }
       // 不管目前指標原本停在陣列裡的哪個位置，統一改成「從陣列最前面開始找，
@@ -2301,12 +2399,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }
       const visiblePlayers=(playerFilter.size?players.filter(p=>playerFilter.has(p.id)):players).filter(p=>!p.isAbsent);
       const visibleMonsters=sortMonstersForDisplay(monsterFilter.size?monsters.filter(m=>monsterFilter.has(m.id)):monsters);
-      const statusTemplatesSig=JSON.stringify(statusTemplates);
-      const passiveTemplatesSig=JSON.stringify(passiveTemplates);
-      const barTemplatesSig=JSON.stringify(barTemplates);
-      const paletteColorsSig=JSON.stringify(paletteColors);
-      const attributeTemplatesSig=JSON.stringify(attributeTemplates);
-      const cardContextSig=currentTurnId+'|'+statusTemplatesSig+'|'+passiveTemplatesSig+'|'+barTemplatesSig+'|'+paletteColorsSig+'|'+attributeTemplatesSig;
+      const cardContextSig=currentTurnId+'|t'+templatesRev;
       reconcileCardGrid(playerCards,visiblePlayers,players.length?'<p class="empty">\u7be9\u9078\u5f8c\u6c92\u6709\u7b26\u5408\u7684\u73a9\u5bb6\u3002</p>':'<p class="empty">\u76ee\u524d\u6c92\u6709\u73a9\u5bb6\u3002</p>',cardContextSig);
       reconcileCardGrid(monsterCards,visibleMonsters,monsters.length?'<p class="empty">\u7be9\u9078\u5f8c\u6c92\u6709\u7b26\u5408\u7684\u602a\u7269\u3002</p>':'<p class="empty">\u76ee\u524d\u6c92\u6709\u602a\u7269\u3002</p>',cardContextSig);
       const initiativeBarBaseSig=initiativeOrder.join(',')+'|'+currentTurnId+'|'+JSON.stringify(players.map(p=>[p.id,p.name,p.color,p.turnEnded,p.isSummon,(p.actionCards||[]).map(c=>[c.id,c.name,c.turnEnded])]))+'|'+JSON.stringify(monsters.map(m=>[m.id,m.name,m.color,m.turnEnded,m.isBoss,m.squadId,(m.actionCards||[]).map(c=>[c.id,c.name,c.turnEnded])]))+'|'+JSON.stringify(squads.map(s=>[s.id,s.name]));
@@ -2328,16 +2421,24 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         if(bar)bar.innerHTML=initiativeBarHtml('info',infoInitiativeBarExpanded);
         lastInfoInitiativeBarSig=infoInitiativeBarSig;
       }
-      const infoPlayerSummarySig=unitsSig(visiblePlayers)+'|'+currentTurnId;
+      // 資訊分頁的狀態摘要固定顯示全部角色，不套用 playerFilter/monsterFilter
+      // ——那兩個篩選是玩家/怪物分頁專屬的，資訊分頁自己的篩選介面已經移除了，
+      // 使用者在資訊分頁裡看不到、也沒辦法清除那些篩選條件。如果沿用它們，
+      // 會變成「在玩家分頁篩選過之後，資訊分頁的摘要莫名其妙少了人」，而且
+      // 按下一位輪到被篩掉的角色時，還會找不到對應的摘要列而跳轉失敗。
+      // 請假的玩家仍然排除，因為那代表真的不在這場戰鬥裡。
+      const summaryPlayers=players.filter(p=>!p.isAbsent);
+      const summaryMonsters=sortMonstersForDisplay(monsters);
+      const infoPlayerSummarySig=unitsSig(summaryPlayers)+'|'+currentTurnId;
       if(infoPlayerSummarySig!==lastInfoPlayerSummarySig){
         const el=document.querySelector('#infoPlayerSummary');
-        if(el)el.innerHTML=summaryTableHtml(visiblePlayers);
+        if(el)el.innerHTML=summaryTableHtml(summaryPlayers);
         lastInfoPlayerSummarySig=infoPlayerSummarySig;
       }
-      const infoMonsterSummarySig=unitsSig(visibleMonsters)+'|'+currentTurnId;
+      const infoMonsterSummarySig=unitsSig(summaryMonsters)+'|'+currentTurnId;
       if(infoMonsterSummarySig!==lastInfoMonsterSummarySig){
         const el=document.querySelector('#infoMonsterSummary');
-        if(el)el.innerHTML=summaryTableHtml(visibleMonsters);
+        if(el)el.innerHTML=summaryTableHtml(summaryMonsters);
         lastInfoMonsterSummarySig=infoMonsterSummarySig;
       }
       const playerFilterSig=JSON.stringify(players.map(p=>[p.id,p.name,p.color,p.isAbsent]))+'|'+JSON.stringify([...playerFilter])+'|'+playerFilterExpanded;
@@ -2407,6 +2508,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }
       sizeUnitNameInputs();
       updateFloatingNextTurnLabel();
+      updateTickStatusesButton();
       scheduleAutosave();
       const shopDataSig=JSON.stringify(shopCatalog)+'|'+teamGold+'|'+JSON.stringify(shopUnlockedLevels)+'|'+JSON.stringify(shopUnlockedLevelCats);
       if(shopDataSig!==lastShopDataSig){
@@ -2429,7 +2531,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const allEnded=unit.actionCards.every(c=>c.turnEnded);
         unit.actionCards.forEach(c=>c.turnEnded=!allEnded);
       }else{
-        unit.turnEnded=!unit.turnEnded;
+        setUnitTurnEnded(unit,!unit.turnEnded);
       }
     }
 function adjustUnitHp(unit,action,amount){
@@ -2466,7 +2568,7 @@ function adjustUnitHp(unit,action,amount){
         if(id.startsWith('squad:')){
           const squadId=id.slice(6);
           const members=squadMembers(squadId).filter(m=>m.hp>0);
-          if(members.length){const allEnded=members.every(m=>m.turnEnded);saveHistory();members.forEach(m=>m.turnEnded=!allEnded);if(currentTurnId===id)currentTurnActed=true;render()}
+          if(members.length){const allEnded=members.every(m=>m.turnEnded);saveHistory();members.forEach(m=>setUnitTurnEnded(m,!allEnded));if(currentTurnId===id)currentTurnActed=true;render()}
         }else if(id.startsWith('card:')){
           const[,unitId,cardId]=id.split(':');
           const unit=findUnit(unitId);
@@ -2474,7 +2576,7 @@ function adjustUnitHp(unit,action,amount){
           if(card){saveHistory();card.turnEnded=!card.turnEnded;if(currentTurnId===id)currentTurnActed=true;render()}
         }else{
           const unit=findUnit(id);
-          if(unit){saveHistory();unit.turnEnded=!unit.turnEnded;markCurrentTurnActed(unit);render()}
+          if(unit){saveHistory();setUnitTurnEnded(unit,!unit.turnEnded);markCurrentTurnActed(unit);render()}
         }
         return;
       }
@@ -2688,12 +2790,55 @@ function adjustUnitHp(unit,action,amount){
         const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);
         const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';
         const color=old?(old.color||defaultColor):defaultColor;
+        const autoTickInput=bar?.querySelector(`[data-batch-status-autotick="${type}"]`);
+        const checkboxAutoTick=autoTickInput?autoTickInput.checked:true;
+        // 同名同類型的狀態，一律以「記憶標籤（範本）」記住的設定為準——同一個
+        // 狀態在規則上是不是會隨回合遞減，本來就該是固定的性質，不該因為
+        // 批次操作時忘了調勾選框就變成另一種行為。如果勾選框跟範本不一致，
+        // 明確告知會以範本為準，讓使用者知道發生了什麼、而不是默默改掉。
+        let autoTick=checkboxAutoTick;
+        if(old){
+          autoTick=old.autoTick!==false;
+          if(autoTick!==checkboxAutoTick){
+            const templateDesc=autoTick?'會隨回合遞減':'不會隨回合遞減（手動控制）';
+            if(!confirm(`「${name}」已經有記憶標籤了，記錄的設定是「${templateDesc}」，跟你現在勾選的不一樣。\n\n為了讓同一個狀態的行為保持一致，這次會以記憶標籤的設定為準（${templateDesc}）。\n\n要繼續嗎？\n（如果想改變這個狀態的性質，請先刪掉舊的記憶標籤，或用單張卡片的新增表單重新設定一次。）`))return;
+          }
+        }
+        // 已經帶有同名同類型狀態的目標，要先問清楚怎麼處理，不能默默疊上去
+        // 變成同一個狀態出現兩次——有些狀態規則上只能持有一個。
+        const dupTargets=targets.filter(unit=>(unit.statuses||[]).some(st=>st.name===name&&st.kind===kind));
+        let dupMode='add';
+        if(dupTargets.length){
+          const names=dupTargets.map(u=>u.name).join('、');
+          const answer=prompt(`以下 ${dupTargets.length} 位已經有「${name}」了：\n${names}\n\n請選擇要怎麼處理（輸入數字後按確定）：\n1 = 回合數相加（例如原本1回合 + 這次${turns}回合 = ${1+turns}回合）\n2 = 直接覆蓋成這次的 ${turns} 回合\n3 = 這幾位不重複上狀態（其他人照常新增）`,'1');
+          if(answer===null)return;
+          const pick=String(answer).trim();
+          if(pick==='1')dupMode='add';
+          else if(pick==='2')dupMode='replace';
+          else if(pick==='3')dupMode='skip';
+          else{alert('沒有輸入 1、2 或 3，這次批次上狀態已取消。');return}
+        }
         saveHistory();
         targets.forEach(unit=>{
-          unit.statuses.push({id:uuid(),name,kind,turns,color});
-          logCombatEvent(unit,`批次獲得新狀態：${name}（${turns}回合）`,'statusGain');
+          const existing=(unit.statuses||[]).find(st=>st.name===name&&st.kind===kind);
+          if(existing){
+            if(dupMode==='skip')return;
+            if(dupMode==='add'){
+              existing.turns=Math.min(999,(Number(existing.turns)||0)+turns);
+            }else{
+              existing.turns=turns;
+            }
+            // 既有狀態的顏色與遞減性質也一併對齊，避免同一個狀態在不同角色
+            // 身上長得不一樣、或一個會遞減一個不會。
+            existing.color=color;
+            existing.autoTick=autoTick;
+            logCombatEvent(unit,`批次更新狀態：${name}（${dupMode==='add'?'累加後':'覆蓋為'} ${existing.turns} 回合${autoTick?'':'，手動'}）`,'statusGain');
+            return;
+          }
+          unit.statuses.push({id:uuid(),name,kind,turns,color,autoTick});
+          logCombatEvent(unit,`批次獲得新狀態：${name}（${turns}回合${autoTick?'':'，手動'}）`,'statusGain');
         });
-        if(old){old.turns=turns;old.color=color}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color},MAX_TEMPLATES)}
+        if(old){old.turns=turns;old.color=color;old.autoTick=autoTick}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color,autoTick},MAX_TEMPLATES)}
         saveMemory('battleTrackerStatusTemplates',statusTemplates);
         if(nameInput)nameInput.value='';
         render();
@@ -2979,7 +3124,7 @@ function adjustUnitHp(unit,action,amount){
         return;
       }
       const templateAdd=event.target.closest('[data-template-add]');
-      if(templateAdd){const unit=findUnit(templateAdd.dataset.templateAdd);const template=statusTemplates.find(item=>item.id===templateAdd.dataset.templateId);if(unit&&template){saveHistory();const defaultColor=template.kind==='buff'?'#2f9968':template.kind==='debuff'?'#d9505f':'#c9962e';const newStatus={id:uuid(),name:template.name,kind:template.kind,turns:template.turns,color:template.color||defaultColor};unit.statuses.push(newStatus);logCombatEvent(unit,`獲得新狀態：${template.name}（${template.turns}回合）`,'statusGain');if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-status-item="${newStatus.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}
+      if(templateAdd){const unit=findUnit(templateAdd.dataset.templateAdd);const template=statusTemplates.find(item=>item.id===templateAdd.dataset.templateId);if(unit&&template){saveHistory();const defaultColor=template.kind==='buff'?'#2f9968':template.kind==='debuff'?'#d9505f':'#c9962e';const newStatus={id:uuid(),name:template.name,kind:template.kind,turns:template.turns,color:template.color||defaultColor,autoTick:template.autoTick!==false};unit.statuses.push(newStatus);logCombatEvent(unit,`獲得新狀態：${template.name}（${template.turns}回合${newStatus.autoTick?'':'，手動'}）`,'statusGain');if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-status-item="${newStatus.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}
       const templateDelete=event.target.closest('[data-template-delete]');
       if(templateDelete){saveHistory();statusTemplates=statusTemplates.filter(item=>item.id!==templateDelete.dataset.templateDelete);saveMemory('battleTrackerStatusTemplates',statusTemplates);render();return}
       const attributeTemplateAdd=event.target.closest('[data-attribute-template-add]');
@@ -3272,10 +3417,19 @@ function adjustUnitHp(unit,action,amount){
         // 結果，穩定可靠。
         const hadTypedAmount=amount!==1;
         if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
+        const hpBefore=unit.hp;
+        const unitName=unit.name;
         adjustUnitHp(unit,action,amount);
         markCurrentTurnActed(unit);
-        if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}
+        const hpDelta=unit.hp-hpBefore;
+        const monsterDied=unit.type==='monster'&&unit.hp<=0;
+        if(monsterDied){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}
         render();
+        // 顯示可一鍵復原的提示：實際變化量用「前後差值」而不是輸入的數字，
+        // 因為血量會被0跟上限夾住（例如剩3點卻扣10點，實際只扣了3點）。
+        if(hpDelta!==0||monsterDied){
+          showUndoToast(`${unitName} ${hpDelta>0?'+':''}${hpDelta} HP${monsterDied?'（已移除）':''}`);
+        }
         if(hadTypedAmount){
           requestAnimationFrame(()=>{
             const barRow=document.querySelector(`.card[data-card-id="${unit.id}"] .bar-row`);
@@ -3468,7 +3622,7 @@ function adjustUnitHp(unit,action,amount){
         render();
         return;
       }
-      if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';const color=old?(old.color||defaultColor):defaultColor;saveHistory();const newStatus={id:uuid(),name,kind,turns,color};unit.statuses.push(newStatus);logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合）`,'statusGain');if(old){old.turns=turns;old.color=color}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-status-item="${newStatus.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
+      if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const autoTick=data.get('statusAutoTick')!==null;const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';const color=old?(old.color||defaultColor):defaultColor;saveHistory();const newStatus={id:uuid(),name,kind,turns,color,autoTick};unit.statuses.push(newStatus);logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合${autoTick?'':'，手動'}）`,'statusGain');if(old){old.turns=turns;old.color=color;old.autoTick=autoTick}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color,autoTick},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-status-item="${newStatus.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
       if(form.dataset.attributeForm){event.preventDefault();const unit=findUnit(form.dataset.attributeForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('attributeName')).trim();if(!rawName)return;const name=confirmLongText(rawName,20);if(name===null)return;const oldTemplate=attributeTemplates.find(item=>item.name===name);const color=oldTemplate?oldTemplate.color:'#4c78a4';saveHistory();const newAttr={id:uuid(),name,value:'',color};(unit.attributes||(unit.attributes=[])).push(newAttr);if(!oldTemplate)pushWithLimit(attributeTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-attribute-item="${newAttr.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
       if(form.dataset.bossThresholdForm){event.preventDefault();const unit=findUnit(form.dataset.bossThresholdForm);if(!unit||!unit.isBoss)return;const data=new FormData(form);const value=Math.floor(Number(data.get('thresholdValue')));const passiveName=String(data.get('thresholdPassive')||'').trim().slice(0,30);const autoRemove=data.get('thresholdAutoRemove')==='on';if(!Number.isFinite(value)||value<1||value>999999){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u8840\u91cf\u6578\u503c\u3002');return}saveHistory();if(!Array.isArray(unit.hpThresholds))unit.hpThresholds=[];if(!unit.hpThresholds.some(t=>t.value===value))unit.hpThresholds.push({id:uuid(),value,passiveName,triggered:false,autoRemove});unit.hpThresholds=unit.hpThresholds.sort((a,b)=>b.value-a.value).slice(0,5);checkHpThresholds(unit);render();return}
       if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');markCurrentTurnActed(unit);}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();requestAnimationFrame(()=>{const barRow=document.querySelector(`.card[data-card-id="${unit.id}"] .bar-row`);if(barRow)scrollToBelowStickyHeader(barRow,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
@@ -3570,11 +3724,54 @@ function adjustUnitHp(unit,action,amount){
       if(Array.isArray(unit.actionCards)&&unit.actionCards.length)return unit.actionCards.some(c=>c.turnEnded);
       return !!unit.turnEnded;
     }
-    document.querySelector('#resetPlayerTurns').addEventListener('click',()=>{if(!players.some(player=>unitHasAnyTurnEnded(player)))return;saveHistory();players.forEach(player=>{player.turnEnded=false;if(Array.isArray(player.actionCards))player.actionCards.forEach(c=>c.turnEnded=false)});render()});
+    document.querySelector('#resetPlayerTurns').addEventListener('click',()=>{if(!players.some(player=>unitHasAnyTurnEnded(player)))return;saveHistory();players.forEach(player=>{player.turnEnded=false;if(Array.isArray(player.actionCards))player.actionCards.forEach(c=>c.turnEnded=false)});clearTickSnapshots();render()});
     document.querySelector('#resetPlayerHpStatus').addEventListener('click',()=>{if(!players.some(player=>player.hp!==player.maxHp||player.statuses.length))return;saveHistory();players.forEach(player=>{player.hp=player.maxHp;player.statuses=[]});render()});
-    document.querySelector('#resetMonsterTurns').addEventListener('click',()=>{if(!monsters.some(monster=>unitHasAnyTurnEnded(monster)))return;saveHistory();monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});render()});
-    document.querySelector('#resetAllTurns').addEventListener('click',()=>{const willChange=currentTurnId!==null||players.some(player=>unitHasAnyTurnEnded(player))||monsters.some(monster=>unitHasAnyTurnEnded(monster));if(!willChange)return;saveHistory();players.forEach(player=>{player.turnEnded=false;if(Array.isArray(player.actionCards))player.actionCards.forEach(c=>c.turnEnded=false)});monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});currentTurnId=null;render()});
+    document.querySelector('#resetMonsterTurns').addEventListener('click',()=>{if(!monsters.some(monster=>unitHasAnyTurnEnded(monster)))return;saveHistory();monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});clearTickSnapshots();render()});
+    document.querySelector('#resetAllTurns').addEventListener('click',()=>{const willChange=currentTurnId!==null||players.some(player=>unitHasAnyTurnEnded(player))||monsters.some(monster=>unitHasAnyTurnEnded(monster));if(!willChange)return;saveHistory();players.forEach(player=>{player.turnEnded=false;if(Array.isArray(player.actionCards))player.actionCards.forEach(c=>c.turnEnded=false)});monsters.forEach(monster=>{monster.turnEnded=false;if(Array.isArray(monster.actionCards))monster.actionCards.forEach(c=>c.turnEnded=false)});clearTickSnapshots();currentTurnId=null;render()});
     document.querySelector('#nextTurn').addEventListener('click',nextTurn);
+    function updateTickModeButton(){
+      const btn=document.querySelector('#toggleTickMode');
+      if(!btn)return;
+      const auto=statusTickMode==='autoTurnEnd';
+      btn.textContent=auto?'\u23f1 \u56de\u5408\u7d50\u675f\u81ea\u52d5':'\u{1F590} \u624b\u52d5\u905e\u6e1b';
+      btn.classList.toggle('good',auto);
+      btn.title=auto
+        ?'\u76ee\u524d\uff1a\u6bcf\u540d\u89d2\u8272\u88ab\u6a19\u8a18\u300c\u56de\u5408\u7d50\u675f\u300d\u7684\u7576\u4e0b\uff0c\u4ed6\u8eab\u4e0a\u6703\u81ea\u52d5\u905e\u6e1b\u7684\u72c0\u614b\u5404\u81ea -1\uff1b\u8aa4\u89f8\u5f8c\u628a\u4ed6\u91cd\u65b0\u9ede\u4eae\u5c31\u6703\u9084\u539f\u3002\u9ede\u64ca\u5207\u63db\u70ba\u624b\u52d5\u3002'
+        :'\u76ee\u524d\uff1a\u4e0d\u81ea\u52d5\u905e\u6e1b\uff0c\u7531\u4f60\u5728\u4e00\u8f2a\u7d50\u675f\u6642\u6309\u4e00\u6b21\u300c\u72c0\u614b -1\u300d\u5168\u9ad4\u540c\u6642\u905e\u6e1b\u3002\u9ede\u64ca\u5207\u63db\u70ba\u56de\u5408\u7d50\u675f\u81ea\u52d5\u905e\u6e1b\u3002';
+      // 手動按鈕在自動模式下沒有意義，直接藏起來避免重複遞減。
+      document.querySelectorAll('.tick-statuses-btn').forEach(b=>{b.hidden=auto});
+    }
+    function updateTickStatusesButton(){
+      // 先攻區跟資訊分頁各有一顆，兩顆共用同一份狀態顯示，避免使用者在
+      // 其中一邊按了、切到另一邊卻看到「本輪已按 0 次」而重複按。
+      const label=statusTickUsedThisRound>0?`\u23f3 \u72c0\u614b -1\uff08\u672c\u8f2a ${statusTickUsedThisRound} \u6b21\uff09`:'\u23f3 \u72c0\u614b -1';
+      document.querySelectorAll('.tick-statuses-btn').forEach(btn=>{
+        btn.textContent=label;
+        btn.classList.toggle('good',statusTickUsedThisRound>0);
+      });
+    }
+    function doTickStatuses(){
+      saveHistory();
+      const changed=tickAllStatusesOnce();
+      statusTickUsedThisRound++;
+      scheduleAutosave();
+      render();
+      updateUndo();
+      showUndoToast(changed?`\u5168\u5834\u81ea\u52d5\u905e\u6e1b\u72c0\u614b -1\uff08\u672c\u8f2a\u7b2c ${statusTickUsedThisRound} \u6b21\uff09`:`\u76ee\u524d\u6c92\u6709\u6703\u81ea\u52d5\u905e\u6e1b\u7684\u72c0\u614b\uff08\u672c\u8f2a\u7b2c ${statusTickUsedThisRound} \u6b21\uff09`);
+    }
+    document.querySelectorAll('.tick-statuses-btn').forEach(btn=>btn.addEventListener('click',doTickStatuses));
+    document.querySelector('#toggleTickMode').addEventListener('click',()=>{
+      statusTickMode=statusTickMode==='autoTurnEnd'?'manual':'autoTurnEnd';
+      // 切換模式時把殘留的還原快照清掉：那些快照是在另一種模式下產生的，
+      // 留著只會讓「取消回合結束」還原出跟目前模式對不上的結果。
+      clearTickSnapshots();
+      updateTickModeButton();
+      updateTickStatusesButton();
+      scheduleAutosave();
+    });
+    updateTickModeButton();
+    document.querySelector('#undoToastBtn').addEventListener('click',()=>{restoreHistory();updateUndo()});
+    document.querySelector('#undoToastClose').addEventListener('click',hideUndoToast);
     document.querySelector('#floatingNextTurn').addEventListener('click',nextTurn);
     document.querySelector('#floatingBackToInfo').addEventListener('click',jumpToCurrentTurnInfoSummary);
     document.querySelector('#clearAllMonsters').addEventListener('click',()=>{if(!monsters.length){alert('\u76ee\u524d\u6c92\u6709\u602a\u7269\u3002');return}if(!confirm('\u78ba\u5b9a\u8981\u6e05\u7a7a\u5834\u4e0a\u6240\u6709\u602a\u7269\u55ce\uff1f\u9019\u6642\u5019\u4e5f\u6703\u89e3\u6563\u6240\u6709\u602a\u7269\u5c0f\u968a\u3002'))return;saveHistory();monsters=[];squads=[];monsterFilter.clear();render()});
@@ -3863,16 +4060,61 @@ function adjustUnitHp(unit,action,amount){
       });
     }
     function getShopCap(item){
+      // 連動卡是同一張實體卡的正反兩面，上限本來就該是同一個數字——這裡的
+      // 「自己沒設就沿用另一面」是為了容錯（只在其中一面填了上限的情況）。
       if(item.cap!=null)return item.cap;
       const linked=getLinkedItems(item);
       for(const other of linked){if(other.cap!=null)return other.cap}
       return null;
+    }
+    function shopCapConflict(item){
+      // 兩面都填了上限、數字卻不一樣：這在邏輯上是矛盾的（同一張卡不可能有
+      // 兩個不同的持有上限）。回傳衝突資訊讓GM區顯示警告，不擅自幫忙選一個
+      // ——因為無從判斷哪一個才是使用者真正想要的。
+      if(item.cap==null)return null;
+      const other=getLinkedItems(item).find(x=>x.cap!=null&&x.cap!==item.cap);
+      return other?{mine:item.cap,otherName:other.name,otherCap:other.cap}:null;
+    }
+    function shopIntegrityProblems(){
+      // 掃描整份商店目錄，找出「鏡像重複」與「上限衝突」兩類問題。鏡像重複
+      // 用 id 排序後只回報一次，避免 A 跟 B 各報一次變成重複訊息。
+      const problems=[];
+      const reportedPairs=new Set();
+      shopCatalog.forEach(item=>{
+        shopMirrorDuplicates(item).forEach(other=>{
+          const key=[item.id,other.id].sort().join('|');
+          if(reportedPairs.has(key))return;
+          reportedPairs.add(key);
+          problems.push(`\u26a0\ufe0f \u91cd\u8907\u5361\u7247\uff1a\u300c${item.name}\uff0f${item.backName}\u300d\u8ddf\u300c${other.name}\uff0f${other.backName}\u300d\u662f\u540c\u4e00\u5f35\u5be6\u9ad4\u5361\uff0c\u8acb\u522a\u6389\u5176\u4e2d\u4e00\u5f35\u3002`);
+        });
+        const conflict=shopCapConflict(item);
+        if(conflict){
+          const key='cap:'+[item.name,conflict.otherName].sort().join('|');
+          if(reportedPairs.has(key))return;
+          reportedPairs.add(key);
+          problems.push(`\u26a0\ufe0f \u4e0a\u9650\u885d\u7a81\uff1a\u300c${item.name}\u300d\u5beb ${conflict.mine}\u3001\u300c${conflict.otherName}\u300d\u5beb ${conflict.otherCap}\uff0c\u540c\u4e00\u5f35\u5361\u7684\u4e0a\u9650\u61c9\u8a72\u4e00\u81f4\u3002`);
+        }
+      });
+      return problems;
+    }
+    function shopMirrorDuplicates(item){
+      // 「正面A/背面B」跟「正面B/背面A」其實是同一張實體卡，如果兩張都被
+      // 建立出來（例如用Excel從兩個方向各匯入一次），庫存與上限就會被算成
+      // 兩張卡，導致可以買到雙倍數量。這裡找出這種鏡像重複，提醒使用者處理。
+      const name=(item.name||'').trim();
+      const backName=(item.backName||'').trim();
+      if(!name||!backName||name===backName)return[];
+      return shopCatalog.filter(x=>x.id!==item.id&&(x.name||'').trim()===backName&&(x.backName||'').trim()===name);
     }
     function usedInShopGroup(item){
       const linked=getLinkedItems(item);
       return (item.boughtCount||0)+linked.reduce((s,x)=>s+(x.boughtCount||0),0);
     }
     function canBuyShopItem(item){
+      // 「這張卡現在還能不能買（至少一件）」的唯一判斷來源。商店卡片的
+      // 按鈕停用狀態（shopCardHtml）跟實際購買流程都走這裡，避免兩邊各寫
+      // 一份、日後改了其中一邊造成「按鈕看起來能按、按下去卻被擋」的落差。
+      if(item.price==null)return false;
       if((item.price||0)>teamGold)return false;
       const cap=getShopCap(item);
       if(cap==null)return true;
@@ -3962,7 +4204,7 @@ function adjustUnitHp(unit,action,amount){
       const outOfStock=avail!=null&&avail<=0;
       const priceUnset=it.price==null;
       const canAfford=!priceUnset&&teamGold>=(it.price||0);
-      const buyOk=!outOfStock&&canAfford&&!priceUnset;
+      const buyOk=canBuyShopItem(it);
       const sellOk=used>0;
       let buyLabel='＋ 購買';
       if(priceUnset)buyLabel='尚未設定售價';
@@ -4119,8 +4361,13 @@ function adjustUnitHp(unit,action,amount){
       const backName=(it.backName||'').trim();
       if(!backName)return'';
       const isLinked=it.linkedNames&&it.linkedNames.includes(backName);
-      if(isLinked)return`<div class="shop-hint" style="color:var(--danger)">✅ 已連動：${escapeHtml(backName)}</div>`;
-      return`<div class="shop-hint" style="color:var(--danger);font-weight:700">⚠️ 連動尚未建立</div><button type="button" class="gm-force-link" data-gm-force="${it.id}" style="width:100%;margin-top:4px">🔗 立即建立連動</button>`;
+      // 兩種資料不一致的情況要主動提醒，否則庫存/上限會算錯而且很難察覺。
+      const conflict=shopCapConflict(it);
+      const capWarn=conflict?`<div class="shop-hint" style="color:var(--danger);font-weight:700">\u26a0\ufe0f \u4e0a\u9650\u885d\u7a81\uff1a\u9019\u9762\u5beb ${conflict.mine}\u3001\u300c${escapeHtml(conflict.otherName)}\u300d\u5beb ${conflict.otherCap}\u3002\u540c\u4e00\u5f35\u5361\u7684\u4e0a\u9650\u61c9\u8a72\u4e00\u81f4\uff0c\u8acb\u6539\u6210\u76f8\u540c\u6578\u5b57\uff08\u6216\u53ea\u7559\u5176\u4e2d\u4e00\u9762\u586b\uff09\u3002</div>`:'';
+      const mirrors=shopMirrorDuplicates(it);
+      const dupWarn=mirrors.length?`<div class="shop-hint" style="color:var(--danger);font-weight:700">\u26a0\ufe0f \u91cd\u8907\u5361\u7247\uff1a\u5df2\u7d93\u6709\u4e00\u5f35\u300c\u6b63\u9762 ${escapeHtml(backName)}\uff0f\u80cc\u9762 ${escapeHtml(it.name)}\u300d\uff0c\u8ddf\u9019\u5f35\u662f\u540c\u4e00\u5f35\u5be6\u9ad4\u5361\u3002\u5169\u5f35\u90fd\u5b58\u5728\u6703\u8b93\u5eab\u5b58\u8ddf\u4e0a\u9650\u88ab\u7b97\u6210\u5169\u500d\uff0c\u8acb\u522a\u6389\u5176\u4e2d\u4e00\u5f35\u3002</div>`:'';
+      if(isLinked)return`<div class="shop-hint" style="color:var(--danger)">✅ 已連動：${escapeHtml(backName)}</div>${capWarn}${dupWarn}`;
+      return`<div class="shop-hint" style="color:var(--danger);font-weight:700">⚠️ 連動尚未建立</div>${capWarn}${dupWarn}<button type="button" class="gm-force-link" data-gm-force="${it.id}" style="width:100%;margin-top:4px">🔗 立即建立連動</button>`;
     }
     let selectedShopCardIds=new Set();
     let batchSelectMode=false;
@@ -4330,8 +4577,13 @@ function adjustUnitHp(unit,action,amount){
         renderGmPanel();
         setTimeout(updateTabbarHeightVar,100);
         setTimeout(updateTabbarHeightVar,500);
+        // 匯入後統一掃一次鏡像重複與上限衝突，用彈窗一次講完——這兩種問題
+        // 在GM區的卡片上雖然也各自有紅字警告，但匯入幾百張時使用者不可能
+        // 一張一張捲下去找，一定要在這裡主動點名是哪幾張。
+        const problems=shopIntegrityProblems();
         const msg=`匯入完成，新增 ${added} 張商品卡`;
-        if(statusEl)statusEl.textContent=msg;
+        if(statusEl)statusEl.textContent=msg+(problems.length?`（發現 ${problems.length} 項問題，請看提示）`:'');
+        if(problems.length)alert(`匯入完成，新增 ${added} 張商品卡。\n\n但發現以下需要處理的問題：\n\n${problems.join('\n')}`);
       }).catch(e=>{
         console.error(e);
         const msg='匯入失敗，請確認檔案格式是否正確，或檢查網路連線（第一次匯入需要下載 Excel 解析套件）';
