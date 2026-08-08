@@ -237,7 +237,7 @@
     </div>
     <div class="tab-panel" id="tabPanelGM" data-tab-panel="gm" hidden>
     <div class="section-head" id="tabSectionGM"><h2 class="section-title">🧰 GM區</h2></div>
-    <div id="gmStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(8px + env(safe-area-inset-top)) 0 8px">
+    <div id="gmStickyHeader" style="position:sticky;top:env(safe-area-inset-top);z-index:40;background:var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:8px 0 8px">
       <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
         <button type="button" id="gmUndo" disabled>← 上一步</button>
         <button type="button" id="gmRedo" disabled>下一步 →</button>
@@ -380,7 +380,7 @@
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-131';
+    const APP_VERSION='2026.08.07-132';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2176,9 +2176,17 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       // 些微誤差頂多讓卡片頂端多蓋住一點點，總比整個畫面莫名亂跳好。
       if(!el)return;
       const stickyEl=document.querySelector(stickySelector);
-      const stickyHeight=stickyEl?stickyEl.getBoundingClientRect().height:0;
+      // 要讓目標停在置頂列「底部邊緣」的下方，算的是 top偏移 + 高度，不是只有
+      // 高度。置頂列的 top 不一定是 0——為了閃開 iPhone 瀏海／動態島，它是
+      // top:env(safe-area-inset-top)（直放時約 47～59px，橫放為 0）。如果這裡
+      // 只扣高度，捲完之後目標會剛好被置頂列蓋掉那一段安全區的高度。
+      let stickyBottom=0;
+      if(stickyEl){
+        const stickyTop=parseFloat(getComputedStyle(stickyEl).top)||0;
+        stickyBottom=stickyTop+stickyEl.getBoundingClientRect().height;
+      }
       const extraGap=10;
-      const targetY=el.getBoundingClientRect().top+window.scrollY-stickyHeight-extraGap;
+      const targetY=el.getBoundingClientRect().top+window.scrollY-stickyBottom-extraGap;
       window.scrollTo({top:Math.max(0,targetY),behavior:isRotating?'auto':'smooth'});
     }
     function setActiveTab(tab,{scroll=true}={}){
@@ -4393,7 +4401,7 @@ function adjustUnitHp(unit,action,amount){
         return shopSectionHtml('shop:'+(shopLevelFilter||'all')+':'+cat,`${escapeHtml(cat)}（${catItems.length}）`,`<div class="shop-grid">${catItems.map(shopCardHtml).join('')}</div>`);
       }).join(''):`<p class="empty">${shopCatalog.length?'目前沒有已開放的商品，請到 GM 區勾選要開放的等級或個別卡片。':'還沒有商品，請到 GM 區新增。'}</p>`;
       wrap.innerHTML=`
-        <div class="save-panel" id="shopStickyHeader" style="position:sticky;top:0;z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:calc(10px + env(safe-area-inset-top)) 10px 10px">
+        <div class="save-panel" id="shopStickyHeader" style="position:sticky;top:env(safe-area-inset-top);z-index:40;background:var(--panel-bg);box-shadow:0 2px 8px rgba(0,0,0,.15);padding:10px 10px 10px">
           <div class="toolbar" style="margin-bottom:8px;justify-content:flex-start">
             <button type="button" id="shopUndo" ${history.length===0?'disabled':''}>← 上一步</button>
             <button type="button" id="shopRedo" ${future.length===0?'disabled':''}>下一步 →</button>
