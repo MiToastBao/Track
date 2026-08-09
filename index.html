@@ -387,7 +387,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-135';
+    const APP_VERSION='2026.08.07-136';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1652,7 +1652,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>({id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u5c6c\u6027',value:String(x.value??'').slice(0,50),color:sanitizeColor(x.color,'#4c78a4')})):[];
     }
     function sanitizeBarList(list){
-      return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>{const maxValue=Math.max(1,Math.min(999999,Math.floor(Number(x.maxValue))||100));const value=Math.max(0,Math.min(maxValue,Math.floor(Number(x.value))||maxValue));return{id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u6578\u503c\u689d',value,maxValue,color:sanitizeColor(x.color,'#7c8db5')}}):[];
+      return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>{const maxValue=Math.max(1,Math.min(999999,Math.floor(Number(x.maxValue))||100));const rawValue=Math.floor(Number(x.value));const value=Math.max(0,Math.min(maxValue,Number.isFinite(rawValue)?rawValue:maxValue));return{id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u6578\u503c\u689d',value,maxValue,color:sanitizeColor(x.color,'#7c8db5')}}):[];
     }
     function sanitizePassiveList(list){
       return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>{
