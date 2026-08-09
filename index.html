@@ -387,7 +387,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-136';
+    const APP_VERSION='2026.08.07-137';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1223,7 +1223,10 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       if(gmUndo)gmUndo.disabled=history.length===0;
       if(gmRedo)gmRedo.disabled=future.length===0;
     }
-    function historySnapshot(){return {players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,roundCounter,currentTurnId,cardTiers,teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats}}
+    // statusTickUsedThisRound 也要納入快照：按下「狀態 -1」時它會 +1，如果復原
+    // 只把狀態的回合數退回、卻沒把這個次數一起退回，畫面就會顯示「本輪已按 1 次」
+    // 但實際上狀態根本沒被扣過，使用者依這個提示判斷「這輪按過了」就會漏扣一次。
+    function historySnapshot(){return {players,monsters,actionTags,statusTemplates,monsterTemplates,attributeTemplates,barTemplates,passiveTemplates,paletteColors,initiativeOrder,squads,roundCounter,currentTurnId,statusTickUsedThisRound,cardTiers,teamGold,shopCatalog,shopUnlockedLevels,shopUnlockedLevelCats}}
     const cloneState=typeof structuredClone==='function'?structuredClone:x=>JSON.parse(JSON.stringify(x));
     function saveHistory(){
       if(!historyBurstOpen){
@@ -1237,7 +1240,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       historyBurstTimer=setTimeout(()=>{historyBurstOpen=false;historyBurstTimer=null},HISTORY_BURST_MS);
     }
     function closeHistoryBurst(){if(historyBurstTimer){clearTimeout(historyBurstTimer);historyBurstTimer=null}historyBurstOpen=false}
-    function applyHistoryState(state){closeHistoryBurst();players=state.players;monsters=state.monsters;actionTags=state.actionTags;statusTemplates=state.statusTemplates;monsterTemplates=state.monsterTemplates;attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors;initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:roundCounter;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;cardTiers=state.cardTiers||[];teamGold=typeof state.teamGold==='number'?state.teamGold:teamGold;shopCatalog=state.shopCatalog||shopCatalog;shopUnlockedLevels=state.shopUnlockedLevels||shopUnlockedLevels;shopUnlockedLevelCats=state.shopUnlockedLevelCats||shopUnlockedLevelCats;saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveShopData();document.querySelector('#roundValue').value=roundCounter;render();updateUndo()}
+    function applyHistoryState(state){closeHistoryBurst();players=state.players;monsters=state.monsters;actionTags=state.actionTags;statusTemplates=state.statusTemplates;monsterTemplates=state.monsterTemplates;attributeTemplates=state.attributeTemplates||[];barTemplates=state.barTemplates||[];passiveTemplates=state.passiveTemplates||[];paletteColors=state.paletteColors;initiativeOrder=state.initiativeOrder||[...players,...monsters].map(u=>u.id);squads=state.squads||[];roundCounter=typeof state.roundCounter==='number'?state.roundCounter:roundCounter;currentTurnId=typeof state.currentTurnId==='string'?state.currentTurnId:null;statusTickUsedThisRound=Number.isFinite(state.statusTickUsedThisRound)?state.statusTickUsedThisRound:statusTickUsedThisRound;cardTiers=state.cardTiers||[];teamGold=typeof state.teamGold==='number'?state.teamGold:teamGold;shopCatalog=state.shopCatalog||shopCatalog;shopUnlockedLevels=state.shopUnlockedLevels||shopUnlockedLevels;shopUnlockedLevelCats=state.shopUnlockedLevelCats||shopUnlockedLevelCats;saveMemory('battleTrackerStatusTemplates',statusTemplates);saveMemory('battleTrackerMonsterTemplates',monsterTemplates);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);saveMemory('battleTrackerBarTemplates',barTemplates);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);saveMemory('battleTrackerPalette',paletteColors);saveMemory('battleTrackerCardTiers',cardTiers);saveShopData();document.querySelector('#roundValue').value=roundCounter;render();updateUndo()}
     // 血量/數值條的復原提示，改成直接畫在對應的那條 bar 底下（隨卡片一起
     // 排版的一般元素），而不是畫面最下方的固定浮動視窗。這樣做反而比浮動
     // 視窗簡單也可靠得多：完全不需要去算「那條 bar 現在在螢幕的哪個座標」，
