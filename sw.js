@@ -4,6 +4,13 @@
 const SW_VERSION = new URLSearchParams(self.location.search).get('v') || 'dev';
 const CACHE_NAME = `battle-tracker-${SW_VERSION}`;
 const APP_SHELL = ['./', './index.html'];
+// 「有的話就順便快取起來，沒有也不影響」的附加資源。Excel 匯入用的函式庫
+// 放在這裡而不是 APP_SHELL，是刻意的：APP_SHELL 只要有任何一個抓不到，
+// install 就會整個失敗、新版本無法安裝。函式庫檔名打錯、忘記上傳、或哪天
+// 決定不放了，都不該讓整個 App 更新不了——那個代價遠大於「Excel 匯入這次
+// 沒被預先快取」。所以這裡採 best-effort：抓得到就存，抓不到就安靜略過，
+// 等使用者第一次線上使用時再由 fetch 事件的快取邏輯補上。
+const OPTIONAL_ASSETS = ['./xlsx.full.min.js'];
 
 async function precache(cache) {
   // Force each app-shell file to be fetched straight from the network,
@@ -29,10 +36,24 @@ async function precache(cache) {
   }));
 }
 
+async function precacheOptional(cache) {
+  await Promise.all(OPTIONAL_ASSETS.map(async url => {
+    try {
+      const response = await fetch(url, { cache: 'reload' });
+      if (response.ok) await cache.put(url, response);
+    } catch {
+      // 安靜略過：這些資源缺席不該讓安裝失敗。
+    }
+  }));
+}
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => precache(cache))
+      .then(async cache => {
+        await precache(cache);
+        await precacheOptional(cache);
+      })
       .then(() => self.skipWaiting())
   );
 });
@@ -49,7 +70,10 @@ self.addEventListener('activate', event => {
         await self.registration.navigationPreload.enable();
       }
       const keys = await caches.keys();
-      const staleKeys = keys.filter(k => k !== CACHE_NAME);
+      // 只清掉這個 App 自己的舊快取（battle-tracker- 前綴）。原本是「只要名字
+      // 不等於目前版本就刪」，如果同一個網域下還有別的頁面或工具放了自己的
+      // Cache Storage，會被這裡一併誤刪。加上前綴判斷後，就只會動到自己的。
+      const staleKeys = keys.filter(k => k.startsWith('battle-tracker-') && k !== CACHE_NAME);
       await Promise.all(staleKeys.map(k => caches.delete(k)));
       await self.clients.claim();
       // Only notify existing tabs if this activation actually replaced an older

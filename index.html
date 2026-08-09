@@ -387,7 +387,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.07-133';
+    const APP_VERSION='2026.08.07-135';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -596,7 +596,10 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
           // 底下可能還有其他PWA或子路徑應用，就把它們的註冊也一起解除掉。
           const myScope=new URL('.',location.href).href;
           for(const r of regs){
-            if(r.scope===myScope||r.scope.startsWith(myScope))await r.unregister();
+            // 只比對完全相同的 scope。原本還加上 startsWith()，會把「子路徑
+            // 底下的其他應用」（例如 /Track/sub-app/）也一起解除註冊——那些
+            // 不是這個 App 的東西，不該被我們動到。
+            if(r.scope===myScope)await r.unregister();
           }
         }
         if(window.caches){
@@ -695,7 +698,20 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 所以在這裡統一攔截是完整的。
     const TEMPLATE_STORAGE_KEYS=new Set(['battleTrackerStatusTemplates','battleTrackerPassiveTemplates','battleTrackerAttributeTemplates','battleTrackerBarTemplates','battleTrackerPalette']);
     let templatesRev=0;
-    const saveMemory=(key,value)=>{if(TEMPLATE_STORAGE_KEYS.has(key))templatesRev++;return setStorageItem(key,JSON.stringify(value))};
+    // 同樣的道理再往外推：這幾個集合也很大（商店卡牌可能好幾百張、存檔與怪物
+    // 範本也會越積越多），但變動頻率極低。原本每次render()都要把整包
+    // JSON.stringify() 一次來比對有沒有變，等於每扣一次血、每按一次下一位，
+    // 都要重新序列化整份商店目錄。改成在真的寫入時把版本號+1，render()只要
+    // 比一個數字。所有異動路徑最後都會經過 saveMemory() 落地，所以在這裡
+    // 統一攔截是完整的。
+    const REV_STORAGE_KEYS={battleTrackerShopData:'shop',battleTrackerSaveFiles:'saves',battleTrackerMonsterTemplates:'monsterTpl',battleTrackerCardTiers:'cardTiers'};
+    const dataRevs={shop:0,saves:0,monsterTpl:0,cardTiers:0};
+    const saveMemory=(key,value)=>{
+      if(TEMPLATE_STORAGE_KEYS.has(key))templatesRev++;
+      const revKey=REV_STORAGE_KEYS[key];
+      if(revKey)dataRevs[revKey]++;
+      return setStorageItem(key,JSON.stringify(value));
+    };
     const loadCurrentState=()=>{try{const raw=localStorage.getItem('battleTrackerCurrentState');return raw?JSON.parse(raw):null}catch{return null}};
     const savedCurrentState=loadCurrentState();
     const defaultPlayers=()=>[{id:uuid(),name:'\u73a9\u5bb6 1',hp:100,maxHp:100,type:'player',color:'#36a9ff',statuses:[],attributes:[],bars:[],passives:[],turnEnded:false}];
@@ -2589,25 +2605,25 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         actionTagsElement.innerHTML=actionTags.map(tag=>`<span><button class="tag ${tag.active?'':'off'}" data-tag-id="${escapeAttr(tag.id)}">${escapeHtml(tag.name)}</button><button class="tag-delete" title="\u522a\u9664\u6a19\u7c64" data-tag-delete="${escapeAttr(tag.id)}">&#215;</button></span>`).join('')||'<span class="empty">\u76ee\u524d\u6c92\u6709\u884c\u52d5\u6a19\u7c64\u3002</span>';
         lastActionTagsSig=actionTagsSig;
       }
-      const monsterTemplatesSig=JSON.stringify(monsterTemplates);
+      const monsterTemplatesSig='r'+dataRevs.monsterTpl;
       if(monsterTemplatesSig!==lastMonsterTemplatesSig){
         renderMonsterTagLevelOptions();
         renderMonsterTagLibraryList();
         updateMonsterTagLibraryCount();
         lastMonsterTemplatesSig=monsterTemplatesSig;
       }
-      const saveFilesSig=JSON.stringify(saveFiles);
+      const saveFilesSig='r'+dataRevs.saves;
       if(saveFilesSig!==lastSaveFilesSig){
         saveListElement.innerHTML=saveListHtml();
         updateSaveSelectionUi();
         lastSaveFilesSig=saveFilesSig;
       }
-      const paletteSig=JSON.stringify(paletteColors);
+      const paletteSig='t'+templatesRev;
       if(paletteSig!==lastPaletteSig){
         renderPalette();
         lastPaletteSig=paletteSig;
       }
-      const cardTiersSig=JSON.stringify(cardTiers);
+      const cardTiersSig='r'+dataRevs.cardTiers;
       if(cardTiersSig!==lastCardTiersSig){
         const cardTierListEl=document.querySelector('#cardTierList');
         cardTierListEl.innerHTML=cardTiersListHtml();
@@ -2626,7 +2642,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       updateFloatingNextTurnLabel();
       updateTickStatusesButton();
       scheduleAutosave();
-      const shopDataSig=JSON.stringify(shopCatalog)+'|'+teamGold+'|'+JSON.stringify(shopUnlockedLevels)+'|'+JSON.stringify(shopUnlockedLevelCats);
+      const shopDataSig='r'+dataRevs.shop;
       if(shopDataSig!==lastShopDataSig){
         renderShopPanel();
         renderGmPanel();
@@ -4668,9 +4684,36 @@ function adjustUnitHp(unit,action,amount){
       if(xlsxLoadPromise)return xlsxLoadPromise;
       xlsxLoadPromise=new Promise((resolve,reject)=>{
         const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-        s.onload=()=>resolve(true);
-        s.onerror=()=>{xlsxLoadPromise=null;reject(new Error('load failed'))};
+        // 改成載入跟本檔放在一起的本地函式庫，不再依賴外部 CDN。這樣一來：
+        // 一、離線時 Excel 匯入照樣能用（這是 PWA 的重點，跑團現場不一定有
+        // 穩定網路）；二、不會因為 CDN 掛掉、被網路環境攔截而失效；三、不再
+        // 有第三方內容被替換的供應鏈風險，也就不需要 SRI 雜湊驗證了。
+        s.src='./xlsx.full.min.js';
+        let settled=false;
+        // 沒有逾時保護的話，遇到「連得上但一直沒回應」的網路（公共Wi-Fi 需要
+        // 登入、CDN 被攔截等），Promise 會永遠停在 pending，匯入按鈕就卡在
+        // 「讀取中…」不會有任何錯誤訊息，使用者也不知道能不能重試。
+        const timer=setTimeout(()=>{
+          if(settled)return;
+          settled=true;
+          xlsxLoadPromise=null;
+          s.remove();
+          reject(new Error('load timeout'));
+        },20000);
+        s.onload=()=>{
+          if(settled)return;
+          settled=true;clearTimeout(timer);
+          // 有些網路會攔截並回傳一個「看似成功」的頁面，onload 照樣觸發但
+          // 實際上沒有載入到函式庫，所以要再確認全域物件真的存在。
+          if(window.XLSX)resolve(true);
+          else{xlsxLoadPromise=null;reject(new Error('loaded but XLSX missing'))}
+        };
+        s.onerror=()=>{
+          if(settled)return;
+          settled=true;clearTimeout(timer);
+          xlsxLoadPromise=null;
+          reject(new Error('load failed'));
+        };
         document.head.appendChild(s);
       });
       return xlsxLoadPromise;
