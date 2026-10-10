@@ -170,7 +170,11 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     /* ── 血量條名稱（每張卡各自可改） ── */
     .hp-bar-head{display:flex;align-items:center;margin:12px 0 0;min-height:26px}
     .hp-bar-head+.bar-row{margin-top:4px}
-    .unit-name-input.hp-label-input{font-size:.85rem;font-weight:600;min-width:36px;padding:2px 5px;margin-left:-5px}
+    .hp-label-text{font-size:.85rem;font-weight:600;overflow-wrap:anywhere}
+    /* 扣血／回血後的「復原」提示改成浮在血條正下方，不佔版面，卡片高度不會因為它出現或消失而改變（否則同一列卡片會跟著跳動）。 */
+    .bar-row{position:relative}
+    .bar-row>.bar-undo{position:absolute;left:0;right:0;top:calc(100% + 2px);margin:0;padding-top:3px;padding-bottom:3px;z-index:6;box-shadow:0 6px 16px rgba(0,0,0,.28)}
+    .hub-target-note{display:block;font-size:.75rem;font-weight:400;color:var(--muted);margin-top:2px}
     /* 復原提示原本是 left:50% 再往左平移一半，可用寬度只剩畫面的一半，文字較長就被截成「…」；改成依內容決定寬度（仍受 max-width 限制）。 */
     .undo-toast{width:max-content}
     /* ── GM 區 A/B 狀態管理面板 ── */
@@ -210,6 +214,14 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     .hub-sheet-foot{display:flex;gap:10px;padding:10px 16px 14px;border-top:1px solid var(--line)}
     .hub-sheet-foot button{flex:1;padding:12px;font-weight:700}
     #hubPickerConfirm:disabled{opacity:.55;cursor:not-allowed}
+    /* 卡片名稱下方的狀態小標籤：寬度超過 700px 時（平板、手機橫放、電腦）狀態列跟 HP 輸入框擠同一列，
+       狀態列原本是 flex:1（基準寬度 0），空間不夠時不會換到下一列，而是把每個小標籤壓窄，
+       字就被擠成直排（例如「燃／燒」「1回／合」）。改成依內容決定寬度：放得下就跟 HP 同一列，
+       放不下就整列換行；HP 固定靠右。回合數與按鈕不准再被壓縮（這條各種寬度都套用，手機上「999回／合」也不會再斷開）。700px 以下（手機直放）原本就是上下排，其餘排法不變。 */
+    .title-status .condition .turns,.title-status .condition button{flex:none;white-space:nowrap}
+    /* 同一列卡片等高對齊（搭配 CARD_ROWS_ALIGNED） */
+    .grid{align-items:stretch}
+    @media(min-width:701px){.title-status{flex:1 1 auto;min-width:0}.title-status .condition{flex:0 1 auto;max-width:100%}.head>.hp-inline{margin-left:auto}}
     /* 面板在寬螢幕上很寬，沿用卡片內的格線排法會讓回合數欄被拉得很長、按鈕被擠成兩行；寬螢幕改成一列排開。手機維持原本排法。 */
     @media(min-width:701px){.hub-form.condition-form{display:flex;flex-wrap:wrap;align-items:center}.hub-form.condition-form input[name=statusName]{flex:1 1 220px}.hub-form.condition-form .kind-toggle-group{flex:0 1 320px}.hub-form.condition-form input[name=statusTurns]{flex:none;width:90px}.hub-form.condition-form button{flex:none}}
 </style>
@@ -449,7 +461,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.10.11-146';
+    const APP_VERSION='2026.10.11-148';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -1434,7 +1446,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const severityClass=crossedThresholds.length>=2?'hp-danger':crossedThresholds.length===1?'hp-warning':'';
         const thresholdWarning=crossedThresholds.length?` &#8226; ${crossedThresholds.length>=2?'&#128128;':'&#9888;&#65039;'} &#24050;&#20302;&#26044; ${crossedThresholds[0].value}${crossedThresholds.length>=2?`&#65288;&#20849;&#36386;&#30772; ${crossedThresholds.length} 條&#8203;&#35686;&#25106;&#32218;&#65289;`:''}`:'';
         const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';
-        return `<article class="card ${unit.type} ${unit.isBoss?'boss':''} ${turnEnded?'turn-ended':''} ${severityClass}" data-card-id="${unit.id}" data-turn-toggle="${unit.id}" style="--unit-color:${sanitizeColor(unit.color,'#4c78a4')}">${isCurrentTurn?`<div class="current-turn-badge">▶ 目前回合${activeCardLabel?`：${escapeHtml(activeCardLabel)}`:''}</div>`:''}${turnEnded?'<div class="turn-ended-badge">✓ 已結束</div>':''}<div class="head"><h2>${icon} <input type="text" class="unit-name-input" data-unit-name="${unit.id}" value="${escapeAttr(unit.name)}" maxlength="500" title="&#25353;&#20035;&#21487;&#20462;&#25913;&#21517;&#31281;&#25110;&#32232;&#34399;" onclick="event.stopPropagation()"><input type="color" class="unit-color-picker" data-unit-color="${unit.id}" value="${sanitizeColor(unit.color,'#4c78a4')}" title="&#26356;&#25913;&#38991;&#33394;" onclick="event.stopPropagation()"></h2>${titlePassiveHtml(unit)}${titleAttributeHtml(unit)}${titleStatusHtml(unit)}${hpInlineHtml(unit)}</div>${squadBadge}${bossBadge}<div class="hp-bar-head"><input type="text" class="unit-name-input hp-label-input" data-hp-label="${unit.id}" value="${escapeAttr(hpLabelOf(unit))}" maxlength="20" title="點一下可修改這條血量條的名稱（清空會回到預設的「血量」）" aria-label="血量條名稱" onclick="event.stopPropagation()"></div><div class="bar-row"><button data-id="${unit.id}" data-action="damage" class="hp-btn minus" title="&#38477;&#20302;&#34880;&#37327;">&#8722;</button><div class="bar"><div class="fill" style="width:${percent}%;${low}"></div></div><button data-id="${unit.id}" data-action="heal" class="hp-btn plus" title="&#24674;&#24489;&#34880;&#37327;">+</button><input class="hp-amount" data-amount type="number" min="1" step="1" value="1" aria-label="&#34880;&#37327;&#38911;&#21205;&#25976;&#20540;"></div>${barUndoHtml(unit.id,null)}${barsListHtml(unit)}<div class="status">${turnEnded?'&#22238;&#21512;&#32080;&#26463;':state} (${percent}%)${thresholdWarning}</div><div class="manage">${(unit.type==='monster'||unit.isSummon)?`<button type="button" data-monster-remember="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條存成範本">💾 記住目前設定</button><button type="button" data-monster-duplicate="${unit.id}" title="複製出一隻設定完全相同的新角色(含當下狀態)">📋 複製</button>${unit.isBoss?`<button type="button" data-boss-reset="${unit.id}" title="血量補滿、警戒線觸發狀態重設、自動附加的被動一併移除">&#8635; 重置頭目狀態</button>`:''}`:''}${(unit.type==='player'&&!unit.isSummon)?`<button type="button" data-mark-absent="${unit.id}" title="暫時隱藏這位玩家的先攻卡與血量面板，資料不會被刪除，之後隨時可以再標記回出席">🙈 標記缺席</button>`:''}<button class="danger" data-id="${unit.id}" data-action="delete">&#21034;&#38500;</button></div></article>`;
+        return `<article class="card ${unit.type} ${unit.isBoss?'boss':''} ${turnEnded?'turn-ended':''} ${severityClass}" data-card-id="${unit.id}" data-turn-toggle="${unit.id}" style="--unit-color:${sanitizeColor(unit.color,'#4c78a4')}">${isCurrentTurn?`<div class="current-turn-badge">▶ 目前回合${activeCardLabel?`：${escapeHtml(activeCardLabel)}`:''}</div>`:''}${turnEnded?'<div class="turn-ended-badge">✓ 已結束</div>':''}<div class="head"><h2>${icon} <input type="text" class="unit-name-input" data-unit-name="${unit.id}" value="${escapeAttr(unit.name)}" maxlength="500" title="&#25353;&#20035;&#21487;&#20462;&#25913;&#21517;&#31281;&#25110;&#32232;&#34399;" onclick="event.stopPropagation()"><input type="color" class="unit-color-picker" data-unit-color="${unit.id}" value="${sanitizeColor(unit.color,'#4c78a4')}" title="&#26356;&#25913;&#38991;&#33394;" onclick="event.stopPropagation()"></h2>${titlePassiveHtml(unit)}${titleAttributeHtml(unit)}${titleStatusHtml(unit)}${hpInlineHtml(unit)}</div>${squadBadge}${bossBadge}<div class="hp-bar-head" onclick="event.stopPropagation()"><span class="hp-label-text">${escapeHtml(hpLabelOf(unit))}</span></div><div class="bar-row"><button data-id="${unit.id}" data-action="damage" class="hp-btn minus" title="&#38477;&#20302;&#34880;&#37327;">&#8722;</button><div class="bar"><div class="fill" style="width:${percent}%;${low}"></div></div><button data-id="${unit.id}" data-action="heal" class="hp-btn plus" title="&#24674;&#24489;&#34880;&#37327;">+</button><input class="hp-amount" data-amount type="number" min="1" step="1" value="1" aria-label="&#34880;&#37327;&#38911;&#21205;&#25976;&#20540;">${barUndoHtml(unit.id,null)}</div>${barsListHtml(unit)}<div class="status">${turnEnded?'&#22238;&#21512;&#32080;&#26463;':state} (${percent}%)${thresholdWarning}</div><div class="manage">${(unit.type==='monster'||unit.isSummon)?`<button type="button" data-monster-remember="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條存成範本">💾 記住目前設定</button><button type="button" data-monster-duplicate="${unit.id}" title="複製出一隻設定完全相同的新角色(含當下狀態)">📋 複製</button>${unit.isBoss?`<button type="button" data-boss-reset="${unit.id}" title="血量補滿、警戒線觸發狀態重設、自動附加的被動一併移除">&#8635; 重置頭目狀態</button>`:''}`:''}${(unit.type==='player'&&!unit.isSummon)?`<button type="button" data-mark-absent="${unit.id}" title="暫時隱藏這位玩家的先攻卡與血量面板，資料不會被刪除，之後隨時可以再標記回出席">🙈 標記缺席</button>`:''}<button class="danger" data-id="${unit.id}" data-action="delete">&#21034;&#38500;</button></div></article>`;
     }
     function unitSig(unit){
       let s=unit.id+'|'+unit.name+'|'+unit.hp+'|'+unit.maxHp+'|'+unit.color+'|'+(unit.turnEnded?1:0)+'|'+(unit.isBoss?1:0)+'|'+(unit.squadId||'')+'|L'+(unit.hpLabel||'');
@@ -1541,7 +1553,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const list=bars.map(bar=>{
         const percent=bar.maxValue>0?Math.max(0,Math.min(100,Math.round(bar.value/bar.maxValue*100))):0;
         const color=sanitizeColor(bar.color,'#7c8db5');
-        return `<div class="custom-bar" data-bar-id="${bar.id}"><div class="bar-head"><span class="color-field" data-color-field><button type="button" class="color-trigger" data-color-trigger style="background:${color}" title="點選更改顏色"></button><span class="mini-palette-popup" hidden><span class="mini-palette">${miniPaletteHtml()}</span><input type="color" class="bar-color-picker" data-bar-color="${unit.id}" data-bar-id="${bar.id}" value="${color}" title="自訂顏色"></span></span><span class="bar-name">${escapeHtml(bar.name)}</span><span class="bar-values"><input data-bar-value="${unit.id}" data-bar-id="${bar.id}" type="number" min="0" max="${bar.maxValue}" value="${bar.value}" aria-label="${escapeAttr(bar.name)} \u76ee\u524d\u6578\u503c"> / <input data-bar-max="${unit.id}" data-bar-id="${bar.id}" type="number" min="1" value="${bar.maxValue}" aria-label="${escapeAttr(bar.name)} \u6700\u5927\u6578\u503c"></span><button class="bar-delete" data-bar-delete="${unit.id}" data-bar-id="${bar.id}" title="\u522a\u9664\u6b64\u6578\u503c\u689d">&#215;</button></div><div class="bar-row"><button data-bar-adjust="${unit.id}" data-bar-id="${bar.id}" data-bar-action="decrease" class="hp-btn minus" title="\u6e1b\u5c11${escapeAttr(bar.name)}">&#8722;</button><div class="bar custom-fill" style="--bar-color:${color}"><div class="fill" style="width:${percent}%"></div></div><button data-bar-adjust="${unit.id}" data-bar-id="${bar.id}" data-bar-action="increase" class="hp-btn plus" title="\u589e\u52a0${escapeAttr(bar.name)}">+</button><input class="hp-amount" data-bar-amount type="number" min="1" step="1" value="1" aria-label="${escapeAttr(bar.name)} \u8b8a\u52d5\u6578\u503c"></div>${barUndoHtml(unit.id,bar.id)}</div>`;
+        return `<div class="custom-bar" data-bar-id="${bar.id}"><div class="bar-head"><span class="color-field" data-color-field><button type="button" class="color-trigger" data-color-trigger style="background:${color}" title="點選更改顏色"></button><span class="mini-palette-popup" hidden><span class="mini-palette">${miniPaletteHtml()}</span><input type="color" class="bar-color-picker" data-bar-color="${unit.id}" data-bar-id="${bar.id}" value="${color}" title="自訂顏色"></span></span><span class="bar-name">${escapeHtml(bar.name)}</span><span class="bar-values"><input data-bar-value="${unit.id}" data-bar-id="${bar.id}" type="number" min="0" max="${bar.maxValue}" value="${bar.value}" aria-label="${escapeAttr(bar.name)} \u76ee\u524d\u6578\u503c"> / <input data-bar-max="${unit.id}" data-bar-id="${bar.id}" type="number" min="1" value="${bar.maxValue}" aria-label="${escapeAttr(bar.name)} \u6700\u5927\u6578\u503c"></span><button class="bar-delete" data-bar-delete="${unit.id}" data-bar-id="${bar.id}" title="\u522a\u9664\u6b64\u6578\u503c\u689d">&#215;</button></div><div class="bar-row"><button data-bar-adjust="${unit.id}" data-bar-id="${bar.id}" data-bar-action="decrease" class="hp-btn minus" title="\u6e1b\u5c11${escapeAttr(bar.name)}">&#8722;</button><div class="bar custom-fill" style="--bar-color:${color}"><div class="fill" style="width:${percent}%"></div></div><button data-bar-adjust="${unit.id}" data-bar-id="${bar.id}" data-bar-action="increase" class="hp-btn plus" title="\u589e\u52a0${escapeAttr(bar.name)}">+</button><input class="hp-amount" data-bar-amount type="number" min="1" step="1" value="1" aria-label="${escapeAttr(bar.name)} \u8b8a\u52d5\u6578\u503c">${barUndoHtml(unit.id,bar.id)}</div></div>`;
       }).join('');
       if(!list)return'';
       return `<div class="custom-bars">${list}</div>`;
@@ -2760,8 +2772,25 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
        做法：把列高切成 1px 的細列，再依每張卡「實際量到的高度」算出它要跨幾列。
        卡片順序、左右欄位、既有的篩選與捲動邏輯全部不受影響，只是不再留下空洞。 */
     const CARD_GAP=18;
+    /* 2026-10-11 依使用者要求改回「同一列卡片等高、上下對齊」：卡片上的管理展開區已經移到 GM 區，
+       卡片高度不會再因為展開而暴增，磚牆式排版的必要性消失；改成一般格線，同一列的卡片會一樣高。
+       磚牆式的程式保留不刪，把這個開關改成 false 就能恢復。 */
+    const CARD_ROWS_ALIGNED=true;
+    /* 同一列卡片被拉成一樣高之後，比較矮的卡片底部會多出空白，按鈕列會浮在半空中、跟隔壁卡片的按鈕對不齊。
+       這裡把每張卡片多出來的空白補到最下面那排按鈕（記住目前設定／複製／刪除）的上方，讓同一列的按鈕都貼齊卡片底部。
+       刻意不把卡片改成 flex 排版：那會讓卡片內各區塊之間原本會合併的上下間距不再合併，整張卡的間距都會變。 */
+    function alignCardRows(grid){
+      grid.classList.remove('masonry');
+      const cards=grid.querySelectorAll(':scope > .card');
+      cards.forEach(c=>{if(c.style.gridRowEnd)c.style.gridRowEnd='';const m=c.querySelector(':scope > .manage');if(m&&m.style.marginTop)m.style.marginTop=''});
+      if(!cards.length||!grid.getClientRects().length)return;
+      const plan=[];
+      cards.forEach(c=>{const m=c.querySelector(':scope > .manage');if(!m||!c.clientHeight)return;const gap=Math.floor(c.clientHeight-parseFloat(getComputedStyle(c).paddingBottom)-(m.offsetTop+m.offsetHeight));if(gap>1)plan.push([m,parseFloat(getComputedStyle(m).marginTop)+gap])});
+      plan.forEach(([m,px])=>{m.style.marginTop=px+'px'});
+    }
     function packCardGrid(grid){
       if(!grid)return;
+      if(CARD_ROWS_ALIGNED){alignCardRows(grid);return}
       const cards=grid.querySelectorAll(':scope > .card');
       /* 沒有卡片時（例如「目前沒有怪物」的提示文字）要退回一般格線，
          不然那段文字會被壓進 1px 的列裡。 */
@@ -3517,6 +3546,7 @@ function adjustUnitHp(unit,action,amount){
         // 時壞的原因）。改成直接看數值本身，不管在哪種裝置上都是同一個
         // 結果，穩定可靠。
         const hadTypedAmount=amount!==1;
+        const holdTop=barAdjust.closest('.bar-row')?.getBoundingClientRect().top;
         if(bar&&amount>0){
           const oldValue=bar.value;
           const newValue=barAdjust.dataset.barAction==='increase'?Math.min(bar.maxValue,bar.value+amount):Math.max(0,bar.value-amount);
@@ -3527,12 +3557,7 @@ function adjustUnitHp(unit,action,amount){
             if(hadTypedAmount&&document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
             showBarUndo(unit.id,bar.id,bar.value,bar.name,bar.value-oldValue);
             render();
-            if(hadTypedAmount){
-              requestAnimationFrame(()=>{
-                const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);
-                if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');
-              });
-            }
+            holdInView(`.custom-bar[data-bar-id="${bar.id}"] .bar-row`,holdTop);
           }
         }
         return;
@@ -3773,6 +3798,7 @@ function adjustUnitHp(unit,action,amount){
         // 時壞的原因）。改成直接看數值本身，不管在哪種裝置上都是同一個
         // 結果，穩定可靠。
         const hadTypedAmount=amount!==1;
+        const holdTop=button.closest('.bar-row')?.getBoundingClientRect().top;
         if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
         const hpBefore=unit.hp;
         const unitName=unit.name;
@@ -3792,12 +3818,9 @@ function adjustUnitHp(unit,action,amount){
         }else if(monsterDied){
           showUndoToast(`${unitName}（已移除）`);
         }
-        if(hadTypedAmount){
-          requestAnimationFrame(()=>{
-            const barRow=document.querySelector(`.card[data-card-id="${unit.id}"] .bar-row`);
-            if(barRow)scrollToBelowStickyHeader(barRow,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster');
-          });
-        }
+        // 2026-10-11：原本有自己輸入數量時，會把這張卡捲到置頂列正下方；使用者回報畫面因此跳動、
+        // 得上下找剛剛扣血的是誰。改成「按下去那一刻血條在畫面哪裡，之後就固定在哪裡」。
+        holdInView(`.card[data-card-id="${unit.id}"] .bar-row`,holdTop);
         return;
       }
       if(action==='delete'){
@@ -3989,7 +4012,7 @@ function adjustUnitHp(unit,action,amount){
       if(form.dataset.statusForm){event.preventDefault();const unit=findUnit(form.dataset.statusForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('statusName')).trim();const turns=Number(data.get('statusTurns'));if(!rawName||!Number.isInteger(turns)||turns<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const kind=data.get('statusKind');const autoTick=data.get('statusAutoTick')!==null;const old=statusTemplates.find(item=>item.name===name&&item.kind===kind);const defaultColor=kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e';const color=old?(old.color||defaultColor):defaultColor;saveHistory();const newStatus={id:uuid(),name,kind,turns,color,autoTick};unit.statuses.push(newStatus);logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合${autoTick?'':'，手動'}）`,'statusGain');if(old){old.turns=turns;old.color=color;old.autoTick=autoTick}else{pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color,autoTick},MAX_TEMPLATES)}saveMemory('battleTrackerStatusTemplates',statusTemplates);if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-status-item="${newStatus.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
       if(form.dataset.attributeForm){event.preventDefault();const unit=findUnit(form.dataset.attributeForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('attributeName')).trim();if(!rawName)return;const name=confirmLongText(rawName,20);if(name===null)return;const oldTemplate=attributeTemplates.find(item=>item.name===name);const color=oldTemplate?oldTemplate.color:'#4c78a4';saveHistory();const newAttr={id:uuid(),name,value:'',color};(unit.attributes||(unit.attributes=[])).push(newAttr);if(!oldTemplate)pushWithLimit(attributeTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerAttributeTemplates',attributeTemplates);if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-attribute-item="${newAttr.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
       if(form.dataset.bossThresholdForm){event.preventDefault();const unit=findUnit(form.dataset.bossThresholdForm);if(!unit||!unit.isBoss)return;const data=new FormData(form);const value=Math.floor(Number(data.get('thresholdValue')));const passiveName=String(data.get('thresholdPassive')||'').trim().slice(0,30);const autoRemove=data.get('thresholdAutoRemove')==='on';if(!Number.isFinite(value)||value<1||value>999999){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u8840\u91cf\u6578\u503c\u3002');return}saveHistory();if(!Array.isArray(unit.hpThresholds))unit.hpThresholds=[];if(!unit.hpThresholds.some(t=>t.value===value))unit.hpThresholds.push({id:uuid(),value,passiveName,triggered:false,autoRemove});unit.hpThresholds=unit.hpThresholds.sort((a,b)=>b.value-a.value).slice(0,5);checkHpThresholds(unit);render();return}
-      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');markCurrentTurnActed(unit);}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();requestAnimationFrame(()=>{const barRow=document.querySelector(`.card[data-card-id="${unit.id}"] .bar-row`);if(barRow)scrollToBelowStickyHeader(barRow,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
+      if(form.dataset.hpForm){event.preventDefault();const unit=findUnit(form.dataset.hpForm);if(!unit)return;const holdTop=form.getBoundingClientRect().top;const data=new FormData(form);const hp=Number(data.get('currentHp'));const maxHp=Number(data.get('maxHp'));if(!Number.isInteger(hp)||!Number.isInteger(maxHp)||maxHp<1||hp<0){alert('\u8acb\u8f38\u5165\u6709\u6548\u7684\u76ee\u524d HP \u8207\u6700\u5927 HP\u3002');return}saveHistory();const oldHp=unit.hp;unit.maxHp=maxHp;unit.hp=Math.min(hp,maxHp);checkHpThresholds(unit);if(unit.hp!==oldHp){const delta=unit.hp-oldHp;logCombatEvent(unit,`手動調整血量 ${oldHp} \u2192 ${unit.hp}\uff08${delta>=0?'+':''}${delta}\uff09`,'hp');markCurrentTurnActed(unit);}if(unit.type==='monster'&&unit.hp<=0){monsters=monsters.filter(x=>x.id!==unit.id);cleanupOrphanedSquads()}render();holdInView(`.card[data-card-id="${unit.id}"] [data-hp-form]`,holdTop);return}
       if(form.dataset.passiveForm){event.preventDefault();const unit=findUnit(form.dataset.passiveForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('passiveName')).trim();if(!rawName)return;const name=confirmLongText(rawName,50);if(name===null)return;const old=passiveTemplates.find(item=>item.name===name);const color=old?old.color:'#8a5cd6';saveHistory();const newPassive={id:uuid(),name,color};(unit.passives||(unit.passives=[])).push(newPassive);if(!old)pushWithLimit(passiveTemplates,{id:uuid(),name,color},MAX_TEMPLATES);saveMemory('battleTrackerPassiveTemplates',passiveTemplates);if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const el=document.querySelector(`[data-passive-item="${newPassive.id}"]`);if(el)scrollToBelowStickyHeader(el,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
       if(form.dataset.addBarForm){event.preventDefault();const unit=findUnit(form.dataset.addBarForm);if(!unit)return;const data=new FormData(form);const rawName=String(data.get('barName')).trim();const maxValue=Number(data.get('barMax'));if(!rawName||!Number.isInteger(maxValue)||maxValue<1)return;const name=confirmLongText(rawName,20);if(name===null)return;const old=barTemplates.find(item=>item.name===name);const color=old?old.color:'#7c8db5';saveHistory();const newBar={id:uuid(),name,value:maxValue,maxValue,color};(unit.bars||(unit.bars=[])).push(newBar);logCombatEvent(unit,`獲得新數值條：${name}（${maxValue}/${maxValue}）`,'bar');if(old){old.maxValue=maxValue}else{pushWithLimit(barTemplates,{id:uuid(),name,maxValue,color},MAX_TEMPLATES)}saveMemory('battleTrackerBarTemplates',barTemplates);if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();render();requestAnimationFrame(()=>{const newBarEl=document.querySelector(`.custom-bar[data-bar-id="${newBar.id}"]`);if(newBarEl)scrollToBelowStickyHeader(newBarEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')});return}
       if(form.id==='addForm'){
@@ -4330,7 +4353,7 @@ function adjustUnitHp(unit,action,amount){
         const trigger=colorFieldInput.closest('.color-field')?.querySelector('.color-trigger');
         if(trigger)trigger.style.background=colorFieldInput.value;
       }
-      const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);const countLabel=document.querySelector(`[data-generate-card-count-label="${tierId}"]`);const show=generateCategorySelect.value!=='monster';if(countInput)countInput.hidden=!show;if(countLabel)countLabel.hidden=!show;return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const tierNameInput=event.target.closest('[data-tier-name]');if(tierNameInput){const tier=cardTiers.find(t=>t.id===tierNameInput.dataset.tierName);if(tier){const raw=tierNameInput.value.trim();if(raw&&raw!==tier.name){const val=confirmLongText(raw,20);if(val===null){tierNameInput.value=tier.name}else{const dup=cardTiers.some(t=>t.id!==tier.id&&t.name===val);if(!dup||confirm(`已經有另一個等級也叫做「${val}」了，確定要讓兩個等級同名嗎？（同名可能會讓 Excel 匯入卡池、或標籤庫配對時分不清楚要對應哪一個等級）`)){saveHistory();tier.name=val;cardTiers=cardTiers.slice().sort((a,b)=>compareByTextRule(a.name,b.name));saveMemory('battleTrackerCardTiers',cardTiers)}else{tierNameInput.value=tier.name}}}}setTimeout(render,0);return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const raw=nameInput.value.trim();if(raw){const val=confirmLongText(raw,20);if(val===null){nameInput.value=unit.name}else{saveHistory();unit.name=val}}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');render();requestAnimationFrame(()=>{const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;const t=barTemplates.find(item=>item.name===bar.name);if(t){t.color=bar.color;saveMemory('battleTrackerBarTemplates',barTemplates)}render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;const t=attributeTemplates.find(item=>item.name===attribute.name);if(t){t.color=attribute.color;saveMemory('battleTrackerAttributeTemplates',attributeTemplates)}render()}return}const passiveColorInput=event.target.closest('[data-passive-color]');if(passiveColorInput){const unit=findUnit(passiveColorInput.dataset.passiveColor);const passive=unit?.passives?.find(item=>item.id===passiveColorInput.dataset.passiveId);if(passive){saveHistory();passive.color=passiveColorInput.value;const t=passiveTemplates.find(item=>item.name===passive.name);if(t){t.color=passive.color;saveMemory('battleTrackerPassiveTemplates',passiveTemplates)}render()}return}const statusColorInput=event.target.closest('[data-status-color]');if(statusColorInput){const unit=findUnit(statusColorInput.dataset.statusColor);const status=unit?.statuses?.find(item=>item.id===statusColorInput.dataset.statusId);if(status){saveHistory();status.color=statusColorInput.value;const t=statusTemplates.find(item=>item.name===status.name&&item.kind===status.kind);if(t){t.color=status.color;saveMemory('battleTrackerStatusTemplates',statusTemplates)}render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);render();requestAnimationFrame(()=>{const barEl=document.querySelector(`.custom-bar[data-bar-id="${bar.id}"]`);if(barEl)scrollToBelowStickyHeader(barEl,unit.type==='player'?'#stickyWrapPlayer':'#stickyWrapMonster')})}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
+      const cleanupSelect=event.target.closest('[data-cleanup-select]');if(cleanupSelect){if(cleanupSelect.checked)selectedCleanupKeys.add(cleanupSelect.dataset.cleanupSelect);else selectedCleanupKeys.delete(cleanupSelect.dataset.cleanupSelect);updateStorageUsageDisplay();return}const cleanupSelectAll=event.target.closest('#cleanupSelectAll');if(cleanupSelectAll){if(cleanupSelectAll.checked)STORAGE_CATEGORIES.forEach(cat=>{if(cat.clear&&cat.count()>0)selectedCleanupKeys.add(cat.key)});else selectedCleanupKeys.clear();updateStorageUsageDisplay();return}const saveSelect=event.target.closest('[data-save-select]');if(saveSelect){if(saveSelect.checked)selectedSaveIds.add(saveSelect.dataset.saveSelect);else selectedSaveIds.delete(saveSelect.dataset.saveSelect);updateSaveSelectionUi();return}const saveSelectAll=event.target.closest('#saveSelectAll');if(saveSelectAll){if(saveSelectAll.checked)saveFiles.forEach(f=>selectedSaveIds.add(f.id));else selectedSaveIds.clear();saveListElement.querySelectorAll('[data-save-select]').forEach(cb=>{cb.checked=selectedSaveIds.has(cb.dataset.saveSelect)});updateSaveSelectionUi();return}const generateCategorySelect=event.target.closest('[data-generate-category]');if(generateCategorySelect){const tierId=generateCategorySelect.dataset.generateCategory;const countInput=document.querySelector(`[data-generate-card-count="${tierId}"]`);const countLabel=document.querySelector(`[data-generate-card-count-label="${tierId}"]`);const show=generateCategorySelect.value!=='monster';if(countInput)countInput.hidden=!show;if(countLabel)countLabel.hidden=!show;return}const hpInput=event.target.closest('[data-hp-form] input');if(hpInput){hpInput.closest('form').requestSubmit();return}const tierNameInput=event.target.closest('[data-tier-name]');if(tierNameInput){const tier=cardTiers.find(t=>t.id===tierNameInput.dataset.tierName);if(tier){const raw=tierNameInput.value.trim();if(raw&&raw!==tier.name){const val=confirmLongText(raw,20);if(val===null){tierNameInput.value=tier.name}else{const dup=cardTiers.some(t=>t.id!==tier.id&&t.name===val);if(!dup||confirm(`已經有另一個等級也叫做「${val}」了，確定要讓兩個等級同名嗎？（同名可能會讓 Excel 匯入卡池、或標籤庫配對時分不清楚要對應哪一個等級）`)){saveHistory();tier.name=val;cardTiers=cardTiers.slice().sort((a,b)=>compareByTextRule(a.name,b.name));saveMemory('battleTrackerCardTiers',cardTiers)}else{tierNameInput.value=tier.name}}}}setTimeout(render,0);return}const nameInput=event.target.closest('[data-unit-name]');if(nameInput){const unit=findUnit(nameInput.dataset.unitName);if(unit){const raw=nameInput.value.trim();if(raw){const val=confirmLongText(raw,20);if(val===null){nameInput.value=unit.name}else{saveHistory();unit.name=val}}}render();return}const colorInput=event.target.closest('[data-unit-color]');if(colorInput){const unit=findUnit(colorInput.dataset.unitColor);if(unit){saveHistory();unit.color=colorInput.value;render()}return}const barValueInput=event.target.closest('[data-bar-value]');if(barValueInput){const unit=findUnit(barValueInput.dataset.barValue);const bar=unit?.bars?.find(item=>item.id===barValueInput.dataset.barId);if(bar){saveHistory();const oldValue=bar.value;bar.value=Math.max(0,Math.min(bar.maxValue,Math.floor(Number(barValueInput.value))||0));if(bar.value!==oldValue)logCombatEvent(unit,`手動調整${bar.name} ${oldValue} → ${bar.value}（${bar.value-oldValue>=0?'+':''}${bar.value-oldValue}）`,'bar');{const holdTop=event.target.closest('.custom-bar')?.getBoundingClientRect().top;render();holdInView(`.custom-bar[data-bar-id="${bar.id}"]`,holdTop)}}return}const barColorInput=event.target.closest('[data-bar-color]');if(barColorInput){const unit=findUnit(barColorInput.dataset.barColor);const bar=unit?.bars?.find(item=>item.id===barColorInput.dataset.barId);if(bar){saveHistory();bar.color=barColorInput.value;const t=barTemplates.find(item=>item.name===bar.name);if(t){t.color=bar.color;saveMemory('battleTrackerBarTemplates',barTemplates)}render()}return}const attributeColorInput=event.target.closest('[data-attribute-color]');if(attributeColorInput){const unit=findUnit(attributeColorInput.dataset.attributeColor);const attribute=unit?.attributes?.find(item=>item.id===attributeColorInput.dataset.attributeId);if(attribute){saveHistory();attribute.color=attributeColorInput.value;const t=attributeTemplates.find(item=>item.name===attribute.name);if(t){t.color=attribute.color;saveMemory('battleTrackerAttributeTemplates',attributeTemplates)}render()}return}const passiveColorInput=event.target.closest('[data-passive-color]');if(passiveColorInput){const unit=findUnit(passiveColorInput.dataset.passiveColor);const passive=unit?.passives?.find(item=>item.id===passiveColorInput.dataset.passiveId);if(passive){saveHistory();passive.color=passiveColorInput.value;const t=passiveTemplates.find(item=>item.name===passive.name);if(t){t.color=passive.color;saveMemory('battleTrackerPassiveTemplates',passiveTemplates)}render()}return}const statusColorInput=event.target.closest('[data-status-color]');if(statusColorInput){const unit=findUnit(statusColorInput.dataset.statusColor);const status=unit?.statuses?.find(item=>item.id===statusColorInput.dataset.statusId);if(status){saveHistory();status.color=statusColorInput.value;const t=statusTemplates.find(item=>item.name===status.name&&item.kind===status.kind);if(t){t.color=status.color;saveMemory('battleTrackerStatusTemplates',statusTemplates)}render()}return}const barMaxInput=event.target.closest('[data-bar-max]');if(barMaxInput){const unit=findUnit(barMaxInput.dataset.barMax);const bar=unit?.bars?.find(item=>item.id===barMaxInput.dataset.barId);if(bar){saveHistory();const newMax=Math.max(1,Math.floor(Number(barMaxInput.value))||1);bar.maxValue=newMax;bar.value=Math.min(bar.value,newMax);{const holdTop=event.target.closest('.custom-bar')?.getBoundingClientRect().top;render();holdInView(`.custom-bar[data-bar-id="${bar.id}"]`,holdTop)}}return}const input=event.target.closest('[data-attribute-value]');if(!input)return;const unit=findUnit(input.dataset.attributeValue);const attribute=unit?.attributes?.find(item=>item.id===input.dataset.attributeId);if(attribute){saveHistory();attribute.value=input.value;render()}});
     document.querySelector('#togglePlayers').addEventListener('click',()=>{playersExpanded=!playersExpanded;document.querySelector('#playerContent').hidden=!playersExpanded;document.querySelector('#togglePlayers').textContent=playersExpanded?'\u6536\u5408\u73a9\u5bb6\u8cc7\u8a0a':'\u5c55\u958b\u73a9\u5bb6\u8cc7\u8a0a';scheduleAutosave()});
     document.querySelector('#toggleMonsters').addEventListener('click',()=>{monstersExpanded=!monstersExpanded;document.querySelector('#monsterContent').hidden=!monstersExpanded;document.querySelector('#toggleMonsters').textContent=monstersExpanded?'\u6536\u5408\u602a\u7269\u8cc7\u8a0a':'\u5c55\u958b\u602a\u7269\u8cc7\u8a0a';scheduleAutosave()});
     function applyToolbarCollapsed(){
@@ -5582,18 +5605,23 @@ function adjustUnitHp(unit,action,amount){
     const idle=window.requestIdleCallback||(fn=>setTimeout(fn,1500));
     idle(()=>{ensureXLSXLoaded().catch(()=>{})});
 
-    document.querySelector('main').addEventListener('change',event=>{
-      const input=event.target.closest('[data-hp-label]');
-      if(!input)return;
-      const unit=findUnit(input.dataset.hpLabel);
-      if(!unit)return;
-      const raw=input.value.trim().slice(0,20);
-      const next=(raw&&raw!=='血量')?raw:'';
-      if((unit.hpLabel||'')!==next){saveHistory();if(next)unit.hpLabel=next;else delete unit.hpLabel}
-      input.value=hpLabelOf(unit);
-      input.style.width='';
-      render();
-    });
+
+    /* 扣血／補血（以及手動輸入血量、數值條數值）之後，讓剛剛操作的那條血條「留在原本的螢幕位置」：
+       接下來約 1.5 秒內每一格畫面都檢查一次，位置被推動（例如手機鍵盤收起、版面重排）就把畫面捲回來對齊。
+       使用者自己一碰螢幕或捲滾輪，就立刻停止（沿用 cancelScrollAnchor 的機制），不會跟使用者搶畫面。 */
+    function holdInView(selector,anchorTop){
+      if(typeof anchorTop!=='number'||!isFinite(anchorTop))return;
+      const myToken=++scrollAnchorToken;
+      let frames=0;
+      const tick=()=>{
+        if(myToken!==scrollAnchorToken)return;
+        frames++;
+        const el=document.querySelector(selector);
+        if(el){const diff=el.getBoundingClientRect().top-anchorTop;if(Math.abs(diff)>1)window.scrollBy(0,diff)}
+        if(frames<90)requestAnimationFrame(tick);
+      };
+      tick();
+    }
     /* 剛開啟 App 時底部分頁列偶爾整條往上浮、轉一下畫面或過一陣子才恢復：
        這跟 resnapFixedUI() 註解裡寫的是同一種 iPhone/iPad 合成層沒對齊的問題，
        只是原本只有在「畫面尺寸改變／鍵盤收合」時才會去把它按摩回原位，剛開啟
@@ -5602,10 +5630,6 @@ function adjustUnitHp(unit,action,amount){
     [150,400,800,1200,2000,3000].forEach(delay=>setTimeout(()=>{updateTabbarHeightVar();resnapFixedUI()},delay));
     window.addEventListener('pageshow',()=>{updateTabbarHeightVar();scheduleResnapFixedUI()});
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;updateTabbarHeightVar();scheduleResnapFixedUI();setTimeout(()=>{updateTabbarHeightVar();resnapFixedUI()},900)});
-    document.querySelector('main').addEventListener('keydown',event=>{
-      const input=event.target.closest&&event.target.closest('[data-hp-label]');
-      if(input&&event.key==='Enter'){event.preventDefault();input.blur()}
-    });
     /* ---------- GM 區：A/B 狀態管理面板（取代每張卡片各自展開的管理面板） ----------
        原本每張卡片底下都有一個「管理狀態・屬性・數值條」的展開區，展開/收合時卡片
        高度會大幅改變，磚牆式排版就得重新排，旁邊的卡片因此四處跳動。改成在 GM 區
@@ -5637,6 +5661,8 @@ function adjustUnitHp(unit,action,amount){
             <form class="passive-form hub-form" data-hub-form="passive" data-hub-side="${side}"><input name="passiveName" maxlength="500" required placeholder="輸入被動能力（50字以內）"><button class="primary">新增被動能力…</button></form></div>
           <div class="hub-block"><div class="condition-title">自訂數值條</div><div class="saved-status-tags" data-hub-chips="bar" data-hub-side="${side}"></div>
             <form class="add-bar-form hub-form" data-hub-form="bar" data-hub-side="${side}"><input name="barName" maxlength="500" required placeholder="數值條名稱（例如：魔力、士氣）"><input name="barMax" type="number" min="1" max="999999" value="100" required aria-label="最大值"><button class="primary">新增數值條…</button></form></div>
+          <div class="hub-block"><div class="condition-title">血量條名稱（卡片上血量條上方顯示的字，預設「血量」）</div>
+            <form class="add-bar-form hub-form" data-hub-form="hplabel" data-hub-side="${side}"><input name="hpLabel" maxlength="20" required placeholder="新名稱（例如：生命值、耐久）" style="flex:1;min-width:150px"><button class="primary">套用名稱…</button><button type="button" data-hub-hplabel-reset="${side}">恢復成「血量」…</button></form></div>
           ${thresholdBlock}
         </div>
       </details>`;
@@ -5699,7 +5725,7 @@ function adjustUnitHp(unit,action,amount){
       document.querySelector('#hubPickerList').innerHTML=opts.units.map(u=>{
         const icon=u.isSummon?'&#128302; ':u.isBoss?'&#128081; ':'';
         const dup=opts.hasDup&&opts.hasDup(u);
-        return `<label class="hub-target-row"><input type="checkbox" data-hub-target="${u.id}"><span class="unit-dot" style="background:${sanitizeColor(u.color,'#4c78a4')}"></span><span class="hub-target-name">${icon}${escapeHtml(u.name)}</span>${dup?'<span class="hub-target-dup">已經有了</span>':''}<span class="hub-target-hp">${u.hp}/${u.maxHp}</span></label>`;
+        return `<label class="hub-target-row"><input type="checkbox" data-hub-target="${u.id}"><span class="unit-dot" style="background:${sanitizeColor(u.color,'#4c78a4')}"></span><span class="hub-target-name">${icon}${escapeHtml(u.name)}${opts.rowNote?`<span class="hub-target-note">${opts.rowNote(u)}</span>`:''}</span>${dup?`<span class="hub-target-dup">${opts.dupLabel||'已經有了'}</span>`:''}<span class="hub-target-hp">${u.hp}/${u.maxHp}</span></label>`;
       }).join('');
       hubSyncPicker();
       overlay.hidden=false;
@@ -5745,7 +5771,7 @@ function adjustUnitHp(unit,action,amount){
       // 從表單新增成功後清空表單（跟原本卡片上的表單新增完會重置一樣）；按取消則保留輸入內容。
       if(sourceForm&&typeof sourceForm.reset==='function')sourceForm.reset();
       render();
-      if(typeof count==='number')showUndoToast(count?`已新增給 ${count} ${st.side==='player'?'位':'隻'}`:'選到的對象都已經有了，這次沒有新增');
+      if(typeof count==='number'&&st.toastText)showUndoToast(st.toastText(count));else if(typeof count==='number')showUndoToast(count?`已新增給 ${count} ${st.side==='player'?'位':'隻'}`:'選到的對象都已經有了，這次沒有新增');
     }
     /* ---------- 實際套用（每一種都只記一筆歷史，一次「上一步」就能整批復原） ---------- */
     function hubAddStatus(side,spec,fromForm,form){
@@ -5817,6 +5843,16 @@ function adjustUnitHp(unit,action,amount){
         return n;
       }});
     }
+    function hubSetHpLabel(side,label,form){
+      const next=(label&&label!=='血量')?label:'';
+      const shown=next||'血量';
+      hubOpenPicker({side,title:next?'要把血量條名稱改成這個的有誰？（可複選）':'要把哪些角色的名稱恢復成「血量」？（可複選）',desc:`<b>${escapeHtml(shown)}</b>`,units:hubSideUnits(side),rowNote:u=>`目前：${escapeHtml(hpLabelOf(u))}`,hasDup:u=>(u.hpLabel||'')===next,dupLabel:'已經是了',dupKind:'none',form,toastText:n=>n?`已把 ${n} ${side==='player'?'位':'隻'}的名稱改成「${shown}」`:'選到的都已經是這個名稱了',onConfirm:targets=>{
+        saveHistory();
+        let n=0;
+        targets.forEach(unit=>{if((unit.hpLabel||'')===next)return;if(next)unit.hpLabel=next;else delete unit.hpLabel;n++});
+        return n;
+      }});
+    }
     function hubHandleSubmit(event){
       const form=event.target.closest('form[data-hub-form]');
       if(!form)return;
@@ -5850,6 +5886,10 @@ function adjustUnitHp(unit,action,amount){
         const name=confirmLongText(rawName,20);if(name===null)return;
         const old=barTemplates.find(t=>t.name===name);
         hubAddSimple(side,'bar',{name,maxValue,color:old?old.color:'#7c8db5'},true,form);
+      }else if(kind==='hplabel'){
+        const label=String(data.get('hpLabel')||'').trim().slice(0,20);
+        if(!label)return;
+        hubSetHpLabel(side,label,form);
       }else if(kind==='threshold'){
         const value=Math.floor(Number(data.get('thresholdValue')));
         if(!Number.isFinite(value)||value<1||value>999999){alert('請輸入有效的血量數值。');return}
@@ -5857,6 +5897,8 @@ function adjustUnitHp(unit,action,amount){
       }
     }
     function hubHandleClick(event){
+      const resetBtn=event.target.closest('[data-hub-hplabel-reset]');
+      if(resetBtn){event.stopPropagation();hubSetHpLabel(resetBtn.dataset.hubHplabelReset,'',null);return}
       const chip=event.target.closest('[data-hub-tpl]');
       if(!chip)return;
       event.stopPropagation();
