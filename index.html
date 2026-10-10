@@ -220,6 +220,8 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
        放不下就整列換行；HP 固定靠右。回合數與按鈕不准再被壓縮（這條各種寬度都套用，手機上「999回／合」也不會再斷開）。700px 以下（手機直放）原本就是上下排，其餘排法不變。 */
     .title-status .condition .turns,.title-status .condition button{flex:none;white-space:nowrap}
     /* 同一列卡片等高對齊（搭配 CARD_ROWS_ALIGNED） */
+    .title-status.chip-capped,.title-passives.chip-capped{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;align-content:flex-start;padding-right:2px}
+    .chip-more-hint{flex-basis:100%;width:100%;font-size:.75rem;color:var(--muted);margin-top:-2px}
     .grid{align-items:stretch}
     @media(min-width:701px){.title-status{flex:1 1 auto;min-width:0}.title-status .condition{flex:0 1 auto;max-width:100%}.head>.hp-inline{margin-left:auto}}
     /* 面板在寬螢幕上很寬，沿用卡片內的格線排法會讓回合數欄被拉得很長、按鈕被擠成兩行；寬螢幕改成一列排開。手機維持原本排法。 */
@@ -461,7 +463,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.10.11-148';
+    const APP_VERSION='2026.10.11-149';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -2779,11 +2781,37 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
     /* 同一列卡片被拉成一樣高之後，比較矮的卡片底部會多出空白，按鈕列會浮在半空中、跟隔壁卡片的按鈕對不齊。
        這裡把每張卡片多出來的空白補到最下面那排按鈕（記住目前設定／複製／刪除）的上方，讓同一列的按鈕都貼齊卡片底部。
        刻意不把卡片改成 flex 排版：那會讓卡片內各區塊之間原本會合併的上下間距不再合併，整張卡的間距都會變。 */
+    /* 2026-10-11 使用者選定：卡片上的狀態列、被動能力列各自最多顯示 3 行，超過的在框內上下滑動，
+       卡片高度因此幾乎固定，旁邊的卡片不會被拉出一大段空白、下面的卡片也不會被推動。
+       用實際量到的「第幾行」來切，而不是寫死像素，因為手機／平板／電腦的小標籤高度都不一樣。 */
+    const CHIP_MAX_ROWS=3;
+    function capChipLists(card){
+      card.querySelectorAll(':scope > .head > .title-status, :scope > .head > .title-passives').forEach(el=>{
+        el.style.maxHeight='';el.classList.remove('chip-capped');
+        const oldHint=el.nextElementSibling;if(oldHint&&oldHint.classList.contains('chip-more-hint'))oldHint.remove();
+        const items=[...el.children];
+        if(items.length<=CHIP_MAX_ROWS)return;
+        const top0=el.getBoundingClientRect().top;
+        const rows=[];
+        items.forEach(it=>{const r=it.getBoundingClientRect();const t=r.top-top0;let row=rows.find(x=>Math.abs(x.top-t)<4);if(!row){row={top:t,bottom:0,count:0};rows.push(row)}row.bottom=Math.max(row.bottom,r.bottom-top0);row.count++});
+        if(rows.length<=CHIP_MAX_ROWS)return;
+        rows.sort((a,b)=>a.top-b.top);
+        const keep=rows.slice(0,CHIP_MAX_ROWS);
+        const hidden=rows.slice(CHIP_MAX_ROWS).reduce((n,r)=>n+r.count,0);
+        el.style.maxHeight=Math.ceil(Math.max(...keep.map(r=>r.bottom))+1)+'px';
+        el.classList.add('chip-capped');
+        const hint=document.createElement('div');
+        hint.className='chip-more-hint';
+        hint.textContent=`還有 ${hidden} 個${el.classList.contains('title-passives')?'被動能力':'狀態'}，在上方框內上下滑動查看`;
+        el.after(hint);
+      });
+    }
     function alignCardRows(grid){
       grid.classList.remove('masonry');
       const cards=grid.querySelectorAll(':scope > .card');
       cards.forEach(c=>{if(c.style.gridRowEnd)c.style.gridRowEnd='';const m=c.querySelector(':scope > .manage');if(m&&m.style.marginTop)m.style.marginTop=''});
       if(!cards.length||!grid.getClientRects().length)return;
+      cards.forEach(capChipLists);
       const plan=[];
       cards.forEach(c=>{const m=c.querySelector(':scope > .manage');if(!m||!c.clientHeight)return;const gap=Math.floor(c.clientHeight-parseFloat(getComputedStyle(c).paddingBottom)-(m.offsetTop+m.offsetHeight));if(gap>1)plan.push([m,parseFloat(getComputedStyle(m).marginTop)+gap])});
       plan.forEach(([m,px])=>{m.style.marginTop=px+'px'});
@@ -3260,7 +3288,8 @@ function adjustUnitHp(unit,action,amount){
           const wasHidden=popup.hidden;
           document.querySelectorAll('.mini-palette-popup').forEach(p=>{p.hidden=true;p.style.left='';p.style.right=''});
           popup.hidden=!wasHidden;
-          if(!popup.hidden){
+          popup.style.position='';popup.style.top='';
+          if(!popup.hidden&&colorTrigger.closest('.chip-capped')){placeFixedPopup(popup,colorTrigger)}else if(!popup.hidden){
             // 展開後量測實際位置：如果面板右邊界會超出視窗範圍（例如觸發按鈕靠近
             // 畫面右側、或手機螢幕本身較窄），改成貼齊觸發按鈕右緣往左展開，
             // 避免面板被裁切或跑到畫面外碰不到。
@@ -5606,6 +5635,16 @@ function adjustUnitHp(unit,action,amount){
     idle(()=>{ensureXLSXLoaded().catch(()=>{})});
 
 
+    /* 狀態／被動能力列被限制成 3 行、可以在框內捲動之後，色票面板如果還是貼在小標籤底下，
+       會被那個捲動框裁掉。這種情況改成用畫面座標定位，並在任何捲動發生時收起來。 */
+    function placeFixedPopup(popup,trigger){
+      const r=trigger.getBoundingClientRect();
+      popup.style.position='fixed';popup.style.right='auto';
+      popup.style.left=Math.max(4,r.left)+'px';popup.style.top=(r.bottom+6)+'px';
+      requestAnimationFrame(()=>{const pr=popup.getBoundingClientRect();if(pr.right>innerWidth-4)popup.style.left=Math.max(4,innerWidth-4-pr.width)+'px';if(pr.bottom>innerHeight-4)popup.style.top=Math.max(4,r.top-6-pr.height)+'px'});
+    }
+    window.addEventListener('scroll',()=>{document.querySelectorAll('.mini-palette-popup').forEach(p=>{if(!p.hidden&&p.style.position==='fixed')p.hidden=true})},{capture:true,passive:true});
+
     /* 扣血／補血（以及手動輸入血量、數值條數值）之後，讓剛剛操作的那條血條「留在原本的螢幕位置」：
        接下來約 1.5 秒內每一格畫面都檢查一次，位置被推動（例如手機鍵盤收起、版面重排）就把畫面捲回來對齊。
        使用者自己一碰螢幕或捲滾輪，就立刻停止（沿用 cancelScrollAnchor 的機制），不會跟使用者搶畫面。 */
@@ -5640,8 +5679,6 @@ function adjustUnitHp(unit,action,amount){
     var hubLastSig=null;
     var hubLastSelection={player:[],monster:[]};
     var hubPickerState=null;
-    function hubReadOpenState(){try{const raw=localStorage.getItem('battleTrackerManageHubOpen');const v=raw?JSON.parse(raw):null;return v&&typeof v==='object'?v:{}}catch{return{}}}
-    function hubWriteOpenState(state){try{localStorage.setItem('battleTrackerManageHubOpen',JSON.stringify(state))}catch{}}
     function hubSideUnits(side){return side==='player'?players.filter(p=>!p.isAbsent):sortMonstersForDisplay(monsters)}
     function hubKindIcon(kind){return kind==='buff'?'&#9650;':kind==='debuff'?'&#9660;':'&#9679;'}
     function hubKindColor(kind){return kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e'}
@@ -5689,9 +5726,9 @@ function adjustUnitHp(unit,action,amount){
       const host=document.querySelector('#manageHub');
       if(!host)return;
       if(!host.querySelector('.hub-panel')){
-        const open=hubReadOpenState();
-        host.innerHTML=hubPanelSkeletonHtml('player',open.player!==false)+hubPanelSkeletonHtml('monster',open.monster!==false);
-        host.querySelectorAll('details[data-hub-panel]').forEach(d=>d.addEventListener('toggle',()=>{const s=hubReadOpenState();s[d.dataset.hubPanel]=d.open;hubWriteOpenState(s)}));
+        // 2026-10-11 使用者要求：A、B 面板每次開啟 App 時都是收合的（不再記住上次展開與否）。
+        try{localStorage.removeItem('battleTrackerManageHubOpen')}catch{}
+        host.innerHTML=hubPanelSkeletonHtml('player',false)+hubPanelSkeletonHtml('monster',false);
         hubLastSig=null;
       }
       const sig='t'+templatesRev+'|'+JSON.stringify(players.map(p=>[p.id,p.name,p.isAbsent?1:0]))+'|'+JSON.stringify(monsters.map(m=>[m.id,m.name,m.color,m.isBoss?1:0,m.isBoss?[m.hp,m.maxHp,(m.hpThresholds||[]).map(t=>[t.id,t.value,t.passiveName,t.triggered?1:0,t.autoRemove?1:0])]:0]));
