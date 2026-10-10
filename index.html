@@ -227,7 +227,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     .tab-panel{scroll-margin-top:env(safe-area-inset-top)}
     #actionPanelBlock[hidden],#toggleActionPanel[hidden]{display:none}
     /* 同一列卡片等高對齊（搭配 CARD_ROWS_ALIGNED） */
-    .title-status.chip-capped,.title-passives.chip-capped{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;align-content:flex-start;padding-right:2px}
+    .title-status.chip-capped,.title-passives.chip-capped{overflow-y:auto;overscroll-behavior:contain;align-content:flex-start;padding-right:2px}
     .chip-more-hint{flex-basis:100%;width:100%;font-size:.75rem;color:var(--muted);margin-top:-2px}
     .grid{align-items:stretch}
     @media(min-width:701px){.title-status{flex:1 1 auto;min-width:0}.title-status .condition{flex:0 1 auto;max-width:100%}.head>.hp-inline{margin-left:auto}}
@@ -470,7 +470,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.10.11-151';
+    const APP_VERSION='2026.10.11-152';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -5653,11 +5653,13 @@ function adjustUnitHp(unit,action,amount){
        會被那個捲動框裁掉。這種情況改成用畫面座標定位，並在任何捲動發生時收起來。 */
     function placeFixedPopup(popup,trigger){
       const r=trigger.getBoundingClientRect();
+      fixedPopupOpen=true;
       popup.style.position='fixed';popup.style.right='auto';
       popup.style.left=Math.max(4,r.left)+'px';popup.style.top=(r.bottom+6)+'px';
       requestAnimationFrame(()=>{const pr=popup.getBoundingClientRect();if(pr.right>innerWidth-4)popup.style.left=Math.max(4,innerWidth-4-pr.width)+'px';if(pr.bottom>innerHeight-4)popup.style.top=Math.max(4,r.top-6-pr.height)+'px'});
     }
-    window.addEventListener('scroll',()=>{document.querySelectorAll('.mini-palette-popup').forEach(p=>{if(!p.hidden&&p.style.position==='fixed')p.hidden=true})},{capture:true,passive:true});
+    var fixedPopupOpen=false;
+    window.addEventListener('scroll',()=>{if(!fixedPopupOpen)return;fixedPopupOpen=false;document.querySelectorAll('.mini-palette-popup').forEach(p=>{if(!p.hidden&&p.style.position==='fixed')p.hidden=true})},{capture:true,passive:true});
 
     /* 扣血／補血（以及手動輸入血量、數值條數值）之後，讓剛剛操作的那條血條「留在原本的螢幕位置」：
        接下來約 1.5 秒內每一格畫面都檢查一次，位置被推動（例如手機鍵盤收起、版面重排）就把畫面捲回來對齊。
@@ -5675,14 +5677,6 @@ function adjustUnitHp(unit,action,amount){
       };
       tick();
     }
-    /* 剛開啟 App 時底部分頁列偶爾整條往上浮、轉一下畫面或過一陣子才恢復：
-       這跟 resnapFixedUI() 註解裡寫的是同一種 iPhone/iPad 合成層沒對齊的問題，
-       只是原本只有在「畫面尺寸改變／鍵盤收合」時才會去把它按摩回原位，剛開啟
-       與從背景切回來時沒有。這裡在開機後的幾個時間點、以及 App 從背景回到前景
-       時，也各做一次同樣的重新對齊（只是一個看不出來的微小樣式變動，不影響其他東西）。 */
-    [150,400,800,1200,2000,3000].forEach(delay=>setTimeout(()=>{updateTabbarHeightVar();resnapFixedUI()},delay));
-    window.addEventListener('pageshow',()=>{updateTabbarHeightVar();scheduleResnapFixedUI()});
-    document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;updateTabbarHeightVar();scheduleResnapFixedUI();setTimeout(()=>{updateTabbarHeightVar();resnapFixedUI()},900)});
     /* ---------- GM 區：A/B 狀態管理面板（取代每張卡片各自展開的管理面板） ----------
        原本每張卡片底下都有一個「管理狀態・屬性・數值條」的展開區，展開/收合時卡片
        高度會大幅改變，磚牆式排版就得重新排，旁邊的卡片因此四處跳動。改成在 GM 區
