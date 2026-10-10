@@ -219,6 +219,13 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
        字就被擠成直排（例如「燃／燒」「1回／合」）。改成依內容決定寬度：放得下就跟 HP 同一列，
        放不下就整列換行；HP 固定靠右。回合數與按鈕不准再被壓縮（這條各種寬度都套用，手機上「999回／合」也不會再斷開）。700px 以下（手機直放）原本就是上下排，其餘排法不變。 */
     .title-status .condition .turns,.title-status .condition button{flex:none;white-space:nowrap}
+    /* 點下方分頁時，程式用 scrollIntoView 把該分頁捲到畫面最上緣（y=0）；但置頂區是停在
+       top:env(safe-area-inset-top)（iPhone 直放約 47～59px、iPad 約 24px）。分頁捲到 0 的那一刻，
+       置頂區被往下推了一個安全區的高度，剛好壓在第一張卡片／第一段內容上（使用者回報：每個分頁
+       點一下都會往上滑一點，第一張卡的名稱被遮住）。給分頁加上同樣高度的捲動留白，捲到的位置就是
+       「狀態列下方」，置頂區不會再蓋住內容。沒有安全區的裝置（橫放、電腦）這個值是 0，不受影響。 */
+    .tab-panel{scroll-margin-top:env(safe-area-inset-top)}
+    #actionPanelBlock[hidden],#toggleActionPanel[hidden]{display:none}
     /* 同一列卡片等高對齊（搭配 CARD_ROWS_ALIGNED） */
     .title-status.chip-capped,.title-passives.chip-capped{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;align-content:flex-start;padding-right:2px}
     .chip-more-hint{flex-basis:100%;width:100%;font-size:.75rem;color:var(--muted);margin-top:-2px}
@@ -463,7 +470,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.10.11-149';
+    const APP_VERSION='2026.10.11-151';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -835,8 +842,9 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     let cardTiers=loadMemory('battleTrackerCardTiers');
     let cardDrawExpanded=false;
     try{cardDrawExpanded=localStorage.getItem('battleTrackerCardDrawExpanded')==='1'}catch{}
-    let actionPanelExpanded=true;
-    try{const v=localStorage.getItem('battleTrackerActionPanelExpanded');if(v!==null)actionPanelExpanded=v==='1'}catch{}
+    // 2026-10-11 使用者要求：行動標籤每次開啟 App 都預設收合（不再記住上次的展開狀態）。
+    let actionPanelExpanded=false;
+    try{localStorage.removeItem('battleTrackerActionPanelExpanded')}catch{}
     let combatLog=loadMemory('battleTrackerCombatLog');
     let combatLogExpanded=false;
     try{combatLogExpanded=localStorage.getItem('battleTrackerCombatLogExpanded')==='1'}catch{}
@@ -2330,6 +2338,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         if(panel)panel.hidden=key!==tab;
       });
       positionActionPanel(tab);
+      updateActionPanelToggleUI();
       positionCombatSharedPanel(tab);
       positionToolbarCollapseBtn(tab);
       const combatShared=document.querySelector('#combatSharedPanel');
@@ -4279,11 +4288,16 @@ function adjustUnitHp(unit,action,amount){
       if(!inner||!btn)return;
       inner.hidden=!actionPanelExpanded;
       btn.textContent=actionPanelExpanded?'▴ 行動標籤':'▾ 行動標籤';
+      // 2026-10-11：怪物、資訊分頁不需要行動標籤，整塊連同切換按鈕一起不顯示；
+      // 收合時也把外框一起藏起來，不再留下一條空白的框。
+      const hideOnTab=activeTab==='monster'||activeTab==='info';
+      const block=document.querySelector('#actionPanelBlock');
+      if(block)block.hidden=hideOnTab||!actionPanelExpanded;
+      btn.hidden=hideOnTab;
     }
     document.querySelector('#toggleActionPanel').addEventListener('click',()=>{
       actionPanelExpanded=!actionPanelExpanded;
       updateActionPanelToggleUI();
-      try{localStorage.setItem('battleTrackerActionPanelExpanded',actionPanelExpanded?'1':'0')}catch{}
     });
     updateActionPanelToggleUI();
     document.querySelector('#btnResetCardTierOrder').addEventListener('click',()=>{
