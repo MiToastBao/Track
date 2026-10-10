@@ -166,6 +166,52 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
   .summary-status .condition,.summary-status .passive,.summary-status .attribute{font-size:.78rem;padding:2px 7px}
   .summary-head{margin:0 0 6px}
 }
+
+    /* ── 血量條名稱（每張卡各自可改） ── */
+    .hp-bar-head{display:flex;align-items:center;margin:12px 0 0;min-height:26px}
+    .hp-bar-head+.bar-row{margin-top:4px}
+    .unit-name-input.hp-label-input{font-size:.85rem;font-weight:600;min-width:36px;padding:2px 5px;margin-left:-5px}
+    /* 復原提示原本是 left:50% 再往左平移一半，可用寬度只剩畫面的一半，文字較長就被截成「…」；改成依內容決定寬度（仍受 max-width 限制）。 */
+    .undo-toast{width:max-content}
+    /* ── GM 區 A/B 狀態管理面板 ── */
+    #manageHub{margin:14px 0 4px}
+    .hub-panel{margin-bottom:12px}
+    .hub-count{color:var(--muted);font-weight:400;margin-left:4px;font-size:.88rem}
+    .hub-hint{margin:0 0 6px}
+    .hub-block{padding:12px 0;border-top:1px solid var(--line)}
+    .hub-block:first-of-type{border-top:none}
+    .hub-threshold-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+    .hub-threshold-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+    .hub-threshold-name{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.88rem}
+    .hub-threshold-row .threshold-list{margin:0}
+    .hub-overlay{position:fixed;inset:0;z-index:90;background:rgba(10,13,20,.55);display:flex;align-items:flex-end;justify-content:center}
+    .hub-overlay[hidden]{display:none}
+    .hub-sheet{background:var(--card);color:var(--text);width:100%;max-width:560px;max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;border-radius:18px 18px 0 0;border:1px solid var(--line);box-shadow:0 -10px 30px rgba(0,0,0,.35);padding-bottom:env(safe-area-inset-bottom)}
+    @media(min-width:720px){.hub-overlay{align-items:center}.hub-sheet{border-radius:18px}}
+    .hub-sheet-head{display:flex;align-items:center;gap:10px;padding:14px 16px 6px}
+    .hub-sheet-head h3{flex:1;margin:0;font-size:1.02rem}
+    #hubPickerCloseX{width:40px;height:40px;padding:0;border-radius:50%;flex:none}
+    .hub-sheet-desc{padding:0 16px 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+    .hub-sheet-scroll{flex:1 1 auto;overflow-y:auto;padding:4px 16px 10px;min-height:0}
+    .hub-quick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .hub-quick button{padding:7px 11px;font-size:.85rem}
+    .hub-target-list{display:flex;flex-direction:column;gap:6px}
+    .hub-target-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel-bg);cursor:pointer;min-height:48px}
+    .hub-target-row.checked{border-color:var(--primary);background:var(--focus-bg)}
+    .hub-target-row input{width:22px;height:22px;flex:none;accent-color:var(--primary);margin:0}
+    .hub-target-name{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
+    .hub-target-hp{color:var(--muted);font-size:.82rem;font-family:monospace;flex:none}
+    .hub-target-dup{font-size:.75rem;color:var(--debuff-text);border:1px solid var(--debuff-border);border-radius:999px;padding:1px 7px;flex:none}
+    .hub-dup{padding:10px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:.88rem;max-height:32vh;overflow:auto}
+    .hub-dup[hidden]{display:none}
+    .hub-dup label{display:flex;align-items:center;gap:8px;cursor:pointer}
+    .hub-dup input{width:20px;height:20px;margin:0;accent-color:var(--primary);flex:none}
+    .hub-dup-title{font-weight:700;color:var(--debuff-text)}
+    .hub-sheet-foot{display:flex;gap:10px;padding:10px 16px 14px;border-top:1px solid var(--line)}
+    .hub-sheet-foot button{flex:1;padding:12px;font-weight:700}
+    #hubPickerConfirm:disabled{opacity:.55;cursor:not-allowed}
+    /* 面板在寬螢幕上很寬，沿用卡片內的格線排法會讓回合數欄被拉得很長、按鈕被擠成兩行；寬螢幕改成一列排開。手機維持原本排法。 */
+    @media(min-width:701px){.hub-form.condition-form{display:flex;flex-wrap:wrap;align-items:center}.hub-form.condition-form input[name=statusName]{flex:1 1 220px}.hub-form.condition-form .kind-toggle-group{flex:0 1 320px}.hub-form.condition-form input[name=statusTurns]{flex:none;width:90px}.hub-form.condition-form button{flex:none}}
 </style>
 </head>
 <body>
@@ -275,6 +321,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
       <label class="squad-option" id="bossCardOption" hidden>先攻卡數量<input id="unitBossCardCount" type="number" min="1" max="10" value="1" title="頭目在先攻卡所有的回合卡數量"></label>
       <button class="primary">新增角色</button>
     </form>
+    <div id="manageHub"></div>
     <div id="gmPanelContent" style="margin-top:18px"></div>
     <div class="shop-section" id="cardDrawSection">
       <button type="button" class="shop-section-head" id="toggleCardDraw" style="width:100%">
@@ -378,6 +425,15 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
       </div>
     </div>
   </div>
+  <div class="hub-overlay" id="hubPickerOverlay" hidden>
+    <div class="hub-sheet" role="dialog" aria-modal="true" aria-labelledby="hubPickerTitle">
+      <div class="hub-sheet-head"><h3 id="hubPickerTitle"></h3><button type="button" id="hubPickerCloseX" aria-label="關閉">✕</button></div>
+      <div class="hub-sheet-desc" id="hubPickerDesc"></div>
+      <div class="hub-sheet-scroll"><div class="hub-quick" id="hubPickerQuick"></div><div class="hub-target-list" id="hubPickerList"></div></div>
+      <div class="hub-dup" id="hubPickerDup" hidden></div>
+      <div class="hub-sheet-foot"><button type="button" id="hubPickerCancel">取消</button><button type="button" class="primary" id="hubPickerConfirm" disabled>請先勾選對象</button></div>
+    </div>
+  </div>
   <nav class="bottom-tabbar" id="bottomTabbar" aria-label="快速跳轉分頁">
     <button type="button" data-target="tabSectionInitiative"><span class="tab-icon">🎲</span>先攻</button>
     <button type="button" data-target="tabSectionPlayer"><span class="tab-icon">🛡️</span>玩家</button>
@@ -393,7 +449,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 瀏覽器會把它視為「不同的 sw.js 網址」而強制重新抓取、重新安裝，
     // 才能保證每次更新 index.html 後，使用者的裝置真的會抓到新版本
     // （否則瀏覽器只會比對 sw.js 本身的內容有沒有變，這裡沒變就永遠判斷「已是最新」）。
-    const APP_VERSION='2026.08.22-145';
+    const APP_VERSION='2026.10.11-146';
     // uuid() 只在安全情境（https/localhost）且較新瀏覽器才存在；
     // 沒有的話（例如較舊的 iOS Safari、部分內嵌 WebView、或以 file:// 開啟）就退回手刻版本，
     // 避免頁面一載入就因為 ReferenceError 直接白屏。
@@ -868,6 +924,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     // 其餘（一般怪物／頭目）推進 monsters。這段邏輯同時被「標籤庫點擊生成」和
     // 「怪物卡牌隨機抽取」共用，確保兩個入口的生成結果完全一致。
     function spawnUnitsFromTemplate(template){
+      const hpLabelStart={p:players.length,m:monsters.length,s:squads.length};
       if(template.isSquad){
         const squadPassives=(template.passives||[]).map(p=>({id:uuid(),name:p.name,color:p.color}));
         const squadAttributes=(template.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color}));
@@ -884,6 +941,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
       }else{
         monsters.push({id:uuid(),name:template.name,hp:template.maxHp,maxHp:template.maxHp,type:'monster',color:template.color,statuses:template.statuses.map(item=>({...item,id:uuid()})),attributes:(template.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(template.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:(template.passives||[]).map(p=>({id:uuid(),name:p.name,color:p.color})),isBoss:!!template.isBoss,level:template.level||'',...(template.isBoss?{actionCards:Array.from({length:Math.max(1,template.cardCount||1)},(_,i)=>({id:uuid(),name:(template.cardNames&&template.cardNames[i])||'',turnEnded:false})),hpThresholds:(template.hpThresholds||[]).map(t=>({id:uuid(),value:t.value,passiveName:t.passiveName,triggered:false,autoRemove:!!t.autoRemove}))}:{})});
       }
+      if(typeof template.hpLabel==='string'&&template.hpLabel.trim()){const label=template.hpLabel.trim().slice(0,20);players.slice(hpLabelStart.p).concat(monsters.slice(hpLabelStart.m)).forEach(u=>{u.hpLabel=label});squads.slice(hpLabelStart.s).forEach(sq=>{sq.hpLabel=label})}
     }
     const HEX_COLOR_RE=/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
     const SAFE_ID_RE=/^[A-Za-z0-9_-]{1,64}$/;
@@ -1344,7 +1402,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
             <div class="summary-line-2">
               <div class="summary-hp-cell">
                 <div class="summary-bar"><div class="summary-fill" style="width:${percent}%"></div></div>
-                <span class="summary-hp-text">${u.hp}/${u.maxHp} HP</span>
+                <span class="summary-hp-text">${escapeHtml(hpLabelOf(u))} ${u.hp}/${u.maxHp}</span>
               </div>
             </div>
             ${passives ? `<div class="summary-line-3 summary-status">${passives}</div>` : ''}
@@ -1375,14 +1433,11 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const crossedThresholds=unit.isBoss&&Array.isArray(unit.hpThresholds)?unit.hpThresholds.filter(t=>unit.hp<t.value).sort((a,b)=>a.value-b.value):[];
         const severityClass=crossedThresholds.length>=2?'hp-danger':crossedThresholds.length===1?'hp-warning':'';
         const thresholdWarning=crossedThresholds.length?` &#8226; ${crossedThresholds.length>=2?'&#128128;':'&#9888;&#65039;'} &#24050;&#20302;&#26044; ${crossedThresholds[0].value}${crossedThresholds.length>=2?`&#65288;&#20849;&#36386;&#30772; ${crossedThresholds.length} 條&#8203;&#35686;&#25106;&#32218;&#65289;`:''}`:'';
-        const thresholdSection=unit.isBoss?`<div class="threshold-block"><div class="threshold-title">血量警戒線（低於指定數值時明顯提示，可選自動附加被動能力，最多可設定5條）</div><div class="threshold-list">${(unit.hpThresholds||[]).map(t=>`<span class="condition ${unit.hp<t.value?'debuff':'buff'}">${t.triggered?'&#9889;':'&#9888;&#65039;'} &#20302;&#26044; ${t.value}${t.passiveName?` &#8594; ${escapeHtml(t.passiveName)} ${t.autoRemove?'&#128260;':'&#128274;'}`:''}<button data-boss-threshold-delete="${unit.id}" data-threshold-id="${t.id}">&#215;</button></span>`).join('')||'<span class="status">&#23578;&#26410;&#35373;&#23450;</span>'}</div><form class="add-bar-form" data-boss-threshold-form="${unit.id}"><input name="thresholdValue" type="number" min="1" max="999999" placeholder="&#20302;&#26044;&#27492;&#25976;&#20540;&#26178;&#38663;&#25552;&#31034;" style="width:130px" required><input name="thresholdPassive" type="text" maxlength="30" placeholder="&#65288;&#36984;&#22294;&#65289;&#33258;&#21205;&#38468;&#21152;&#30340;&#34987;&#21205;&#33021;&#21147;&#21517;&#31281;" style="width:170px"><label style="display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--muted)"><input type="checkbox" name="thresholdAutoRemove">回復到門檻以上時自動移除被動（否則永久生效）</label><button class="primary">&#65291; &#26032;&#22686;&#35686;&#25106;&#32218;</button></form></div>`:'';
         const statusIcon=k=>k==='buff'?'&#9650;':k==='debuff'?'&#9660;':'&#9679;';
-        const conditions=unit.statuses.map(item=>`<span class="condition ${item.kind}" style="--condition-color:${sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e')}">${colorTriggerHtml(sanitizeColor(item.color,item.kind==='buff'?'#2f9968':item.kind==='debuff'?'#d9505f':'#c9962e'),`data-status-color="${unit.id}" data-status-id="${item.id}"`)}${statusIcon(item.kind)} ${escapeHtml(item.name)}${statusTurnsHtml(item)} <button data-condition-turn="${unit.id}" data-status-id="${item.id}">-</button><button data-condition-plus="${unit.id}" data-status-id="${item.id}">+</button><button data-condition-delete="${unit.id}" data-status-id="${item.id}">&#215;</button></span>`).join('')||'<span class="status">&#28961;&#29376;&#24907;</span>';
-        const savedStatuses=unitTemplateListHtml(unit.id,statusTemplates,{addAttr:'template-add',idAttr:'template-id',deleteAttr:'template-delete',emptyText:'&#27794;&#26377;&#35352;&#25014;&#30340;&#29376;&#24907;&#27161;&#31844;'});
-        return `<article class="card ${unit.type} ${unit.isBoss?'boss':''} ${turnEnded?'turn-ended':''} ${severityClass}" data-card-id="${unit.id}" data-turn-toggle="${unit.id}" style="--unit-color:${sanitizeColor(unit.color,'#4c78a4')}">${isCurrentTurn?`<div class="current-turn-badge">▶ 目前回合${activeCardLabel?`：${escapeHtml(activeCardLabel)}`:''}</div>`:''}${turnEnded?'<div class="turn-ended-badge">✓ 已結束</div>':''}<div class="head"><h2>${icon} <input type="text" class="unit-name-input" data-unit-name="${unit.id}" value="${escapeAttr(unit.name)}" maxlength="500" title="&#25353;&#20035;&#21487;&#20462;&#25913;&#21517;&#31281;&#25110;&#32232;&#34399;" onclick="event.stopPropagation()"><input type="color" class="unit-color-picker" data-unit-color="${unit.id}" value="${sanitizeColor(unit.color,'#4c78a4')}" title="&#26356;&#25913;&#38991;&#33394;" onclick="event.stopPropagation()"></h2>${titlePassiveHtml(unit)}${titleAttributeHtml(unit)}${titleStatusHtml(unit)}${hpInlineHtml(unit)}</div>${squadBadge}${bossBadge}<div class="bar-row"><button data-id="${unit.id}" data-action="damage" class="hp-btn minus" title="&#38477;&#20302;&#34880;&#37327;">&#8722;</button><div class="bar"><div class="fill" style="width:${percent}%;${low}"></div></div><button data-id="${unit.id}" data-action="heal" class="hp-btn plus" title="&#24674;&#24489;&#34880;&#37327;">+</button><input class="hp-amount" data-amount type="number" min="1" step="1" value="1" aria-label="&#34880;&#37327;&#38911;&#21205;&#25976;&#20540;"></div>${barUndoHtml(unit.id,null)}${barsListHtml(unit)}<div class="status">${turnEnded?'&#22238;&#21512;&#32080;&#26463;':state} (${percent}%)${thresholdWarning}</div><button type="button" class="manage-toggle" data-manage-toggle="${unit.id}">${expandedManageIds.has(unit.id)?'\u25b2 \u6536\u5408\u7ba1\u7406':'\u25bc \u7ba1\u7406\u72c0\u614b\u30fb\u5c6c\u6027\u30fb\u6578\u503c\u689d'}</button><div class="manage-panel" data-manage-panel="${unit.id}" ${expandedManageIds.has(unit.id)?'':'hidden'}><div class="conditions"><div class="condition-title">&#29376;&#24907; / &#21097;&#39192;&#22238;&#21512;</div><div class="condition-list">${conditions}</div><form class="condition-form" data-status-form="${unit.id}"><div class="saved-status-tags">${savedStatuses}</div><input name="statusName" maxlength="500" required placeholder="&#29376;&#24907;&#21517;&#31281;"><div class="kind-toggle-group"><label class="kind-toggle buff"><input type="radio" name="statusKind" value="buff" checked><span>增益</span></label><label class="kind-toggle debuff"><input type="radio" name="statusKind" value="debuff"><span>負面</span></label><label class="kind-toggle neutral"><input type="radio" name="statusKind" value="neutral"><span>中立</span></label></div><input name="statusTurns" type="number" min="1" max="999" value="1" required><label class="status-autotick" title="\u52fe\u9078\uff1a\u8f2a\u5230\u9019\u500b\u89d2\u8272\u6642\u81ea\u52d5\u6e1b1\u56de\u5408\uff0c\u6b78\u96f6\u81ea\u52d5\u79fb\u9664\u3002\u4e0d\u52fe\uff1a\u5b8c\u5168\u624b\u52d5\u63a7\u5236\uff0c\u4e0d\u6703\u81ea\u5df1\u6e1b\u5c11\u3002"><input type="checkbox" name="statusAutoTick" checked><span>\u81ea\u52d5\u905e\u6e1b</span></label><button class="primary">&#26032;&#22686;</button></form></div>${thresholdSection}${attributeHtml(unit)}${passiveFormHtml(unit)}${addBarFormHtml(unit)}${memoryHtml(unit)}</div><div class="manage">${(unit.type==='monster'||unit.isSummon)?`<button type="button" data-monster-remember="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條存成範本">💾 記住目前設定</button><button type="button" data-monster-duplicate="${unit.id}" title="複製出一隻設定完全相同的新角色(含當下狀態)">📋 複製</button>${unit.isBoss?`<button type="button" data-boss-reset="${unit.id}" title="血量補滿、警戒線觸發狀態重設、自動附加的被動一併移除">&#8635; 重置頭目狀態</button>`:''}`:''}${(unit.type==='player'&&!unit.isSummon)?`<button type="button" data-mark-absent="${unit.id}" title="暫時隱藏這位玩家的先攻卡與血量面板，資料不會被刪除，之後隨時可以再標記回出席">🙈 標記缺席</button>`:''}<button class="danger" data-id="${unit.id}" data-action="delete">&#21034;&#38500;</button></div></article>`;
+        return `<article class="card ${unit.type} ${unit.isBoss?'boss':''} ${turnEnded?'turn-ended':''} ${severityClass}" data-card-id="${unit.id}" data-turn-toggle="${unit.id}" style="--unit-color:${sanitizeColor(unit.color,'#4c78a4')}">${isCurrentTurn?`<div class="current-turn-badge">▶ 目前回合${activeCardLabel?`：${escapeHtml(activeCardLabel)}`:''}</div>`:''}${turnEnded?'<div class="turn-ended-badge">✓ 已結束</div>':''}<div class="head"><h2>${icon} <input type="text" class="unit-name-input" data-unit-name="${unit.id}" value="${escapeAttr(unit.name)}" maxlength="500" title="&#25353;&#20035;&#21487;&#20462;&#25913;&#21517;&#31281;&#25110;&#32232;&#34399;" onclick="event.stopPropagation()"><input type="color" class="unit-color-picker" data-unit-color="${unit.id}" value="${sanitizeColor(unit.color,'#4c78a4')}" title="&#26356;&#25913;&#38991;&#33394;" onclick="event.stopPropagation()"></h2>${titlePassiveHtml(unit)}${titleAttributeHtml(unit)}${titleStatusHtml(unit)}${hpInlineHtml(unit)}</div>${squadBadge}${bossBadge}<div class="hp-bar-head"><input type="text" class="unit-name-input hp-label-input" data-hp-label="${unit.id}" value="${escapeAttr(hpLabelOf(unit))}" maxlength="20" title="點一下可修改這條血量條的名稱（清空會回到預設的「血量」）" aria-label="血量條名稱" onclick="event.stopPropagation()"></div><div class="bar-row"><button data-id="${unit.id}" data-action="damage" class="hp-btn minus" title="&#38477;&#20302;&#34880;&#37327;">&#8722;</button><div class="bar"><div class="fill" style="width:${percent}%;${low}"></div></div><button data-id="${unit.id}" data-action="heal" class="hp-btn plus" title="&#24674;&#24489;&#34880;&#37327;">+</button><input class="hp-amount" data-amount type="number" min="1" step="1" value="1" aria-label="&#34880;&#37327;&#38911;&#21205;&#25976;&#20540;"></div>${barUndoHtml(unit.id,null)}${barsListHtml(unit)}<div class="status">${turnEnded?'&#22238;&#21512;&#32080;&#26463;':state} (${percent}%)${thresholdWarning}</div><div class="manage">${(unit.type==='monster'||unit.isSummon)?`<button type="button" data-monster-remember="${unit.id}" title="將血量上限/顏色/被動能力/自訂屬性/數值條存成範本">💾 記住目前設定</button><button type="button" data-monster-duplicate="${unit.id}" title="複製出一隻設定完全相同的新角色(含當下狀態)">📋 複製</button>${unit.isBoss?`<button type="button" data-boss-reset="${unit.id}" title="血量補滿、警戒線觸發狀態重設、自動附加的被動一併移除">&#8635; 重置頭目狀態</button>`:''}`:''}${(unit.type==='player'&&!unit.isSummon)?`<button type="button" data-mark-absent="${unit.id}" title="暫時隱藏這位玩家的先攻卡與血量面板，資料不會被刪除，之後隨時可以再標記回出席">🙈 標記缺席</button>`:''}<button class="danger" data-id="${unit.id}" data-action="delete">&#21034;&#38500;</button></div></article>`;
     }
     function unitSig(unit){
-      let s=unit.id+'|'+unit.name+'|'+unit.hp+'|'+unit.maxHp+'|'+unit.color+'|'+(unit.turnEnded?1:0)+'|'+(unit.isBoss?1:0)+'|'+(unit.squadId||'');
+      let s=unit.id+'|'+unit.name+'|'+unit.hp+'|'+unit.maxHp+'|'+unit.color+'|'+(unit.turnEnded?1:0)+'|'+(unit.isBoss?1:0)+'|'+(unit.squadId||'')+'|L'+(unit.hpLabel||'');
       const statuses=unit.statuses;
       if(statuses&&statuses.length){s+='|S';for(let i=0;i<statuses.length;i++){const x=statuses[i];s+=x.id+','+x.kind+','+x.name+','+x.turns+','+x.color+';'}}
       const attributes=unit.attributes;
@@ -1498,6 +1553,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const remembered=unitTemplateListHtml(unit.id,passiveTemplates,{addAttr:'passive-template-add',idAttr:'passive-template-id',deleteAttr:'passive-template-delete',prefix:'&#10022; ',emptyText:'&#28961;&#35352;&#25014;&#30340;&#34987;&#21205;&#33021;&#21147;'});
       return `<div class="passives-section"><div class="condition-title">&#34987;&#21205;&#33021;&#21147;</div><div class="saved-status-tags">${remembered}</div><form class="passive-form" data-passive-form="${unit.id}"><input name="passiveName" maxlength="500" required placeholder="&#36664;&#20837;&#34987;&#21205;&#33021;&#21147;&#65288;50&#23383;&#20197;&#20839;&#65289;"><button class="primary">&#26032;&#22686;&#34987;&#21205;&#33021;&#21147;</button></form></div>`;
     }
+    function hpLabelOf(unit){return (unit&&typeof unit.hpLabel==='string'&&unit.hpLabel.trim())?unit.hpLabel.trim():'\u8840\u91cf'}
     function hpInlineHtml(unit){return `<form class="hp hp-inline" data-hp-form="${unit.id}"><input name="currentHp" type="number" min="0" max="${unit.maxHp}" value="${unit.hp}" aria-label="&#30446;&#21069; HP"><span>/</span><input name="maxHp" type="number" min="1" max="999999" value="${unit.maxHp}" aria-label="&#26368;&#22823; HP"><span>HP</span></form>`}
     function statusTurnsHtml(item){
       // 不隨回合遞減的狀態加上鎖頭圖示，讓使用者一眼分辨哪些要自己手動處理。
@@ -1728,6 +1784,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       const hp=Math.max(0,Math.min(maxHp,Math.floor(Number(item.hp))||0));
       const unit={id:sanitizeId(item.id),name:String(item.name??'').trim().slice(0,TEXT_SAFETY_CAP)||(type==='player'?'\u73a9\u5bb6':'\u602a\u7269'),hp,maxHp,type,color:sanitizeColor(item.color,type==='player'?'#36a9ff':'#ff5b6d'),statuses:sanitizeStatusList(item.statuses),attributes:sanitizeAttributeList(item.attributes),bars:sanitizeBarList(item.bars),passives:sanitizePassiveList(item.passives),level:typeof item.level==='string'?item.level.trim().slice(0,TEXT_SAFETY_CAP):''};
       unit.turnEnded=!!item.turnEnded;
+      if(typeof item.hpLabel==='string'&&item.hpLabel.trim())unit.hpLabel=item.hpLabel.trim().slice(0,20);
       // 回合結束自動遞減模式的還原快照：重開App後也要留著，不然剛標記完
       // 回合結束就關掉App、再打開想取消時就救不回來了。
       unit.tickSnapshot=Array.isArray(item.tickSnapshot)?sanitizeStatusList(item.tickSnapshot):null;
@@ -1740,7 +1797,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       return unit;
     }
     function sanitizeSquads(list){
-      return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>({id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u5c0f\u968a',color:sanitizeColor(x.color,'#ff5b6d'),maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars)})):[];
+      return Array.isArray(list)?list.filter(x=>x&&typeof x==='object').map(x=>({id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u5c0f\u968a',color:sanitizeColor(x.color,'#ff5b6d'),maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars),...(typeof x.hpLabel==='string'&&x.hpLabel.trim()?{hpLabel:x.hpLabel.trim().slice(0,20)}:{})})):[];
     }
     function sanitizeActionTags(list){
       // 只有在原始資料「根本不是陣列」時（代表這個欄位缺漏、或是格式不對，
@@ -1765,6 +1822,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
         const memberColors=(x.isSquad&&Array.isArray(x.memberColors))?x.memberColors.filter(c=>typeof c==='string').map(c=>sanitizeColor(c,'#ff5b6d')).slice(0,12):undefined;
         const base={id:sanitizeId(x.id),name:String(x.name??'').trim().slice(0,TEXT_SAFETY_CAP)||'\u602a\u7269',maxHp:Math.max(1,Math.min(999999,Math.floor(Number(x.maxHp))||100)),color:sanitizeColor(x.color,'#ff5b6d'),statuses:sanitizeStatusList(x.statuses),isSquad:!!x.isSquad,squadCount:Math.max(2,Math.min(12,Math.floor(Number(x.squadCount))||3)),passives:sanitizePassiveList(x.passives),attributes:sanitizeAttributeList(x.attributes),bars:sanitizeBarList(x.bars),isBoss:!!x.isBoss,isSummon:!!x.isSummon,cardCount,cardNames,hpThresholds,level:typeof x.level==='string'?x.level.trim().slice(0,TEXT_SAFETY_CAP):''};
         if(memberColors)base.memberColors=memberColors;
+        if(typeof x.hpLabel==='string'&&x.hpLabel.trim())base.hpLabel=x.hpLabel.trim().slice(0,20);
         return base;
       }):[];
     }
@@ -2677,6 +2735,7 @@ const COMBAT_LOG_DISPLAY_LIMIT=50;
       }
       sizeUnitNameInputs();
       packAllCardGrids();
+      renderManageHub();
       updateFloatingNextTurnLabel();
       updateTickStatusesButton();
       scheduleAutosave();
@@ -3306,6 +3365,7 @@ function adjustUnitHp(unit,action,amount){
           const clonedThresholds=Array.isArray(unit.hpThresholds)?unit.hpThresholds.map(t=>{const newId=uuid();thresholdIdMap.set(t.id,newId);return{id:newId,value:t.value,passiveName:t.passiveName,triggered:t.triggered,autoRemove:!!t.autoRemove}}):null;
           const clone={id:uuid(),name:unit.name,hp:unit.hp,maxHp:unit.maxHp,type:unit.type,color:unit.color,turnEnded:false,isBoss:!!unit.isBoss,level:unit.level||'',statuses:(unit.statuses||[]).map(s=>({...s,id:uuid()})),attributes:(unit.attributes||[]).map(a=>({...a,id:uuid()})),bars:(unit.bars||[]).map(b=>({...b,id:uuid()})),passives:(unit.passives||[]).map(p=>{const clonedPassive={id:uuid(),name:p.name,color:p.color};if(p.sourceThresholdId&&thresholdIdMap.has(p.sourceThresholdId))clonedPassive.sourceThresholdId=thresholdIdMap.get(p.sourceThresholdId);return clonedPassive})};
           if(unit.isSummon)clone.isSummon=true;
+          if(unit.hpLabel)clone.hpLabel=unit.hpLabel;
           if(unit.squadId)clone.squadId=unit.squadId;
           if(clonedThresholds)clone.hpThresholds=clonedThresholds;
           if((unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards))clone.actionCards=unit.actionCards.map(c=>({id:uuid(),name:c.name,turnEnded:false}));
@@ -3322,6 +3382,7 @@ function adjustUnitHp(unit,action,amount){
           const old=monsterTemplates.find(item=>item.name===unit.name&&(item.level||'')===(unit.level||'')&&!!item.isBoss===!!unit.isBoss&&!!item.isSummon===!!unit.isSummon&&!item.isSquad);
           const templatePassives=(unit.passives||[]).filter(p=>!p.sourceThresholdId).map(p=>({id:uuid(),name:p.name,color:p.color}));
           const template={id:old?.id||uuid(),name:unit.name,maxHp:unit.maxHp,color:unit.color,statuses:[],isSquad:false,squadCount:old?.squadCount||3,passives:templatePassives,attributes:(unit.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(unit.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),isBoss:!!unit.isBoss,isSummon:!!unit.isSummon,level:unit.level||(old?.level||''),cardCount:(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.length:(old?.cardCount||1),cardNames:(unit.isBoss||unit.isSummon)&&Array.isArray(unit.actionCards)?unit.actionCards.map(c=>c.name||''):(old?.cardNames||[]),hpThresholds:unit.isBoss&&Array.isArray(unit.hpThresholds)?unit.hpThresholds.map(t=>({id:uuid(),value:t.value,passiveName:t.passiveName,triggered:false,autoRemove:!!t.autoRemove})):(old?.hpThresholds||[])};
+          template.hpLabel=unit.hpLabel||'';
           if(old)Object.assign(old,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
           saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
           render();
@@ -3380,9 +3441,11 @@ function adjustUnitHp(unit,action,amount){
           squad.passives=(unit.passives||[]).map(p=>({id:uuid(),name:p.name,color:p.color}));
           squad.attributes=(unit.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color}));
           squad.bars=(unit.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}));
+          squad.hpLabel=unit.hpLabel||'';
+          squadMembers(squad.id).forEach(member=>{if(squad.hpLabel)member.hpLabel=squad.hpLabel;else delete member.hpLabel});
           squadMembers(squad.id).forEach(member=>{if(member.id===unit.id)return;member.maxHp=squad.maxHp;member.hp=Math.min(member.hp,member.maxHp);member.color=squad.color;member.passives=squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color}));member.attributes=squad.attributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color}));member.bars=squad.bars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}))});
           const oldTemplate=monsterTemplates.find(item=>item.name===squad.name&&(item.level||'')===(squad.level||'')&&item.isSquad&&!item.isBoss);
-          const template={id:oldTemplate?.id||uuid(),name:squad.name,maxHp:squad.maxHp,color:squad.color,statuses:[],isSquad:true,squadCount:squadMembers(squad.id).length,passives:squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color})),attributes:squad.attributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:squad.bars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}))};
+          const template={id:oldTemplate?.id||uuid(),name:squad.name,hpLabel:squad.hpLabel||'',maxHp:squad.maxHp,color:squad.color,statuses:[],isSquad:true,squadCount:squadMembers(squad.id).length,passives:squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color})),attributes:squad.attributes.map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:squad.bars.map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color}))};
           if(oldTemplate)Object.assign(oldTemplate,template);else pushWithLimit(monsterTemplates,template,MAX_TEMPLATES);
           saveMemory('battleTrackerMonsterTemplates',monsterTemplates);
           render();
@@ -3390,7 +3453,7 @@ function adjustUnitHp(unit,action,amount){
         return;
       }
       const squadAdd=event.target.closest('[data-squad-add]');
-      if(squadAdd){const squad=findSquad(squadAdd.dataset.squadAdd);if(squad){saveHistory();const n=nextSquadMemberNumber(squad);monsters.push({id:uuid(),name:`${squad.name} ${n}`,hp:squad.maxHp,maxHp:squad.maxHp,type:'monster',color:squad.color,squadId:squad.id,statuses:[],attributes:(squad.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(squad.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color}))});render()}return}
+      if(squadAdd){const squad=findSquad(squadAdd.dataset.squadAdd);if(squad){saveHistory();const n=nextSquadMemberNumber(squad);monsters.push({id:uuid(),name:`${squad.name} ${n}`,hp:squad.maxHp,maxHp:squad.maxHp,type:'monster',color:squad.color,squadId:squad.id,statuses:[],attributes:(squad.attributes||[]).map(a=>({id:uuid(),name:a.name,value:a.value,color:a.color})),bars:(squad.bars||[]).map(b=>({id:uuid(),name:b.name,value:b.value,maxValue:b.maxValue,color:b.color})),passives:squad.passives.map(p=>({id:uuid(),name:p.name,color:p.color})),...(squad.hpLabel?{hpLabel:squad.hpLabel}:{})});render()}return}
       const squadDisband=event.target.closest('[data-squad-disband]');
       if(squadDisband){if(!confirm('\u89e3\u6563\u5c0f\u968a\u5f8c\uff0c\u9019\u4e9b\u602a\u7269\u6703\u8b8a\u56de\u72dd\u7acb\u986f\u793a\uff0c\u5148\u653b\u5340\u4e5f\u6703\u62c6\u6210\u500b\u5225\u6a19\u7c64\u3002\u78ba\u5b9a\u8981\u7e7c\u7e8c\u55ce\uff1f'))return;const squadId=squadDisband.dataset.squadDisband;saveHistory();monsters.forEach(m=>{if(m.squadId===squadId)delete m.squadId});squads=squads.filter(s=>s.id!==squadId);render();return}
       const bossCardAdd=event.target.closest('[data-boss-card-add]');
@@ -5518,6 +5581,322 @@ function adjustUnitHp(unit,action,amount){
     // 這個套件就已經被 Service Worker 快取起來，之後離線時第一次使用 Excel 匯入也能正常運作。
     const idle=window.requestIdleCallback||(fn=>setTimeout(fn,1500));
     idle(()=>{ensureXLSXLoaded().catch(()=>{})});
+
+    document.querySelector('main').addEventListener('change',event=>{
+      const input=event.target.closest('[data-hp-label]');
+      if(!input)return;
+      const unit=findUnit(input.dataset.hpLabel);
+      if(!unit)return;
+      const raw=input.value.trim().slice(0,20);
+      const next=(raw&&raw!=='血量')?raw:'';
+      if((unit.hpLabel||'')!==next){saveHistory();if(next)unit.hpLabel=next;else delete unit.hpLabel}
+      input.value=hpLabelOf(unit);
+      input.style.width='';
+      render();
+    });
+    /* 剛開啟 App 時底部分頁列偶爾整條往上浮、轉一下畫面或過一陣子才恢復：
+       這跟 resnapFixedUI() 註解裡寫的是同一種 iPhone/iPad 合成層沒對齊的問題，
+       只是原本只有在「畫面尺寸改變／鍵盤收合」時才會去把它按摩回原位，剛開啟
+       與從背景切回來時沒有。這裡在開機後的幾個時間點、以及 App 從背景回到前景
+       時，也各做一次同樣的重新對齊（只是一個看不出來的微小樣式變動，不影響其他東西）。 */
+    [150,400,800,1200,2000,3000].forEach(delay=>setTimeout(()=>{updateTabbarHeightVar();resnapFixedUI()},delay));
+    window.addEventListener('pageshow',()=>{updateTabbarHeightVar();scheduleResnapFixedUI()});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;updateTabbarHeightVar();scheduleResnapFixedUI();setTimeout(()=>{updateTabbarHeightVar();resnapFixedUI()},900)});
+    document.querySelector('main').addEventListener('keydown',event=>{
+      const input=event.target.closest&&event.target.closest('[data-hp-label]');
+      if(input&&event.key==='Enter'){event.preventDefault();input.blur()}
+    });
+    /* ---------- GM 區：A/B 狀態管理面板（取代每張卡片各自展開的管理面板） ----------
+       原本每張卡片底下都有一個「管理狀態・屬性・數值條」的展開區，展開/收合時卡片
+       高度會大幅改變，磚牆式排版就得重新排，旁邊的卡片因此四處跳動。改成在 GM 區
+       統一放兩個面板：A 管玩家（含召喚物）、B 管怪物（含頭目），新增任何東西時再
+       詢問要加給誰（可複選）。卡片本身不再有展開區，高度只會因為真的多了狀態而變。
+       這裡的狀態變數一律用 var：render() 在開機初期就會被呼叫，那時這段程式還沒
+       執行到，用 let/const 會落入暫時性死區而報錯；var 只會是 undefined。 */
+    var hubLastSig=null;
+    var hubLastSelection={player:[],monster:[]};
+    var hubPickerState=null;
+    function hubReadOpenState(){try{const raw=localStorage.getItem('battleTrackerManageHubOpen');const v=raw?JSON.parse(raw):null;return v&&typeof v==='object'?v:{}}catch{return{}}}
+    function hubWriteOpenState(state){try{localStorage.setItem('battleTrackerManageHubOpen',JSON.stringify(state))}catch{}}
+    function hubSideUnits(side){return side==='player'?players.filter(p=>!p.isAbsent):sortMonstersForDisplay(monsters)}
+    function hubKindIcon(kind){return kind==='buff'?'&#9650;':kind==='debuff'?'&#9660;':'&#9679;'}
+    function hubKindColor(kind){return kind==='buff'?'#2f9968':kind==='debuff'?'#d9505f':'#c9962e'}
+    function hubPanelSkeletonHtml(side,open){
+      const isPlayer=side==='player';
+      const who=isPlayer?'玩家':'怪物';
+      const thresholdBlock=isPlayer?'':`<div class="hub-block"><div class="condition-title">👑 頭目血量警戒線（只會列出頭目；低於指定數值時明顯提示，可選自動附加被動能力，每位最多 5 條）</div><div class="hub-threshold-list" data-hub-thresholds="monster"></div><form class="add-bar-form hub-form" data-hub-form="threshold" data-hub-side="monster"><input name="thresholdValue" type="number" min="1" max="999999" placeholder="低於此數值時提示" style="width:150px" required><input name="thresholdPassive" type="text" maxlength="30" placeholder="（選填）自動附加的被動能力名稱" style="flex:1;min-width:170px"><label class="status-autotick"><input type="checkbox" name="thresholdAutoRemove"><span>回復到門檻以上時自動移除被動（否則永久生效）</span></label><button class="primary">＋ 新增警戒線…</button></form></div>`;
+      return `<details class="shop-section hub-panel" data-hub-panel="${side}"${open?' open':''}>
+        <summary class="shop-section-head"><span>${isPlayer?'🛡️ A 面板・玩家':'👾 B 面板・怪物'}<span class="hub-count" data-hub-count="${side}"></span></span><span class="shop-chev">▸</span></summary>
+        <div class="shop-section-body hub-body">
+          <p class="shop-hint hub-hint">按「新增」或點一下已記憶的標籤後，會跳出視窗詢問要加給哪些${who}（可複選）。標籤右邊的 × 是刪除記憶標籤，不會影響已經加在${who}身上的內容。</p>
+          <div class="hub-block"><div class="condition-title">狀態 / 剩餘回合</div><div class="saved-status-tags" data-hub-chips="status" data-hub-side="${side}"></div>
+            <form class="condition-form hub-form" data-hub-form="status" data-hub-side="${side}"><input name="statusName" maxlength="500" required placeholder="狀態名稱"><div class="kind-toggle-group"><label class="kind-toggle buff"><input type="radio" name="statusKind" value="buff" checked><span>增益</span></label><label class="kind-toggle debuff"><input type="radio" name="statusKind" value="debuff"><span>負面</span></label><label class="kind-toggle neutral"><input type="radio" name="statusKind" value="neutral"><span>中立</span></label></div><input name="statusTurns" type="number" min="1" max="999" value="1" required aria-label="持續回合數"><label class="status-autotick" title="勾選：輪到這個角色時自動減1回合，歸零自動移除。不勾：完全手動控制，不會自己減少。"><input type="checkbox" name="statusAutoTick" checked><span>自動遞減</span></label><button class="primary">新增狀態…</button></form></div>
+          <div class="hub-block"><div class="condition-title">自訂屬性</div><div class="saved-status-tags" data-hub-chips="attribute" data-hub-side="${side}"></div>
+            <form class="attribute-form hub-form" data-hub-form="attribute" data-hub-side="${side}"><input name="attributeName" maxlength="500" required placeholder="屬性名稱"><button class="primary">新增屬性…</button></form></div>
+          <div class="hub-block"><div class="condition-title">被動能力</div><div class="saved-status-tags" data-hub-chips="passive" data-hub-side="${side}"></div>
+            <form class="passive-form hub-form" data-hub-form="passive" data-hub-side="${side}"><input name="passiveName" maxlength="500" required placeholder="輸入被動能力（50字以內）"><button class="primary">新增被動能力…</button></form></div>
+          <div class="hub-block"><div class="condition-title">自訂數值條</div><div class="saved-status-tags" data-hub-chips="bar" data-hub-side="${side}"></div>
+            <form class="add-bar-form hub-form" data-hub-form="bar" data-hub-side="${side}"><input name="barName" maxlength="500" required placeholder="數值條名稱（例如：魔力、士氣）"><input name="barMax" type="number" min="1" max="999999" value="100" required aria-label="最大值"><button class="primary">新增數值條…</button></form></div>
+          ${thresholdBlock}
+        </div>
+      </details>`;
+    }
+    function hubChipsHtml(kind,side){
+      const cfg={
+        status:{items:statusTemplates,del:'template-delete',empty:'沒有記憶的狀態標籤',label:t=>`${hubKindIcon(t.kind)} ${escapeHtml(t.name)}`},
+        attribute:{items:attributeTemplates,del:'attribute-template-delete',empty:'無記憶屬性',label:t=>escapeHtml(t.name)},
+        passive:{items:passiveTemplates,del:'passive-template-delete',empty:'無記憶的被動能力',label:t=>`&#10022; ${escapeHtml(t.name)}`},
+        bar:{items:barTemplates,del:'bar-template-delete',empty:'無記憶數值條',label:t=>`${escapeHtml(t.name)}（${t.maxValue}）`}
+      }[kind];
+      if(!cfg.items.length)return `<span class="status">${cfg.empty}</span>`;
+      return cfg.items.map(t=>`<span><button type="button" class="template-tag" data-hub-tpl="${kind}" data-hub-side="${side}" data-hub-tpl-id="${escapeAttr(t.id)}">${cfg.label(t)}</button><button type="button" class="template-delete" data-${cfg.del}="${escapeAttr(t.id)}" title="刪除這個記憶標籤">&#215;</button></span>`).join('');
+    }
+    function hubThresholdListHtml(){
+      const bosses=monsters.filter(m=>m.isBoss);
+      if(!bosses.length)return '<span class="status">目前場上沒有頭目</span>';
+      return bosses.map(unit=>{
+        const list=(unit.hpThresholds||[]).map(t=>`<span class="condition ${unit.hp<t.value?'debuff':'buff'}">${t.triggered?'&#9889;':'&#9888;&#65039;'} 低於 ${t.value}${t.passiveName?` &#8594; ${escapeHtml(t.passiveName)} ${t.autoRemove?'&#128260;':'&#128274;'}`:''}<button type="button" data-boss-threshold-delete="${unit.id}" data-threshold-id="${t.id}" title="刪除這條警戒線">&#215;</button></span>`).join('')||'<span class="status">尚未設定</span>';
+        return `<div class="hub-threshold-row"><span class="hub-threshold-name"><span class="unit-dot" style="background:${sanitizeColor(unit.color,'#4c78a4')}"></span>👑 ${escapeHtml(unit.name)}（${unit.hp}/${unit.maxHp}）</span><span class="threshold-list">${list}</span></div>`;
+      }).join('');
+    }
+    function renderManageHub(){
+      const host=document.querySelector('#manageHub');
+      if(!host)return;
+      if(!host.querySelector('.hub-panel')){
+        const open=hubReadOpenState();
+        host.innerHTML=hubPanelSkeletonHtml('player',open.player!==false)+hubPanelSkeletonHtml('monster',open.monster!==false);
+        host.querySelectorAll('details[data-hub-panel]').forEach(d=>d.addEventListener('toggle',()=>{const s=hubReadOpenState();s[d.dataset.hubPanel]=d.open;hubWriteOpenState(s)}));
+        hubLastSig=null;
+      }
+      const sig='t'+templatesRev+'|'+JSON.stringify(players.map(p=>[p.id,p.name,p.isAbsent?1:0]))+'|'+JSON.stringify(monsters.map(m=>[m.id,m.name,m.color,m.isBoss?1:0,m.isBoss?[m.hp,m.maxHp,(m.hpThresholds||[]).map(t=>[t.id,t.value,t.passiveName,t.triggered?1:0,t.autoRemove?1:0])]:0]));
+      if(sig===hubLastSig)return;
+      hubLastSig=sig;
+      host.querySelectorAll('[data-hub-chips]').forEach(el=>{el.innerHTML=hubChipsHtml(el.dataset.hubChips,el.dataset.hubSide)});
+      const pc=host.querySelector('[data-hub-count="player"]');if(pc)pc.textContent=`（${players.filter(p=>!p.isAbsent).length} 位）`;
+      const mc=host.querySelector('[data-hub-count="monster"]');if(mc)mc.textContent=`（${monsters.length} 隻）`;
+      const th=host.querySelector('[data-hub-thresholds]');if(th)th.innerHTML=hubThresholdListHtml();
+    }
+    /* ---------- 「要新增給誰？」選擇視窗 ---------- */
+    function hubOpenPicker(opts){
+      // opts: {side, title, desc, units, hasDup(unit), dupKind:'status'|'simple'|'none', onConfirm(targets,dupChoice)}
+      if(!opts.units.length){alert(opts.emptyText||'目前沒有可以選擇的對象。');return}
+      hubPickerState={...opts,selected:new Set()};
+      const overlay=document.querySelector('#hubPickerOverlay');
+      document.querySelector('#hubPickerTitle').textContent=opts.title;
+      document.querySelector('#hubPickerDesc').innerHTML=opts.desc;
+      const quick=[];
+      quick.push('<button type="button" data-hub-pick-all="1">全選</button>');
+      quick.push('<button type="button" data-hub-pick-none="1">全部取消</button>');
+      const lastValid=(hubLastSelection[opts.side]||[]).filter(id=>opts.units.some(u=>u.id===id));
+      if(lastValid.length)quick.push(`<button type="button" data-hub-pick-last="1">↺ 跟上次一樣（${lastValid.length}）</button>`);
+      const cur=currentTurnUnit();
+      if(cur&&opts.units.some(u=>u.id===cur.unit.id))quick.push(`<button type="button" data-hub-pick-id="${cur.unit.id}">▶ 目前回合：${escapeHtml(cur.unit.name)}</button>`);
+      if(opts.side==='monster'){
+        const squadIds=[...new Set(opts.units.filter(u=>u.squadId).map(u=>u.squadId))];
+        squadIds.forEach(sid=>{const sq=findSquad(sid);if(sq)quick.push(`<button type="button" data-hub-pick-squad="${sid}">🛡️ ${escapeHtml(sq.name)}（整隊）</button>`)});
+      }
+      document.querySelector('#hubPickerQuick').innerHTML=quick.join('');
+      document.querySelector('#hubPickerList').innerHTML=opts.units.map(u=>{
+        const icon=u.isSummon?'&#128302; ':u.isBoss?'&#128081; ':'';
+        const dup=opts.hasDup&&opts.hasDup(u);
+        return `<label class="hub-target-row"><input type="checkbox" data-hub-target="${u.id}"><span class="unit-dot" style="background:${sanitizeColor(u.color,'#4c78a4')}"></span><span class="hub-target-name">${icon}${escapeHtml(u.name)}</span>${dup?'<span class="hub-target-dup">已經有了</span>':''}<span class="hub-target-hp">${u.hp}/${u.maxHp}</span></label>`;
+      }).join('');
+      hubSyncPicker();
+      overlay.hidden=false;
+      overlay.classList.add('show');
+    }
+    function hubClosePicker(){
+      const overlay=document.querySelector('#hubPickerOverlay');
+      if(overlay){overlay.classList.remove('show');overlay.hidden=true}
+      hubPickerState=null;
+    }
+    function hubSyncPicker(){
+      const st=hubPickerState;if(!st)return;
+      document.querySelectorAll('#hubPickerList [data-hub-target]').forEach(cb=>{cb.checked=st.selected.has(cb.dataset.hubTarget);cb.closest('.hub-target-row').classList.toggle('checked',cb.checked)});
+      const dupTargets=st.units.filter(u=>st.selected.has(u.id)&&st.hasDup&&st.hasDup(u));
+      const dupBox=document.querySelector('#hubPickerDup');
+      if(dupTargets.length&&st.dupKind!=='none'){
+        const names=dupTargets.map(u=>escapeHtml(u.name)).join('、');
+        const prev=dupBox.querySelector('input[name=hubDupMode]:checked')?.value||dupBox.querySelector('input[name=hubDupAgain]')?.checked;
+        if(st.dupKind==='status'){
+          const keep=['add','replace','skip'].includes(prev)?prev:'add';
+          dupBox.innerHTML=`<div class="hub-dup-title">⚠️ 以下 ${dupTargets.length} 位已經有這個狀態了：${names}</div><label><input type="radio" name="hubDupMode" value="add"${keep==='add'?' checked':''}> 回合數相加</label><label><input type="radio" name="hubDupMode" value="replace"${keep==='replace'?' checked':''}> 直接覆蓋成這次的回合數</label><label><input type="radio" name="hubDupMode" value="skip"${keep==='skip'?' checked':''}> 這幾位不重複加（其他人照常新增）</label>`;
+        }else{
+          dupBox.innerHTML=`<div class="hub-dup-title">⚠️ 以下 ${dupTargets.length} 位已經有同名的了：${names}</div><label><input type="checkbox" name="hubDupAgain"${prev===true?' checked':''}> 仍然再加一個（不勾＝這幾位略過，其他人照常新增）</label>`;
+        }
+        dupBox.hidden=false;
+      }else{dupBox.innerHTML='';dupBox.hidden=true}
+      const ok=document.querySelector('#hubPickerConfirm');
+      ok.disabled=st.selected.size===0;
+      ok.textContent=st.selected.size?`✅ 新增給 ${st.selected.size} ${st.side==='player'?'位':'隻'}`:'請先勾選對象';
+    }
+    function hubConfirmPicker(){
+      const st=hubPickerState;if(!st||!st.selected.size)return;
+      const targets=st.units.filter(u=>st.selected.has(u.id)&&findUnit(u.id));
+      if(!targets.length){hubClosePicker();return}
+      const dupBox=document.querySelector('#hubPickerDup');
+      const dupChoice=st.dupKind==='status'?(dupBox.querySelector('input[name=hubDupMode]:checked')?.value||'add'):(dupBox.querySelector('input[name=hubDupAgain]')?.checked?'again':'skip');
+      hubLastSelection[st.side]=targets.map(u=>u.id);
+      const confirmFn=st.onConfirm;
+      const sourceForm=st.form;
+      hubClosePicker();
+      if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
+      const count=confirmFn(targets,dupChoice);
+      // 從表單新增成功後清空表單（跟原本卡片上的表單新增完會重置一樣）；按取消則保留輸入內容。
+      if(sourceForm&&typeof sourceForm.reset==='function')sourceForm.reset();
+      render();
+      if(typeof count==='number')showUndoToast(count?`已新增給 ${count} ${st.side==='player'?'位':'隻'}`:'選到的對象都已經有了，這次沒有新增');
+    }
+    /* ---------- 實際套用（每一種都只記一筆歷史，一次「上一步」就能整批復原） ---------- */
+    function hubAddStatus(side,spec,fromForm,form){
+      const {name,kind,turns,color,autoTick}=spec;
+      hubOpenPicker({side,title:'要把這個狀態加給誰？（可複選）',desc:`<span class="condition ${kind}" style="--condition-color:${color}">${hubKindIcon(kind)} ${escapeHtml(name)} <span class="turns">${autoTick?'':'&#128274; '}${turns}回合</span></span>`,units:hubSideUnits(side),hasDup:u=>(u.statuses||[]).some(s=>s.name===name&&s.kind===kind),dupKind:'status',form,onConfirm:(targets,dupMode)=>{
+        saveHistory();
+        let n=0;
+        targets.forEach(unit=>{
+          if(!Array.isArray(unit.statuses))unit.statuses=[];
+          const existing=unit.statuses.find(s=>s.name===name&&s.kind===kind);
+          if(existing){
+            if(dupMode==='skip')return;
+            existing.turns=dupMode==='add'?Math.min(999,(Number(existing.turns)||0)+turns):turns;
+            existing.color=color;existing.autoTick=autoTick;
+            logCombatEvent(unit,`更新狀態：${name}（${dupMode==='add'?'累加後':'覆蓋為'} ${existing.turns} 回合${autoTick?'':'，手動'}）`,'statusGain');
+            n++;return;
+          }
+          unit.statuses.push({id:uuid(),name,kind,turns,color,autoTick});
+          logCombatEvent(unit,`獲得新狀態：${name}（${turns}回合${autoTick?'':'，手動'}）`,'statusGain');
+          n++;
+        });
+        if(fromForm){
+          const old=statusTemplates.find(t=>t.name===name&&t.kind===kind);
+          if(old){old.turns=turns;old.color=color;old.autoTick=autoTick}else pushWithLimit(statusTemplates,{id:uuid(),name,kind,turns,color,autoTick},MAX_TEMPLATES);
+          saveMemory('battleTrackerStatusTemplates',statusTemplates);
+        }
+        return n;
+      }});
+    }
+    function hubAddSimple(side,what,spec,fromForm,form){
+      // what: attribute | passive | bar
+      const label={attribute:'屬性',passive:'被動能力',bar:'數值條'}[what];
+      const listKey={attribute:'attributes',passive:'passives',bar:'bars'}[what];
+      const descHtml=what==='bar'?`<b>${escapeHtml(spec.name)}</b>（${spec.maxValue}/${spec.maxValue}）`:what==='passive'?`<span class="passive" style="--passive-color:${spec.color}">&#10022; <span class="passive-text">${escapeHtml(spec.name)}</span></span>`:`<span class="attribute" style="--attr-color:${spec.color}">${escapeHtml(spec.name)}</span>`;
+      hubOpenPicker({side,title:`要把這個${label}加給誰？（可複選）`,desc:descHtml,units:hubSideUnits(side),hasDup:u=>(u[listKey]||[]).some(x=>x.name===spec.name),dupKind:'simple',form,onConfirm:(targets,dupChoice)=>{
+        saveHistory();
+        let n=0;
+        targets.forEach(unit=>{
+          const list=Array.isArray(unit[listKey])?unit[listKey]:(unit[listKey]=[]);
+          if(dupChoice==='skip'&&list.some(x=>x.name===spec.name))return;
+          if(what==='attribute')list.push({id:uuid(),name:spec.name,value:'',color:spec.color});
+          else if(what==='passive')list.push({id:uuid(),name:spec.name,color:spec.color});
+          else{list.push({id:uuid(),name:spec.name,value:spec.maxValue,maxValue:spec.maxValue,color:spec.color});logCombatEvent(unit,`獲得新數值條：${spec.name}（${spec.maxValue}/${spec.maxValue}）`,'bar')}
+          n++;
+        });
+        if(fromForm){
+          if(what==='attribute'){if(!attributeTemplates.find(t=>t.name===spec.name))pushWithLimit(attributeTemplates,{id:uuid(),name:spec.name,color:spec.color},MAX_TEMPLATES);saveMemory('battleTrackerAttributeTemplates',attributeTemplates)}
+          else if(what==='passive'){if(!passiveTemplates.find(t=>t.name===spec.name))pushWithLimit(passiveTemplates,{id:uuid(),name:spec.name,color:spec.color},MAX_TEMPLATES);saveMemory('battleTrackerPassiveTemplates',passiveTemplates)}
+          else{const old=barTemplates.find(t=>t.name===spec.name);if(old)old.maxValue=spec.maxValue;else pushWithLimit(barTemplates,{id:uuid(),name:spec.name,maxValue:spec.maxValue,color:spec.color},MAX_TEMPLATES);saveMemory('battleTrackerBarTemplates',barTemplates)}
+        }
+        return n;
+      }});
+    }
+    function hubAddThreshold(spec,form){
+      const bosses=monsters.filter(m=>m.isBoss);
+      hubOpenPicker({side:'monster',title:'要把這條警戒線加給哪些頭目？（可複選）',desc:`<span class="condition buff">&#9888;&#65039; 低於 ${spec.value}${spec.passiveName?` &#8594; ${escapeHtml(spec.passiveName)} ${spec.autoRemove?'&#128260;':'&#128274;'}`:''}</span>`,units:bosses,emptyText:'目前場上沒有頭目，警戒線只能加在頭目身上。',hasDup:u=>(u.hpThresholds||[]).some(t=>t.value===spec.value),dupKind:'none',form,onConfirm:targets=>{
+        saveHistory();
+        let n=0;
+        targets.forEach(unit=>{
+          if(!unit.isBoss)return;
+          if(!Array.isArray(unit.hpThresholds))unit.hpThresholds=[];
+          if(unit.hpThresholds.some(t=>t.value===spec.value))return;
+          if(unit.hpThresholds.length>=5)return;
+          unit.hpThresholds.push({id:uuid(),value:spec.value,passiveName:spec.passiveName,triggered:false,autoRemove:spec.autoRemove});
+          unit.hpThresholds=unit.hpThresholds.sort((a,b)=>b.value-a.value).slice(0,5);
+          checkHpThresholds(unit);
+          n++;
+        });
+        return n;
+      }});
+    }
+    function hubHandleSubmit(event){
+      const form=event.target.closest('form[data-hub-form]');
+      if(!form)return;
+      event.preventDefault();
+      event.stopPropagation();
+      const side=form.dataset.hubSide;
+      const data=new FormData(form);
+      const kind=form.dataset.hubForm;
+      if(kind==='status'){
+        const rawName=String(data.get('statusName')||'').trim();const turns=Number(data.get('statusTurns'));
+        if(!rawName||!Number.isInteger(turns)||turns<1||turns>999){alert('請輸入狀態名稱與 1～999 的回合數。');return}
+        const name=confirmLongText(rawName,20);if(name===null)return;
+        const statusKind=['buff','debuff','neutral'].includes(data.get('statusKind'))?data.get('statusKind'):'buff';
+        const autoTick=data.get('statusAutoTick')!==null;
+        const old=statusTemplates.find(t=>t.name===name&&t.kind===statusKind);
+        const color=old?(old.color||hubKindColor(statusKind)):hubKindColor(statusKind);
+        hubAddStatus(side,{name,kind:statusKind,turns,color,autoTick},true,form);
+      }else if(kind==='attribute'){
+        const rawName=String(data.get('attributeName')||'').trim();if(!rawName)return;
+        const name=confirmLongText(rawName,20);if(name===null)return;
+        const old=attributeTemplates.find(t=>t.name===name);
+        hubAddSimple(side,'attribute',{name,color:old?old.color:'#4c78a4'},true,form);
+      }else if(kind==='passive'){
+        const rawName=String(data.get('passiveName')||'').trim();if(!rawName)return;
+        const name=confirmLongText(rawName,50);if(name===null)return;
+        const old=passiveTemplates.find(t=>t.name===name);
+        hubAddSimple(side,'passive',{name,color:old?old.color:'#8a5cd6'},true,form);
+      }else if(kind==='bar'){
+        const rawName=String(data.get('barName')||'').trim();const maxValue=Number(data.get('barMax'));
+        if(!rawName||!Number.isInteger(maxValue)||maxValue<1||maxValue>999999){alert('請輸入數值條名稱與 1～999999 的最大值。');return}
+        const name=confirmLongText(rawName,20);if(name===null)return;
+        const old=barTemplates.find(t=>t.name===name);
+        hubAddSimple(side,'bar',{name,maxValue,color:old?old.color:'#7c8db5'},true,form);
+      }else if(kind==='threshold'){
+        const value=Math.floor(Number(data.get('thresholdValue')));
+        if(!Number.isFinite(value)||value<1||value>999999){alert('請輸入有效的血量數值。');return}
+        hubAddThreshold({value,passiveName:String(data.get('thresholdPassive')||'').trim().slice(0,30),autoRemove:data.get('thresholdAutoRemove')!==null},form);
+      }
+    }
+    function hubHandleClick(event){
+      const chip=event.target.closest('[data-hub-tpl]');
+      if(!chip)return;
+      event.stopPropagation();
+      const side=chip.dataset.hubSide;const id=chip.dataset.hubTplId;
+      const kind=chip.dataset.hubTpl;
+      if(kind==='status'){const t=statusTemplates.find(x=>x.id===id);if(t)hubAddStatus(side,{name:t.name,kind:t.kind,turns:t.turns,color:t.color||hubKindColor(t.kind),autoTick:t.autoTick!==false},false)}
+      else if(kind==='attribute'){const t=attributeTemplates.find(x=>x.id===id);if(t)hubAddSimple(side,'attribute',{name:t.name,color:t.color||'#4c78a4'},false)}
+      else if(kind==='passive'){const t=passiveTemplates.find(x=>x.id===id);if(t)hubAddSimple(side,'passive',{name:t.name,color:t.color||'#8a5cd6'},false)}
+      else if(kind==='bar'){const t=barTemplates.find(x=>x.id===id);if(t)hubAddSimple(side,'bar',{name:t.name,maxValue:t.maxValue,color:t.color||'#7c8db5'},false)}
+    }
+    (function initManageHub(){
+      const host=document.querySelector('#manageHub');
+      if(host){
+        host.addEventListener('submit',hubHandleSubmit);
+        host.addEventListener('click',hubHandleClick);
+        renderManageHub();
+      }
+      const overlay=document.querySelector('#hubPickerOverlay');
+      if(!overlay)return;
+      overlay.addEventListener('click',event=>{
+        const st=hubPickerState;
+        if(!event.target.closest('.hub-sheet')){hubClosePicker();return}
+        if(event.target.closest('#hubPickerCancel')||event.target.closest('#hubPickerCloseX')){hubClosePicker();return}
+        if(event.target.closest('#hubPickerConfirm')){hubConfirmPicker();return}
+        if(!st)return;
+        if(event.target.closest('[data-hub-pick-all]')){st.units.forEach(u=>st.selected.add(u.id));hubSyncPicker();return}
+        if(event.target.closest('[data-hub-pick-none]')){st.selected.clear();hubSyncPicker();return}
+        if(event.target.closest('[data-hub-pick-last]')){st.selected.clear();(hubLastSelection[st.side]||[]).forEach(id=>{if(st.units.some(u=>u.id===id))st.selected.add(id)});hubSyncPicker();return}
+        const one=event.target.closest('[data-hub-pick-id]');
+        if(one){st.selected.add(one.dataset.hubPickId);hubSyncPicker();return}
+        const sq=event.target.closest('[data-hub-pick-squad]');
+        if(sq){const members=st.units.filter(u=>u.squadId===sq.dataset.hubPickSquad);const allOn=members.every(u=>st.selected.has(u.id));members.forEach(u=>{if(allOn)st.selected.delete(u.id);else st.selected.add(u.id)});hubSyncPicker();return}
+      });
+      overlay.addEventListener('change',event=>{
+        const st=hubPickerState;if(!st)return;
+        const cb=event.target.closest('[data-hub-target]');
+        if(cb){if(cb.checked)st.selected.add(cb.dataset.hubTarget);else st.selected.delete(cb.dataset.hubTarget);hubSyncPicker()}
+      });
+      document.addEventListener('keydown',event=>{if(event.key==='Escape'&&hubPickerState)hubClosePicker()});
+    })();
   </script>
 </body>
 </html>
